@@ -9,13 +9,6 @@
 #include <math.h>
 #include "libtcod.h"
 
-/* sample screen size */
-#define SAMPLE_SCREEN_WIDTH 46
-#define SAMPLE_SCREEN_HEIGHT 20
-/* sample screen position */
-#define SAMPLE_SCREEN_X 20
-#define SAMPLE_SCREEN_Y 10
-
 /* ***************************
  * the main function
  * ***************************/
