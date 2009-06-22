@@ -2,10 +2,14 @@ SRCDIR=./src
 INCDIR=./include
 TCINCDIR=tilesense/libtcod/include
 CC=gcc
-CPP=g++
 FLAGS=-ggdb -std=c99
-TEMP=/tmp
-.SUFFIXES: .o .h .c .hpp .cpp
+.SUFFIXES: .o .h .c
+
+C_OBJS=\
+  $(SRCDIR)/salamanderl.o
+
+# HEADERS=\
+#   $(INCDIR)/thing.h
 
 #dependencies
 # SDL
@@ -30,20 +34,14 @@ TS_LIBS=$(TS_DIR)/libtilesense.a
 
 CFLAGS=$(FLAGS) -I$(INCDIR) -I$(TCINCDIR) -I$(TCINCDIR)/gui -Wall $(TS_FLAGS) $(SDL_FLAGS) $(ZLIB_FLAGS) $(PNG_FLAGS) -fno-strict-aliasing
 
-$(TEMP)/%.o : $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) -o $@ -c $< 
-
-C_OBJS=$(TEMP)/salamanderl.o
-# HEADERS=$(INCDIR)/thing.h
-
 salamanderl : $(C_OBJS) 
 	$(CC) $(C_OBJS) $(CFLAGS) -o $@ -L./tilesense/libtcod -ltcod -L./tilesense -ltilesense $(ZLIB_LIBS) $(PNG_LIBS) $(SDL_LIBS) 
 
 salamanderl.app : salamanderl
-	mkdir -p salamanderl.app/Contents/MacOS
-	cp mac_Info.plist salamanderl.app/Contents/Info.plist
-	cp salamanderl salamanderl.app/Contents/MacOS/
+	mkdir -p $@/Contents/MacOS
+	cp mac_Info.plist $@/Contents/Info.plist
+	cp salamanderl $@/Contents/MacOS/
 
 clean :
-	\rm -f $(C_OBJS) salamanderl
-	\rm -rf salamanderl.app
+	rm -f $(C_OBJS) salamanderl
+	rm -rf salamanderl.app
