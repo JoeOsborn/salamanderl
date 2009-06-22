@@ -13,7 +13,7 @@
  * the main function
  * ***************************/
 int main( int argc, char *argv[] ) {
-  char *font="libtcod/fonts/courier12x12_aa_tc.png";
+  char *font="tilesense/libtcod/fonts/courier12x12_aa_tc.png";
   int nb_char_horiz=0,nb_char_vertic=0;
   int font_flags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD;
 	TCOD_console_set_custom_font(font,font_flags,nb_char_horiz,nb_char_vertic);
