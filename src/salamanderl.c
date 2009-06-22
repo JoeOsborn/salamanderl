@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-#include "libtcod.h"
+#include <libtcod.h>
 
 /* ***************************
  * the main function
