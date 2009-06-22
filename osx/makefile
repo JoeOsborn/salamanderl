@@ -1,4 +1,5 @@
 SRCDIR=./src
+INCDIR=./include
 TCINCDIR=tilesense/libtcod/include
 CC=gcc
 CPP=g++
@@ -27,14 +28,15 @@ TS_DIR=tilesense
 TS_FLAGS=-I $(TS_DIR)/include
 TS_LIBS=$(TS_DIR)/libtilesense.a
 
-CFLAGS=$(FLAGS) -I$(TCINCDIR) -I$(TCINCDIR)/gui -Wall $(TS_FLAGS) $(SDL_FLAGS) $(ZLIB_FLAGS) $(PNG_FLAGS) -fno-strict-aliasing
+CFLAGS=$(FLAGS) -I$(INCDIR) -I$(TCINCDIR) -I$(TCINCDIR)/gui -Wall $(TS_FLAGS) $(SDL_FLAGS) $(ZLIB_FLAGS) $(PNG_FLAGS) -fno-strict-aliasing
 
 $(TEMP)/%.o : $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -o $@ -c $< 
 
 C_OBJS=$(TEMP)/salamanderl.o
+# HEADERS=$(INCDIR)/thing.h
 
-salamanderl : $(C_OBJS)
+salamanderl : $(C_OBJS) 
 	$(CC) $(C_OBJS) $(CFLAGS) -o $@ -L./tilesense/libtcod -ltcod -L./tilesense -ltilesense $(ZLIB_LIBS) $(PNG_LIBS) $(SDL_LIBS) 
 
 salamanderl.app : salamanderl
