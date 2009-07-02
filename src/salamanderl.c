@@ -6,101 +6,7 @@
 
 #include <tilesense.h>
 
-Map initRoom() {
-  Map m = map_new();
-  unsigned short tileMap[] = {
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,    
-    
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 0, 0, 0, 0, 2,
-    2, 0, 0, 2, 2, 2, 2, 2,    
-    
-    2, 2, 2, 2, 2, 2, 2, 2,
-    2, 1, 1, 1, 1, 1, 1, 1,
-    2, 1, 1, 1, 1, 1, 1, 1,
-    2, 1, 1, 2, 2, 1, 1, 2,
-    2, 1, 1, 2, 2, 1, 1, 2,
-    2, 1, 1, 1, 1, 1, 1, 2,
-    2, 1, 1, 1, 1, 1, 1, 2,
-    2, 1, 1, 2, 1, 1, 2, 2   
-    };
-  m = map_init(m, 
-    "cage", 
-    (mapVec){8, 8, 4}, 
-    tileMap,
-    3
-  ); 
-  Tile floorTile = tile_init(
-    tile_new(), 
-    0
-  );
-  Tile wallTile = tile_init(
-    tile_new(), 
-    3
-  );
-  map_add_tile(m, floorTile);
-  map_add_tile(m, wallTile);
-  return m;
-}
-
-Object initPlayer(Map room) {
-  Object playerObj = object_init(object_new(), 
-    "@", 
-    (mapVec){3, 1, 0}, 
-    (mapVec){1, 1, 0},
-    room
-  );
-  Sensor leftEye = sensor_init(sensor_new(), "left_eye",
-    frustum_init(frustum_new(),
-      mapvec_zero,
-      (mapVec){1, -1, 0},
-      1, 2,
-      0, 10
-    )
-  );
-  Sensor rightEye = sensor_init(sensor_new(), "right_eye",
-    frustum_init(frustum_new(),
-      mapvec_zero,
-      (mapVec){1, 1, 0},
-      1, 2,
-      0, 10
-    )
-  );
-  Sensor basicSense = sensor_init(sensor_new(), "basic_sense",
-    sphere_init(sphere_new(),
-      mapvec_zero,
-      2
-    )
-  );
-  object_add_sensor(playerObj, leftEye);
-  object_add_sensor(playerObj, rightEye);
-  object_add_sensor(playerObj, basicSense);
-  
-  map_add_object(room, playerObj);
-  
-  return playerObj;
-}
+#include "load.h"
 
 void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
   int index=0;
@@ -124,39 +30,13 @@ void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
       tileIndex = map_tile_at(m, x, y, z);
       drawX = x*2+z*((msz.x*2)+1);
       drawY = y;
-      //TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, "%i", index);
+      TileCtx context = tile_context(map_get_tile(m, tileIndex));
       if(map_item_visible(flags)) {
          //visible and lit and in volume
-         TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, "%i", tileIndex);
+        TCOD_console_set_foreground_color(NULL, tilectx_fore_color(context));
+        TCOD_console_set_background_color(NULL, tilectx_back_color(context));
+        TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_SET, "%s", tilectx_symbol(context));
       }
-      // else if(!map_item_lit(flags) && map_item_in_volume(flags) && map_item_los(flags)) {
-      //   //not lit and viewable
-      //   TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, "_");
-      // }
-      // else if(!map_item_lit(flags) && map_item_in_volume(flags) && !map_item_los(flags)) {
-      //   //not lit and not los
-      //   TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, ",");
-      // }
-      // else if(!map_item_lit(flags) && !map_item_in_volume(flags) && map_item_los(flags)) {
-      //   //not lit and not in vol
-      //   TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, "d");
-      // }
-      // else if(map_item_lit(flags) && !map_item_in_volume(flags) && map_item_los(flags)) {
-      //   //lit and in los, but not in vol
-      //   TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, "a");
-      // }
-      // else if(map_item_lit(flags) && map_item_in_volume(flags) && !map_item_los(flags)) {
-      //   //lit and in vol, but not in los
-      //   TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, "b");
-      // }
-      // else if(map_item_lit(flags) && !map_item_in_volume(flags) && !map_item_los(flags)) {
-      //   //lit and not in vol or los (or los wasn't checked)
-      //   TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, ".");
-      // }
-      // else if(!map_item_lit(flags) && !map_item_in_volume(flags) && !map_item_los(flags)) { 
-      //   //not lit, in vol, or in los
-      //   TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_NONE, "x");
-      // }
     }
   }
 }
@@ -165,10 +45,13 @@ void draw_object(Stimulus st) {
   unsigned char visflags = stimulus_obj_sight_change_get_new_flags(st);
   mapVec pos = stimulus_obj_sight_change_get_position(st);
   char *id = stimulus_obj_sight_change_get_id(st);
+  ObjectCtx context = stimulus_obj_sight_change_get_context(st);
   if(!map_item_visible(visflags)) {
-    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_NONE, "X");
+//    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_NONE, "X");
   } else {
-    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_NONE, id);
+    TCOD_console_set_foreground_color(NULL, objectctx_fore_color(context));
+    TCOD_console_set_background_color(NULL, objectctx_back_color(context));
+    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_NONE, objectctx_symbol(context));
   }
 }
 
@@ -177,14 +60,11 @@ void drawstimuli(Map m, Sensor s) {
   unsigned char *tiles;
   mapVec pos, size, oldPt, delta;
   unsigned char visflags;
-  if(TCOD_list_size(stims) > 0) {
-    TCOD_console_print_left(NULL, 0, 10, TCOD_BKGND_NONE, "                            ");
-  }
   for(int i = 0; i < TCOD_list_size(stims); i++) {
     //this is a very naive approach that completely ignores the possibility of overdraw and 'forgets' object positions
     Stimulus st = TCOD_list_get(stims, i);
     stimtype type = stimulus_type(st);
-    TCOD_console_print_left(NULL, i*2, 10, TCOD_BKGND_NONE, "s%i", type);
+    // TCOD_console_print_left(NULL, i*2, 10, TCOD_BKGND_NONE, "s%i", type);
     switch(type) {
       case StimTileLitChange:
       case StimTileVisChange:
@@ -204,13 +84,13 @@ void drawstimuli(Map m, Sensor s) {
         pos = stimulus_obj_sight_change_get_position(st);
         delta = stimulus_obj_moved_get_dir(st);
         oldPt = mapvec_subtract(pos, delta);
-        TCOD_console_print_left(NULL, oldPt.x*2, oldPt.y, TCOD_BKGND_NONE, "x");
+        // TCOD_console_print_left(NULL, oldPt.x*2, oldPt.y, TCOD_BKGND_NONE, "x");
         draw_object(st);
-        TCOD_console_print_left(NULL, 0, 15, TCOD_BKGND_NONE, "got move");
+        // TCOD_console_print_left(NULL, 0, 15, TCOD_BKGND_NONE, "got move");
         break;
       case StimGeneric:
       default:
-        TCOD_console_print_left(NULL, i*9, 16, TCOD_BKGND_NONE, "generic %d", i);
+        // TCOD_console_print_left(NULL, i*9, 16, TCOD_BKGND_NONE, "generic %d", i);
         break;
     }
     stimulus_free(st);
@@ -223,7 +103,7 @@ void drawmap(Map m, Object o) {
   for(int i = 0; i < object_sensor_count(o); i++) {
     s = object_get_sensor(o, i);
     drawstimuli(m, s);
-    TCOD_console_print_left(NULL, 0, 13+i, TCOD_BKGND_NONE, "<%f %f %f>", sensor_facing(s).x, sensor_facing(s).y, sensor_facing(s).z);
+    // TCOD_console_print_left(NULL, 0, 13+i, TCOD_BKGND_NONE, "<%f %f %f>", sensor_facing(s).x, sensor_facing(s).y, sensor_facing(s).z);
   }
 }
 
@@ -239,8 +119,14 @@ int main( int argc, char *argv[] ) {
 	TCOD_console_set_custom_font(font,font_flags,nb_char_horiz,nb_char_vertic);
 	TCOD_console_init_root(80,40,"salamandeRL",false);
 	
-  Map room = initRoom();
-  Object player = initPlayer(room);
+  Loader loader = loader_init(loader_new(), "rsrc");
+  loader_load_map(loader, "cage");
+  Map map = loader_get_map(loader, "cage");
+  loader_load_status(loader, "status");
+  loader_load_object(loader, "player");
+  loader_load_save(loader, "start");
+  Object player = map_get_object(map, "@");
+
   object_sense(player);
   
   TCOD_sys_set_fps(30);
@@ -280,6 +166,7 @@ int main( int argc, char *argv[] ) {
     } else if(key.vk == TCODK_CHAR) {
       switch(key.c) {
         case 'w':
+          #warning wrap this move with a new move that checks collision
           map_move_object(room, "@", (mapVec){0, -1, 0});
           break;
         case 'a':

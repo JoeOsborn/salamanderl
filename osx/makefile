@@ -6,10 +6,15 @@ FLAGS=-ggdb -std=c99
 .SUFFIXES: .o .h .c
 
 C_OBJS=\
-  $(SRCDIR)/salamanderl.o
+  $(SRCDIR)/loader.o \
+  $(SRCDIR)/objectctx.o \
+  $(SRCDIR)/salamanderl.o \
+  $(SRCDIR)/tilectx.o
 
-# HEADERS=\
-#   $(INCDIR)/thing.h
+HEADERS=\
+  $(INCDIR)/loader.h \
+  $(INCDIR)/objectctx.h \
+  $(INCDIR)/tilectx.h
 
 #dependencies
 # SDL
