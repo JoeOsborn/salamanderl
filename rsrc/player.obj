@@ -39,5 +39,7 @@ object "player" {
 	}
 	collision {
 	  normal
+	  wet=false
+	  tiny=false
 	}
 }

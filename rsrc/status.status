@@ -1,0 +1,21 @@
+status "wet" {
+  on {
+    collision {
+      wet=true
+    }
+    revoke=["dry"]
+    description="You've become quite damp."
+  }
+  off {
+    grant=["dry"]
+  }
+}
+status "dry" {
+  on {
+    collision {
+      wet=false
+    }
+    revoke=["wet"]
+    description="Your skin feels dry again."
+  }
+}

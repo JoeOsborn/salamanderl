@@ -9,7 +9,7 @@ tile "floor" { //1
 			}
 		*/
 	}
-	color="#000000"
+	color="#FFFFFF"
 	symbol="."
 }
 tile "wall" { //2
@@ -31,8 +31,33 @@ tile "wall" { //2
 		}
 		*/
 	}
-	color="#000000"
+	color="#FFFFFF"
 	symbol="#"
+}
+tile "shallow pool" { //3
+  opacity=0
+  on_enter {
+    grant "wet" {
+      duration=60
+    }
+  }
+  collision {
+    default_allowed=true
+  }
+  color="#BBBBFF"
+  symbol="~"
+}
+tile "dry passage" { //4
+  opacity=0
+  collision {
+    default_allowed=false
+    collision_allow {
+      wet
+    }
+    collision_allow {
+      small
+    }
+  }
 }
 room "cage" {
   ambient_light=8 //out of 15
