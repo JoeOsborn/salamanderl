@@ -59,7 +59,7 @@ tile "dry passage" { //4
     }
   }
 }
-room "cage" {
+map "cage" {
   ambient_light=8 //out of 15
   dimensions=[4, 4, 2]
 	tilemap=[ //a box with no ceiling and a floor.
