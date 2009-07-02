@@ -1,7 +1,7 @@
 //make_object creates an instance of an "object".obj.
-make_object "player" { 
+make_object "player" { //forces a load of player.obj
   //the starting room
-  room="cage"
+  room="cage" //forces a load of cage.room
   //the position vector
   position=[1,1,0]
   //the facing vector. this means "to the right"

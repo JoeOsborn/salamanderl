@@ -7,14 +7,14 @@ FLAGS=-ggdb -std=c99
 
 C_OBJS=\
   $(SRCDIR)/loader.o \
-  $(SRCDIR)/objectctx.o \
-  $(SRCDIR)/salamanderl.o \
-  $(SRCDIR)/tilectx.o
+  $(SRCDIR)/drawinfo.o \
+  $(SRCDIR)/salamanderl.o 
 
 HEADERS=\
   $(INCDIR)/loader.h \
-  $(INCDIR)/objectctx.h \
-  $(INCDIR)/tilectx.h
+  $(INCDIR)/drawinfo.h \
+  $(INCDIR)/uthash.h \
+  $(INCDIR)/utlist.h
 
 #dependencies
 # SDL

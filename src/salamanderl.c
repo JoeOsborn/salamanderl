@@ -6,7 +6,8 @@
 
 #include <tilesense.h>
 
-#include "load.h"
+#include "loader.h"
+#include "drawinfo.h"
 
 void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
   int index=0;
@@ -30,12 +31,12 @@ void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
       tileIndex = map_tile_at(m, x, y, z);
       drawX = x*2+z*((msz.x*2)+1);
       drawY = y;
-      TileCtx context = tile_context(map_get_tile(m, tileIndex));
+      DrawInfo context = tile_context(map_get_tile(m, tileIndex));
       if(map_item_visible(flags)) {
          //visible and lit and in volume
-        TCOD_console_set_foreground_color(NULL, tilectx_fore_color(context));
-        TCOD_console_set_background_color(NULL, tilectx_back_color(context));
-        TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_SET, "%s", tilectx_symbol(context));
+        TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(context));
+        TCOD_console_set_background_color(NULL, drawinfo_back_color(context));
+        TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_SET, "%c", drawinfo_symbol(context));
       }
     }
   }
@@ -44,14 +45,13 @@ void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
 void draw_object(Stimulus st) {
   unsigned char visflags = stimulus_obj_sight_change_get_new_flags(st);
   mapVec pos = stimulus_obj_sight_change_get_position(st);
-  char *id = stimulus_obj_sight_change_get_id(st);
-  ObjectCtx context = stimulus_obj_sight_change_get_context(st);
+  DrawInfo context = stimulus_obj_sight_change_get_context(st);
   if(!map_item_visible(visflags)) {
 //    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_NONE, "X");
   } else {
-    TCOD_console_set_foreground_color(NULL, objectctx_fore_color(context));
-    TCOD_console_set_background_color(NULL, objectctx_back_color(context));
-    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_NONE, objectctx_symbol(context));
+    TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(context));
+    TCOD_console_set_background_color(NULL, drawinfo_back_color(context));
+    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_SET, "%c", drawinfo_symbol(context));
   }
 }
 
@@ -107,10 +107,8 @@ void drawmap(Map m, Object o) {
   }
 }
 
-//next steps: move map and player initialization, introduce chomping, initialize from files.
+//next steps: initialize from files, introduce chomping.
 //it's okay to hard-code chomping.
-//color would also be good to have.
-//consider a Palette object that maps tile indices to symbols+colors, and have one palette per room.
 
 int main( int argc, char *argv[] ) {
   char *font="tilesense/libtcod/fonts/courier12x12_aa_tc.png";
@@ -120,12 +118,9 @@ int main( int argc, char *argv[] ) {
 	TCOD_console_init_root(80,40,"salamandeRL",false);
 	
   Loader loader = loader_init(loader_new(), "rsrc");
-  loader_load_map(loader, "cage");
-  Map map = loader_get_map(loader, "cage");
-  loader_load_status(loader, "status");
-  loader_load_object(loader, "player");
   loader_load_save(loader, "start");
-  Object player = map_get_object(map, "@");
+  Map map = loader_get_map(loader, "cage");
+  Object player = map_get_object_named(map, "@");
 
   object_sense(player);
   
@@ -145,7 +140,7 @@ int main( int argc, char *argv[] ) {
 		TCOD_console_print_right(NULL,79,27,TCOD_BKGND_NONE,"elapsed : %8dms %4.2fs", TCOD_sys_elapsed_milli(),TCOD_sys_elapsed_seconds());
 		TCOD_console_print_left(NULL,0,27,TCOD_BKGND_NONE,"other stat stuff can go here");
 		//map
-    drawmap(room, player);
+    drawmap(map, player);
     TCOD_console_print_left(NULL, 
       object_position(player).x*2, object_position(player).y, 
       TCOD_BKGND_NONE,"@");
@@ -160,23 +155,23 @@ int main( int argc, char *argv[] ) {
 		TCOD_console_flush();
 
     if(key.vk == TCODK_RIGHT) {
-      map_turn_object(room, "@", 1);
+      map_turn_object(map, "@", 1);
     } else if(key.vk == TCODK_LEFT) {
-      map_turn_object(room, "@", -1);
+      map_turn_object(map, "@", -1);
     } else if(key.vk == TCODK_CHAR) {
       switch(key.c) {
         case 'w':
           #warning wrap this move with a new move that checks collision
-          map_move_object(room, "@", (mapVec){0, -1, 0});
+          map_move_object(map, "@", (mapVec){0, -1, 0});
           break;
         case 'a':
-          map_move_object(room, "@", (mapVec){-1, 0, 0});
+          map_move_object(map, "@", (mapVec){-1, 0, 0});
           break;
         case 's':
-          map_move_object(room, "@", (mapVec){0, 1, 0});
+          map_move_object(map, "@", (mapVec){0, 1, 0});
           break;
         case 'd':
-          map_move_object(room, "@", (mapVec){1, 0, 0});
+          map_move_object(map, "@", (mapVec){1, 0, 0});
           break;
         case 'q':
           finished = 1;
