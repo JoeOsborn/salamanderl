@@ -34,8 +34,14 @@ object "player" {
 	  ignore_lit
 	  //should 'see thru water' be a thing that's handled in tilesense? prolly, but ignore for now.
 	}
-	sensors = ["left eye", "right eye", "basic sense"]
-	//later, start_sensor {} and stop_sensor {} can be used to turn water sense on and off.
+	sense_profile "normal" {
+	  sensors = ["left eye", "right eye", "basic sense"]
+	}
+	sense_profile "underwater" {
+	  sensors = ["water sense"]
+	}
+	//later, switch_sense_profile can be used to turn water sense on and off.
+	active_sense_profile="normal"
 	collision {
 	  normal
 	}
