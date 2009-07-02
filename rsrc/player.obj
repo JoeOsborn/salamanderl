@@ -1,0 +1,42 @@
+object "player" {
+	sensor "left eye" {
+    frustum {
+      position=[0,0,0]
+      facing=[1,-1,0]
+      xfov=1
+      zfov=2
+      near=0
+      far=10
+	  }
+	}
+	sensor "right eye" {
+	  frustum {
+	    position=[0,0,0]
+	    facing=[1,1,0]
+	    xfov=1
+	    zfov=2
+	    near=0
+	    far=10
+  	}
+	}
+	sensor "basic sense" {
+	  sphere {
+	    position=[0,0,0]
+			radius=2
+	  }
+	}
+	sensor "water sense" {
+	  sphere {
+	    position=[0,0,0]
+	    radius=8
+	  }
+	  ignore_los
+	  ignore_lit
+	  //should 'see thru water' be a thing that's handled in tilesense? prolly, but ignore for now.
+	}
+	sensors = ["left eye", "right eye", "basic sense"]
+	//later, start_sensor {} and stop_sensor {} can be used to turn water sense on and off.
+	collision {
+	  normal
+	}
+}

@@ -227,6 +227,11 @@ void drawmap(Map m, Object o) {
   }
 }
 
+//next steps: move map and player initialization, introduce chomping, initialize from files.
+//it's okay to hard-code chomping.
+//color would also be good to have.
+//consider a Palette object that maps tile indices to symbols+colors, and have one palette per room.
+
 int main( int argc, char *argv[] ) {
   char *font="tilesense/libtcod/fonts/courier12x12_aa_tc.png";
   int nb_char_horiz=0,nb_char_vertic=0;
