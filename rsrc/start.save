@@ -1,13 +1,11 @@
 //make_object creates an instance of an "object".obj.
 make_object "player" { //forces a load of player.obj
+  id="player"
   //the starting room
   room="cage" //forces a load of cage.room
   //the position vector
   position=[1,1,0]
   //the facing vector. this means "to the right"
   facing=[1,0,0]
-  //is_player is a special flag that lets the game know to
-  //track this object between rooms, make it controllable, etc.
-  is_player
 }
 //other "start of game" overrides

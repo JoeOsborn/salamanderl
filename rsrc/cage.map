@@ -1,62 +1,53 @@
 tile "floor" { //1
-	opacity=0 //0-3, least-to-most-opaque -- warning, what about glass floors?
-  collision {
-		default_allowed=true
-		/*
-			one could write this to prevent passage of entities with disallowed_flag set
-			collision_deny {
-			  disallowed_flag
-			}
-		*/
+	opacity=0 //0-3, least-to-most-opaque -- warning, what about glass floors? 0 is the default.
+	movement_default="allow"
+	/*
+		one could write this to prevent passage of entities with disallowed_flag set
+		movement {
+		  disallowed_flag=false
+		}
+	*/
 	}
-	color="#FFFFFF"
-	symbol="."
+	fore="#FFFFFF"
+	symbol='.'
 }
 tile "wall" { //2
 	opacity=3 //0-3, least-to-most-opaque
-	collision {
-		default_allowed=false
-		collision_allow {
-			ghost
-		}
-		/* could allow if both type a and type b are set:
-		collision_allow {
-			type_a
-			type_b
-		}
-		could allow if type a is set, but not type b:
-		collision_allow {
-			type_a=true
-			type_b=false
-		}
-		*/
+  movement_default="deny"
+	movement {
+		ghost=true
 	}
-	color="#FFFFFF"
-	symbol="#"
+	/* could allow if both type a and type b are set:
+	movement {
+		type_a=true
+		type_b=true
+	}
+	could allow if type a is set, but not type b:
+	movement {
+		type_a=true
+		type_b=false
+	}
+	*/
+	fore="#FFFFFF"
+	symbol='#'
 }
 tile "shallow pool" { //3
   opacity=0
-  on_enter {
+  movement_default="allow"
+  action {
+    on_enter
     grant "wet" {
       duration=60
     }
   }
-  collision {
-    default_allowed=true
-  }
-  color="#BBBBFF"
-  symbol="~"
+  fore="#BBBBFF"
+  symbol='~'
 }
 tile "dry passage" { //4
   opacity=0
-  collision {
-    default_allowed=false
-    collision_allow {
-      wet
-    }
-    collision_allow {
-      small
-    }
+  movement_default="deny"
+  movement {
+    wet=true
   }
 }
 map "cage" {

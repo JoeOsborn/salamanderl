@@ -6,11 +6,17 @@ FLAGS=-ggdb -std=c99
 .SUFFIXES: .o .h .c
 
 C_OBJS=\
+  $(SRCDIR)/loader/loaderlistener.o \
+  $(SRCDIR)/loader/prop.o \
+  $(SRCDIR)/loader/structrecord.o \
   $(SRCDIR)/loader.o \
   $(SRCDIR)/drawinfo.o \
   $(SRCDIR)/salamanderl.o 
 
 HEADERS=\
+  $(INCDIR)/loader/loaderlistener.h \
+  $(INCDIR)/loader/prop.h \
+  $(INCDIR)/loader/structrecord.h \
   $(INCDIR)/loader.h \
   $(INCDIR)/drawinfo.h \
   $(INCDIR)/uthash.h \

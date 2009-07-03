@@ -3,13 +3,62 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
+#include "loader/prop.h"
+#include "loader/structrecord.h"
+#include "loader/loaderlistener.h"
+
+char *makeRsrcPath(Loader l, char *subPath, char *suffix) {
+  //basePath / subPath . suffix
+  return asprintf("%s/%s.%s", l->basePath, subPath, suffix);
+}
+
+void loader_add_map(Loader l, Map map, char *mapName);
 
 Loader loader_new() {
   return calloc(1, sizeof(struct _loader));
 }
+
+void loader_init_parser(Loader l) {
+  l->parser = TCOD_parser_new();
+  
+  TCOD_parser_struct_t grantst = TCOD_parser_new_struct(l->parser, "grant");
+  TCOD_struct_add_property(grantst, "duration", TCOD_TYPE_FLOAT, false); //defaults to 1 min
+
+  TCOD_parser_struct_t revokest = TCOD_parser_new_struct(l->parser, "revoke");
+//  TCOD_struct_add_flag(revokest, ""); ??
+
+  TCOD_parser_struct_t actionst = TCOD_parser_new_struct(l->parser, "action");
+  TCOD_struct_add_flag(actionst, "on_enter");
+  TCOD_struct_add_structure(actionst, grantst);  
+  TCOD_struct_add_structure(actionst, revokest);  
+
+  TCOD_parser_struct_t movst = TCOD_parser_new_struct(l->parser, "movement");
+  TCOD_struct_add_property(movst, "normal", TCOD_TYPE_BOOL, false);
+  TCOD_struct_add_property(movst, "wet", TCOD_TYPE_BOOL, false);
+
+  static const char *movement_defaults[] = { "allow", "deny", NULL };    
+  TCOD_parser_struct_t tst = TCOD_parser_new_struct(l->parser, "tile");
+  TCOD_struct_add_property(tst, "opacity", TCOD_TYPE_CHAR, false); //defaults to 0
+  TCOD_struct_add_property(tst, "fore", TCOD_TYPE_COLOR, false); //defaults to white
+  TCOD_struct_add_property(tst, "back", TCOD_TYPE_COLOR, false); //defaults to black
+  TCOD_struct_add_property(tst, "symbol", TCOD_TYPE_CHAR, true); //no default
+  TCOD_struct_add_valuelist(tst, "movement_default", movement_defaults, false); //defaults to "allow"
+  TCOD_struct_add_structure(tst, movst);
+  TCOD_struct_add_structure(tst, actionst);  
+
+  TCOD_parser_new_struct(l->parser, "map");
+  TCOD_struct_add_property(tst, "ambient_light", TCOD_TYPE_CHAR, false); //defaults to 8
+  TCOD_struct_add_list_property(tst, "dimensions", TCOD_TYPE_INT, true); //no default
+  TCOD_struct_add_list_property(tst, "tilemap", TCOD_TYPE_CHAR, true); //no default
+  
+}
 Loader loader_init(Loader l, char *basePath) {
-  l->path = calloc(strlen(basePath)+1, sizeof(char));
-  strcpy(l->path, basePath);
+  l->path = strdup(basePath);
+  l->listener = loader_listener_init(loader_listener_new(), l);
+  loader_init_parser(l);
+
   loader_load_config(l, "init");
   return l;
 }
@@ -24,47 +73,29 @@ void loader_free(Loader l) {
     free(gw);
   }
   
+  TCOD_parser_delete(l->parser);
 }
 void loader_load_config(Loader l, char *configName) {
   //don't even think about this yet
 }
-void loader_load_map(Loader l, char *mapName) {
-  //hardcode for now
-  unsigned short tileMap[] = {
-    2,2,2,2,
-    2,0,0,2,
-    2,0,0,2,
-    2,2,2,2,
-    
-    2,2,2,2,
-    2,1,1,2,
-    2,1,1,2,
-    2,2,2,2
-  };
-  DrawInfo blankDraw = drawinfo_init(drawinfo_new(), TCOD_white, TCOD_black, ' ');
-  DrawInfo floorDraw = drawinfo_init(drawinfo_new(), TCOD_white, TCOD_black, '.');
-  DrawInfo wallDraw = drawinfo_init(drawinfo_new(), TCOD_white, TCOD_black, '#');
-  Map map = map_init(map_new(), mapName, (mapVec){4, 4, 2}, tileMap, 8, NULL, blankDraw);
-  Tile floorTile = tile_init(
-    tile_new(), 
-    0,
-    floorDraw
-  );
-  Tile wallTile = tile_init(
-    tile_new(), 
-    3,
-    wallDraw
-  );
-  map_add_tile(map, floorTile);
-  map_add_tile(map, wallTile);
 
+void loader_load_map(Loader l, char *mapName) {  
+  fileName = makeRsrcPath(l, mapName, "map");
+  
+  TCOD_parser_run(l->parser, fileName, loader_listener_listencallbacks(l->listener));
+  free(fileName);
+  //parser ran and updated ctx -- ctx stored the records while they were being built, one at a time, and added them to us.
+  //the next call to loader_get_map will return the map.
+}
+
+void loader_add_map(Loader l, Map map, char *mapName) {
   genwrap *mapw = calloc(1, sizeof(genwrap));
-  mapw->name = calloc(strlen(mapName)+1, sizeof(char));
-  strcpy(mapw->name, mapName);
+  mapw->name=strdup(mapName);
   mapw->guts = map;
 
-  HASH_ADD_KEYPTR(hh, l->maps, mapw->name, strlen(mapw->name), mapw);
+  HASH_ADD_KEYPTR(hh, l->maps, mapw->name, strlen(mapw->name), mapw);  
 }
+
 Map loader_get_map(Loader l, char *name) {
   genwrap *mapw=NULL;
   HASH_FIND_STR(l->maps, name, mapw);  

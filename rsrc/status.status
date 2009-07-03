@@ -1,6 +1,6 @@
 status "wet" {
   on {
-    collision {
+    movement {
       wet=true
     }
     revoke=["dry"]
@@ -12,7 +12,7 @@ status "wet" {
 }
 status "dry" {
   on {
-    collision {
+    movement {
       wet=false
     }
     revoke=["wet"]

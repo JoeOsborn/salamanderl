@@ -1,4 +1,7 @@
 object "player" {
+  symbol='@'
+  fore="#FFFFFF"
+  
 	sensor "left eye" {
     frustum {
       position=[0,0,0]
@@ -37,9 +40,8 @@ object "player" {
 	  }
 	  //should 'see thru water' be a thing that's handled in tilesense? prolly, but ignore for now.
 	}
-	collision {
-	  normal
+	movement {
+	  normal=true
 	  wet=false
-	  tiny=false
 	}
 }
