@@ -49,6 +49,12 @@ tile "dry passage" { //4
   movement {
     wet=true
   }
+
+}
+tile "stairs" { //5
+  opacity=3
+  movement_default="allow"
+  stairs
 }
 map "cage" {
   ambient_light=8 //out of 15
