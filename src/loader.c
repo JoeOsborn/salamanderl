@@ -56,7 +56,7 @@ void loader_init_parser(Loader l) {
 }
 Loader loader_init(Loader l, char *basePath) {
   l->path = strdup(basePath);
-  l->listener = loader_listener_init(loader_listener_new(), l);
+  l->listener = maplistener_init(maplistener_new(), l);
   loader_init_parser(l);
 
   loader_load_config(l, "init");
@@ -82,7 +82,7 @@ void loader_load_config(Loader l, char *configName) {
 void loader_load_map(Loader l, char *mapName) {  
   fileName = makeRsrcPath(l, mapName, "map");
   
-  TCOD_parser_run(l->parser, fileName, loader_listener_listencallbacks(l->listener));
+  TCOD_parser_run(l->parser, fileName, maplistener_listencallbacks(l->listener));
   free(fileName);
   //parser ran and updated ctx -- ctx stored the records while they were being built, one at a time, and added them to us.
   //the next call to loader_get_map will return the map.
