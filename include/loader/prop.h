@@ -9,7 +9,7 @@ struct _prop {
   TCOD_value_t value;
 };
 
-typedef _prop * Prop;
+typedef struct _prop * Prop;
 
 Prop prop_new();
 Prop prop_init(Prop p, char *name, TCOD_value_type_t type, TCOD_value_t value);

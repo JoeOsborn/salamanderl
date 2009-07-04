@@ -14,11 +14,11 @@ void drawinfo_free(DrawInfo inf) {
 }
 
 TCOD_color_t drawinfo_fore_color(DrawInfo inf) {
-  return inf->fore;
+  return inf ? inf->fore : (TCOD_color_t){255, 255, 255};
 }
 TCOD_color_t drawinfo_back_color(DrawInfo inf) {
-  return inf->back;
+  return inf ? inf->back : (TCOD_color_t){0, 0, 0};
 }
 char drawinfo_symbol(DrawInfo inf) {
-  return inf->symbol;
+  return inf ? inf->symbol : ' ';
 }

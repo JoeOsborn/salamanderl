@@ -6,8 +6,10 @@ StructRecord structrecord_new() {
 }
 StructRecord structrecord_init(StructRecord sr, char *typeName, char *name, StructRecord parent) {
   sr->type=strdup(typeName);
-  sr->name=strdup(name);
-  sr->parent=parent;
+  sr->name = name ? strdup(name) : NULL;
+  if(parent) {
+    structrecord_add_child(parent, sr);
+  }
   sr->flags=TCOD_list_new();
   sr->props=TCOD_list_new();
   sr->children=TCOD_list_new();
@@ -15,7 +17,9 @@ StructRecord structrecord_init(StructRecord sr, char *typeName, char *name, Stru
 }
 void structrecord_free(StructRecord sr) {
   free(sr->type);
-  free(sr->name);
+  if(sr->name) {
+    free(sr->name);
+  }
   for(int i = 0; i < TCOD_list_size(sr->flags); i++) {
     free(TCOD_list_get(sr->flags, i));
   }
@@ -27,7 +31,7 @@ void structrecord_free(StructRecord sr) {
   for(int i = 0; i < TCOD_list_size(sr->children); i++) {
     structrecord_free(TCOD_list_get(sr->children, i));
   }
-  TCOD_list_delete(sr->flags);
+  TCOD_list_delete(sr->children);
   sr->parent = NULL;
   free(sr);
 }
@@ -41,10 +45,43 @@ TCOD_list_t structrecord_flags(StructRecord sr) {
   return sr->flags;
 }
 void structrecord_add_flag(StructRecord sr, char *flag) {
-  TCOD_list_push(sr->flags, flag);
+  TCOD_list_push(sr->flags, strdup(flag));
 }
 TCOD_list_t structrecord_props(StructRecord sr) {
   return sr->props;
+}
+bool structrecord_is_flag_set(StructRecord sr, char *name) {
+  for(int i = 0; i < TCOD_list_size(sr->flags); i++) {
+    char *flag = TCOD_list_get(sr->flags, i);
+    if(strcmp(flag, name) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+Prop structrecord_get_prop_named(StructRecord sr, char *name) {
+  for(int i = 0; i < TCOD_list_size(sr->props); i++) {
+    Prop p = TCOD_list_get(sr->props, i);
+    if(strcmp(prop_name(p), name) == 0) {
+      return p;
+    }
+  }
+  return NULL;
+}
+TCOD_value_type_t structrecord_get_prop_type(StructRecord sr, char *name) {
+  Prop p = structrecord_get_prop_named(sr, name);
+  return p ? prop_type(p) : TCOD_TYPE_NONE;
+}
+TCOD_value_t structrecord_get_prop_value(StructRecord sr, char *name) {
+  Prop p = structrecord_get_prop_named(sr, name);
+  if(!p) { abort(); }
+  return prop_value(p);
+}
+TCOD_value_t structrecord_get_prop_value_default(StructRecord sr, char *name, TCOD_value_t val) {
+  Prop p = structrecord_get_prop_named(sr, name);
+  TCOD_value_t result = val;
+  if(p) { result = prop_value(p); }
+  return result;
 }
 void structrecord_add_prop(StructRecord sr, Prop p) {
   TCOD_list_push(sr->props, p);

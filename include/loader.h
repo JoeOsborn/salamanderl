@@ -15,6 +15,8 @@ typedef genwrap * Hash;
 struct _loader {
   char *path;
   Hash maps;
+  TCOD_parser_t parser;
+  void *listener;
 //  Hash statuses;
 //  Hash objectDefs;
 };
@@ -31,5 +33,8 @@ Map loader_get_map(Loader l, char *name);
 void loader_load_status(Loader l, char *name);
 void loader_load_object(Loader l, char *objType);
 void loader_load_save(Loader l, char *saveName);
+
+//for listeners only
+void loader_add_map(Loader l, Map m, char *name);
 
 #endif

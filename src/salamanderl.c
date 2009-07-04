@@ -27,7 +27,7 @@ void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
     for(int x = xstart; x < xend; x++) {
       index = tile_index(x, y, z, msz, borig, bsz);
       flags = buf[index];
-      TCOD_console_print_left(NULL, 0, 18, TCOD_BKGND_NONE, "%i, %i, %i", map_item_lit(flags), map_item_in_volume(flags), map_item_los(flags));
+      TCOD_console_print_left(NULL, 0, 18, "%i, %i, %i", map_item_lit(flags), map_item_in_volume(flags), map_item_los(flags));
       tileIndex = map_tile_at(m, x, y, z);
       drawX = x*2+z*((msz.x*2)+1);
       drawY = y;
@@ -36,7 +36,7 @@ void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
          //visible and lit and in volume
         TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(context));
         TCOD_console_set_background_color(NULL, drawinfo_back_color(context));
-        TCOD_console_print_left(NULL, drawX, drawY, TCOD_BKGND_SET, "%c", drawinfo_symbol(context));
+        TCOD_console_print_left(NULL, drawX, drawY, "%c", drawinfo_symbol(context));
       }
     }
   }
@@ -47,11 +47,11 @@ void draw_object(Stimulus st) {
   mapVec pos = stimulus_obj_sight_change_get_position(st);
   DrawInfo context = stimulus_obj_sight_change_get_context(st);
   if(!map_item_visible(visflags)) {
-//    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_NONE, "X");
+//    TCOD_console_print_left(NULL, pos.x*2, pos.y, "X");
   } else {
     TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(context));
     TCOD_console_set_background_color(NULL, drawinfo_back_color(context));
-    TCOD_console_print_left(NULL, pos.x*2, pos.y, TCOD_BKGND_SET, "%c", drawinfo_symbol(context));
+    TCOD_console_print_left(NULL, pos.x*2, pos.y, "%c", drawinfo_symbol(context));
   }
 }
 
@@ -64,7 +64,7 @@ void drawstimuli(Map m, Sensor s) {
     //this is a very naive approach that completely ignores the possibility of overdraw and 'forgets' object positions
     Stimulus st = TCOD_list_get(stims, i);
     stimtype type = stimulus_type(st);
-    // TCOD_console_print_left(NULL, i*2, 10, TCOD_BKGND_NONE, "s%i", type);
+    // TCOD_console_print_left(NULL, i*2, 10, "s%i", type);
     switch(type) {
       case StimTileLitChange:
       case StimTileVisChange:
@@ -84,13 +84,13 @@ void drawstimuli(Map m, Sensor s) {
         pos = stimulus_obj_sight_change_get_position(st);
         delta = stimulus_obj_moved_get_dir(st);
         oldPt = mapvec_subtract(pos, delta);
-        // TCOD_console_print_left(NULL, oldPt.x*2, oldPt.y, TCOD_BKGND_NONE, "x");
+        // TCOD_console_print_left(NULL, oldPt.x*2, oldPt.y, "x");
         draw_object(st);
-        // TCOD_console_print_left(NULL, 0, 15, TCOD_BKGND_NONE, "got move");
+        // TCOD_console_print_left(NULL, 0, 15, "got move");
         break;
       case StimGeneric:
       default:
-        // TCOD_console_print_left(NULL, i*9, 16, TCOD_BKGND_NONE, "generic %d", i);
+        // TCOD_console_print_left(NULL, i*9, 16, "generic %d", i);
         break;
     }
     stimulus_free(st);
@@ -103,8 +103,10 @@ void drawmap(Map m, Object o) {
   for(int i = 0; i < object_sensor_count(o); i++) {
     s = object_get_sensor(o, i);
     drawstimuli(m, s);
-    // TCOD_console_print_left(NULL, 0, 13+i, TCOD_BKGND_NONE, "<%f %f %f>", sensor_facing(s).x, sensor_facing(s).y, sensor_facing(s).z);
+    // TCOD_console_print_left(NULL, 0, 13+i, "<%f %f %f>", sensor_facing(s).x, sensor_facing(s).y, sensor_facing(s).z);
   }
+  TCOD_console_set_foreground_color(NULL, (TCOD_color_t){255, 255, 255});
+  TCOD_console_set_background_color(NULL, (TCOD_color_t){0, 0, 0});
 }
 
 //next steps: initialize from files, introduce chomping.
@@ -136,20 +138,18 @@ int main( int argc, char *argv[] ) {
       TCOD_console_clear(NULL);
     }
 		
-		TCOD_console_print_right(NULL,79,26,TCOD_BKGND_NONE,"last frame : %3d ms (%3d fps)", (int)(TCOD_sys_get_last_frame_length()*1000), TCOD_sys_get_fps());
-		TCOD_console_print_right(NULL,79,27,TCOD_BKGND_NONE,"elapsed : %8dms %4.2fs", TCOD_sys_elapsed_milli(),TCOD_sys_elapsed_seconds());
-		TCOD_console_print_left(NULL,0,27,TCOD_BKGND_NONE,"other stat stuff can go here");
+		TCOD_console_print_right(NULL,79,26,"last frame : %3d ms (%3d fps)", (int)(TCOD_sys_get_last_frame_length()*1000), TCOD_sys_get_fps());
+		TCOD_console_print_right(NULL,79,27,"elapsed : %8dms %4.2fs", TCOD_sys_elapsed_milli(),TCOD_sys_elapsed_seconds());
+		TCOD_console_print_left(NULL,0,27,"other stat stuff can go here");
 		//map
     drawmap(map, player);
-    TCOD_console_print_left(NULL, 
-      object_position(player).x*2, object_position(player).y, 
-      TCOD_BKGND_NONE,"@");
+    TCOD_console_print_left(NULL, object_position(player).x*2, object_position(player).y,"@");
 		//divider
-		TCOD_console_print_left(NULL,0,28,TCOD_BKGND_NONE,
+		TCOD_console_print_left(NULL,0,28,
 		  "--------------------------------------------------------------------------------"
 		);
 	  //text display
-    TCOD_console_print_left(NULL,2,29,TCOD_BKGND_NONE,"we'll probably put text down here.");
+    TCOD_console_print_left(NULL,2,29,"we'll probably put text down here.");
 		
 		/* update the game screen */
 		TCOD_console_flush();

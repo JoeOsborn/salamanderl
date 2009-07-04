@@ -9,7 +9,8 @@ Prop prop_init(Prop p, char *name, TCOD_value_type_t type, TCOD_value_t value) {
   //make a copy
   if(type == TCOD_TYPE_STRING) {
     p->value.s = strdup(value.s);
-  } else if(type == TCOD_TYPE_LIST) {
+  } else if(type & TCOD_TYPE_LIST == TCOD_TYPE_LIST) {
+    #warning will this be safe for lists of strings?  otoh, will it leak?
     p->value.list = TCOD_list_duplicate(value.list);
   } else {
     p->value = value;
@@ -18,10 +19,12 @@ Prop prop_init(Prop p, char *name, TCOD_value_type_t type, TCOD_value_t value) {
 }
 void prop_free(Prop p) {
   free(p->name);
-  if(type == TCOD_TYPE_STRING) {
+  if(p->type == TCOD_TYPE_STRING) {
     free(p->value.s);
-  } else if(type == TCOD_TYPE_LIST) {
-    TCOD_list_clear_and_delete(p->value.list);
+  } else if(p->type & TCOD_TYPE_LIST == TCOD_TYPE_LIST) {
+    //should probably delete list elements if they're strings, etc.
+    //should we even bother?  we can know if type & string or type & whatever.
+    TCOD_list_delete(p->value.list);
   }
   free(p);
 }

@@ -11,10 +11,10 @@
 
 char *makeRsrcPath(Loader l, char *subPath, char *suffix) {
   //basePath / subPath . suffix
-  return asprintf("%s/%s.%s", l->basePath, subPath, suffix);
+  char *result;
+  asprintf(&result, "%s/%s.%s", l->path, subPath, suffix);
+  return result;
 }
-
-void loader_add_map(Loader l, Map map, char *mapName);
 
 Loader loader_new() {
   return calloc(1, sizeof(struct _loader));
@@ -37,21 +37,24 @@ void loader_init_parser(Loader l) {
   TCOD_parser_struct_t movst = TCOD_parser_new_struct(l->parser, "movement");
   TCOD_struct_add_property(movst, "normal", TCOD_TYPE_BOOL, false);
   TCOD_struct_add_property(movst, "wet", TCOD_TYPE_BOOL, false);
+  TCOD_struct_add_property(movst, "ghost", TCOD_TYPE_BOOL, false);
 
   static const char *movement_defaults[] = { "allow", "deny", NULL };    
   TCOD_parser_struct_t tst = TCOD_parser_new_struct(l->parser, "tile");
+  TCOD_struct_add_flag(tst, "stairs");
   TCOD_struct_add_property(tst, "opacity", TCOD_TYPE_CHAR, false); //defaults to 0
   TCOD_struct_add_property(tst, "fore", TCOD_TYPE_COLOR, false); //defaults to white
   TCOD_struct_add_property(tst, "back", TCOD_TYPE_COLOR, false); //defaults to black
   TCOD_struct_add_property(tst, "symbol", TCOD_TYPE_CHAR, true); //no default
-  TCOD_struct_add_valuelist(tst, "movement_default", movement_defaults, false); //defaults to "allow"
+  TCOD_struct_add_property(tst, "desc", TCOD_TYPE_STRING, false); //defaults to ""
+  TCOD_struct_add_value_list(tst, "movement_default", movement_defaults, false); //defaults to "allow"
   TCOD_struct_add_structure(tst, movst);
   TCOD_struct_add_structure(tst, actionst);  
 
-  TCOD_parser_new_struct(l->parser, "map");
-  TCOD_struct_add_property(tst, "ambient_light", TCOD_TYPE_CHAR, false); //defaults to 8
-  TCOD_struct_add_list_property(tst, "dimensions", TCOD_TYPE_INT, true); //no default
-  TCOD_struct_add_list_property(tst, "tilemap", TCOD_TYPE_CHAR, true); //no default
+  TCOD_parser_struct_t mapst = TCOD_parser_new_struct(l->parser, "map");
+  TCOD_struct_add_property(mapst, "ambient_light", TCOD_TYPE_CHAR, false); //defaults to 8
+  TCOD_struct_add_list_property(mapst, "dimensions", TCOD_TYPE_INT, true); //no default
+  TCOD_struct_add_list_property(mapst, "tilemap", TCOD_TYPE_CHAR, true); //no default
   
 }
 Loader loader_init(Loader l, char *basePath) {
@@ -80,12 +83,13 @@ void loader_load_config(Loader l, char *configName) {
 }
 
 void loader_load_map(Loader l, char *mapName) {  
-  fileName = makeRsrcPath(l, mapName, "map");
+  char *fileName = makeRsrcPath(l, mapName, "map");
   
-  TCOD_parser_run(l->parser, fileName, maplistener_listencallbacks(l->listener));
+  TCOD_list_t evts = TCOD_parser_run_stax(l->parser, fileName);
+  maplistener_handle_events(l->listener, evts);
+  
+  TCOD_list_clear_and_delete(evts);
   free(fileName);
-  //parser ran and updated ctx -- ctx stored the records while they were being built, one at a time, and added them to us.
-  //the next call to loader_get_map will return the map.
 }
 
 void loader_add_map(Loader l, Map map, char *mapName) {
