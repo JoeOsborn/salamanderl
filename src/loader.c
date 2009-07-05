@@ -38,18 +38,42 @@ void loader_init_parser(Loader l) {
   TCOD_struct_add_property(movst, "normal", TCOD_TYPE_BOOL, false);
   TCOD_struct_add_property(movst, "wet", TCOD_TYPE_BOOL, false);
   TCOD_struct_add_property(movst, "ghost", TCOD_TYPE_BOOL, false);
+  
+  TCOD_parser_struct_t drawst = TCOD_parser_new_struct(l->parser, "draw");
+  TCOD_struct_add_property(drawst, "z", TCOD_TYPE_INT, false); //defaults to the index of the drawst.
+  TCOD_struct_add_property(drawst, "fore", TCOD_TYPE_COLOR, false);
+  TCOD_struct_add_property(drawst, "back", TCOD_TYPE_COLOR, false);
+  TCOD_struct_add_property(drawst, "symbol", TCOD_TYPE_CHAR, true);  
 
   static const char *movement_defaults[] = { "allow", "deny", NULL };    
+
   TCOD_parser_struct_t tst = TCOD_parser_new_struct(l->parser, "tile");
+  //opacity
+  TCOD_struct_add_list_property(tst, "opacity", TCOD_TYPE_CHAR, false); //defaults to [0,0,0,0,15,15]
+  //opacity shorthands
+  TCOD_struct_add_property(tst, "wall_opacity", TCOD_TYPE_CHAR, false); //defaults to 0
+  TCOD_struct_add_property(tst, "floor_opacity", TCOD_TYPE_CHAR, false); //defaults to 15
+  TCOD_struct_add_property(tst, "uniform_opacity", TCOD_TYPE_CHAR, false); //defaults to 0
+
+  //desc
+  TCOD_struct_add_property(tst, "allow_desc", TCOD_TYPE_STRING, false); //defaults to ""
+  TCOD_struct_add_property(tst, "deny_desc", TCOD_TYPE_STRING, false); //defaults to ""
+  TCOD_struct_add_property(tst, "ontop_desc", TCOD_TYPE_STRING, false); //defaults to ""
+
+  //stairs
   TCOD_struct_add_flag(tst, "stairs");
-  TCOD_struct_add_property(tst, "opacity", TCOD_TYPE_CHAR, false); //defaults to 0
-  TCOD_struct_add_property(tst, "fore", TCOD_TYPE_COLOR, false); //defaults to white
-  TCOD_struct_add_property(tst, "back", TCOD_TYPE_COLOR, false); //defaults to black
-  TCOD_struct_add_property(tst, "symbol", TCOD_TYPE_CHAR, true); //no default
-  TCOD_struct_add_property(tst, "desc", TCOD_TYPE_STRING, false); //defaults to ""
+  TCOD_struct_add_property(tst, "up_desc", TCOD_TYPE_STRING, false); //defaults to ""
+  TCOD_struct_add_property(tst, "down_desc", TCOD_TYPE_STRING, false); //defaults to ""
+
+  //movement
   TCOD_struct_add_value_list(tst, "movement_default", movement_defaults, false); //defaults to "allow"
   TCOD_struct_add_structure(tst, movst);
+  
+  //actions
   TCOD_struct_add_structure(tst, actionst);  
+  
+  //drawing
+  TCOD_struct_add_structure(tst, drawst);
 
   TCOD_parser_struct_t mapst = TCOD_parser_new_struct(l->parser, "map");
   TCOD_struct_add_property(mapst, "ambient_light", TCOD_TYPE_CHAR, false); //defaults to 8
@@ -121,7 +145,7 @@ void loader_load_save(Loader l, char *saveName) {
   //for now, just make a player
   
   Map m = loader_get_map(l, "cage");
-  DrawInfo playerDraw = drawinfo_init(drawinfo_new(), TCOD_white, TCOD_black, '@');
+  DrawInfo playerDraw = drawinfo_init(drawinfo_new(), 0, TCOD_white, TCOD_black, '@');
   Object player = object_init(object_new(), 
     "@", 
     (mapVec){1, 1, 0}, 

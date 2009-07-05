@@ -1,107 +1,187 @@
 tile "floor" { //1
-	opacity=0 //0-3, least-to-most-opaque -- warning, what about glass floors?
+	wall_opacity=0 //transparent from sides
+	floor_opacity=15 //opaque from above/below
+	//this is actually the default, but it's here to show how the shorthand works.
+	//it's equivalent to opacity=[0,0,0,0,15,15]
   movement_default="allow"
-	fore="#669900"
-	symbol='.'
-	desc="The moss and soil squish beneath your feet."
+  draw {
+    z=0
+  	fore="#AACC55"
+  	symbol='.'
+  }
+  draw {
+    z=1
+  	fore="#669900"
+  	symbol=','
+  }
+	allow_desc="The moss and soil squish beneath your feet."
 }
 
 tile "wall" { //2
-	opacity=0 //0-3, least-to-most-opaque
+	uniform_opacity=0 //glass wall
   movement_default="deny"
-	fore="#FFFFFF"
-	symbol='#'
-	desc="The material is clear, but hard.  It stops you."
+  draw {
+    z=0
+  	fore="#FFFFFF"
+  	symbol='#'
+  }
+  draw {
+    z=1
+  	fore="#BBBBBB"
+  	symbol='='
+  }
+	deny_desc="The material is clear, but hard.  It stops you."
 }
 
 tile "shallow pool" { //3
-  opacity=1
+  floor_opacity=8
   action "splash" {
 		on_enter
 		/* once
 		tile "shallow pool" {
-		  opacity=0
-		  fore="#FFFFFF"
-		  symbol='.'
-		  desc="All the water has been splashed out of the pool."
+		  draw {
+		    z=0
+		    fore="#FFFFFF"
+		    symbol='_'
+		  }
+		  draw {
+		    z=1
+		    fore="#CCCCCC"
+		    symbol='.'
+		  }
+	    desc="All the water has been splashed out of the pool."
 		} */
     grant "wet" {
       duration=60
     }
   }
   movement_default="allow"
-  fore="#BBBBFF"
-  symbol='~'
-  desc="The water feels pleasant and cool."
+  draw {
+    z=0
+  	fore="#AAAAFF"
+  	symbol='~'
+  }
+  draw {
+    z=1
+  	fore="#333366"
+  	symbol='.'
+  }
+  allow_desc="The water feels pleasant and cool."
 }
 
 tile "dry passage" { //4
-  opacity=1
+  wall_opacity=6
+  floor_opacity=15
+  //the combination of those two results in opacity=[6,6,6,6,15,15]
   movement_default="deny"
 	movement {
 		wet=true
 	}
 	/* could allow if both type a and type b are set:
 	movement {
-	        type_a=true
-	        type_b=true
+	  type_a=true
+	  type_b=true
 	}
 	could allow if type a is set, but not type b:
 	movement {
-	        type_a=true
-	        type_b=false
+	  type_a=true
+	  type_b=false
 	}
 	*/
-  fore="#C0C0C0"
-  symbol='#'
-  //figure out the right way to do this stuff -- probably actions on enter in this case.
-  //dry desc="There is a hole here.  It's almost big enough to fit through."
-  //wet desc="The hole is muddy now.  You slide through."
+  draw {
+    z=0
+  	fore="#F0F0F0"
+  	symbol=';'
+  }
+  draw {
+    z=1
+  	fore="#C0C0C0"
+  	symbol=','
+  }
+  deny_desc="There is a hole here.  It's almost big enough to fit through."
+  allow_desc="Lubricated, you slide through unhindered."
+  ontop_desc="You stand across a narrow passageway."
 }
 
 tile "rock" { //5
-  opacity=3
-  movement_default="allow"
-  fore="#C0C0C0"
-  symbol='+'
-  //need a distinction between "nudge desc" and "stand on desc"?
-  //is "nudge" an action?
-  desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
+  uniform_opacity=15
+  movement_default="deny"
+  draw {
+    z=0
+  	fore="#F0F0F0"
+  	symbol='+'
+  }
+  draw {
+    z=1
+  	fore="#C0C0C0"
+  	symbol='-'
+  }
+  deny_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
+  //ontop_desc is used if the player is standing on an empty tile above this tile.
+  //it really only makes sense for things that can block movement.
+  ontop_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
 }
 
-tile "sidebranch" { //6
-  opacity=3
+tile "branch" { //6
+  uniform_opacity=15
   movement_default="deny"
-  fore="#8A360F"
-  symbol='#'
+  draw {
+    z=0
+  	fore="#8A360F"
+  	symbol='/'
+  }
+  draw {
+    z=1
+  	fore="#8A360F"
+  	symbol=':'
+  }
+  deny_desc="You bump into the edge of a very fun branch.  There's probably a way up somewhere."
+  ontop_desc="The branch is fun.  It's the most fun thing in the cell."
 }
 
 tile "stairs" { //7
-  opacity=0
+  floor_opacity=15
   movement_default="allow"
-  fore="#FFFFFF"
-  symbol='^'
+  draw {
+    z=0
+  	fore="#FFFFFF"
+  	symbol='<'
+  }
+  draw {
+    z=1
+  	fore="#AAAAAA"
+  	symbol='>'
+  }
+  stairs
+  up_desc="You ascend the stairs."
+  down_desc="You descend the stairs."
+  allow_desc="These stairs are made of painted styrofoam.  Someone thought it might be cute."
 }
 
 tile "weakground" { //8
-  opacity=0
+  floor_opacity=15
   movement_default="allow"
-  fore="#669900"
-  symbol='.'
-  desc="This spot slumps when you stand on it."
+  draw {
+    z=0
+  	fore="#CCFF66"
+  	symbol='x'
+  }
+  draw {
+    z=1
+  	fore="#99CC33"
+  	symbol='*'
+  }
+  draw {
+    z=2
+  	fore="#669900"
+  	symbol='-'
+  }
+  allow_desc="This spot slumps when you stand on it."
   //need this to start as a floor-door, and open to become empty space when triggered (landed on with weight)
   //this is distinct from wall-doors, which open to become floors when triggered.
   //in general, tiles will change their properties during actions.  probably shouldn't out-and-out swap indices,
   //but that would be easiest... if not, we potentially need to grant context to every tile index.
   //another approach is to have doors as objects.  this gets the per-door context that will be needed.
-}
-
-tile "topbranch" { //9
-  opacity=0
-  movement_default="allow"
-  fore="#8A360F"
-  symbol='.'
-  desc="The branch is fun.  It's the most fun thing in the cell."
 }
 map "cage" {
   ambient_light=8 //out of 15
@@ -116,18 +196,18 @@ map "cage" {
 	  2,0,0,0,0,0,0,0,0,0,0,2,
 	  2,0,0,0,0,0,0,0,0,0,0,2,
 	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2, //probably will put the small rock up here? four from the right?
+	  2,0,0,0,0,0,0,0,0,0,0,2, 
 	  2,2,2,2,2,2,2,2,2,2,2,2,
 	  
 	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2, //weakground passes through here
+	  2,0,0,0,0,0,0,0,0,0,0,2, //branch passes thru on the right
+	  2,0,0,0,0,0,0,0,0,0,0,2, //branch branch branch
 	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,9,2,
-	  2,0,0,0,0,0,0,0,0,0,9,2,
-	  2,0,0,0,0,0,0,0,0,0,9,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,5,2,
-	  2,0,0,0,0,0,0,0,0,5,5,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2, //stairs pass through here
+	  2,0,0,0,0,0,0,0,0,0,7,2,
+	  2,0,0,0,0,0,0,0,0,5,7,2,
 	  2,0,0,0,0,0,0,0,5,5,0,2,
 	  2,0,0,0,0,0,0,5,5,5,0,2,
 	  2,0,0,0,0,0,0,0,5,0,0,2,

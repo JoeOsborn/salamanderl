@@ -72,6 +72,9 @@ TCOD_value_type_t structrecord_get_prop_type(StructRecord sr, char *name) {
   Prop p = structrecord_get_prop_named(sr, name);
   return p ? prop_type(p) : TCOD_TYPE_NONE;
 }
+bool structrecord_has_prop(StructRecord sr, char *propName) {
+  return structrecord_get_prop_named(sr, propName) != NULL;
+}
 TCOD_value_t structrecord_get_prop_value(StructRecord sr, char *name) {
   Prop p = structrecord_get_prop_named(sr, name);
   if(!p) { abort(); }
@@ -79,9 +82,8 @@ TCOD_value_t structrecord_get_prop_value(StructRecord sr, char *name) {
 }
 TCOD_value_t structrecord_get_prop_value_default(StructRecord sr, char *name, TCOD_value_t val) {
   Prop p = structrecord_get_prop_named(sr, name);
-  TCOD_value_t result = val;
-  if(p) { result = prop_value(p); }
-  return result;
+  if(p) { return prop_value(p); }
+  return val;
 }
 void structrecord_add_prop(StructRecord sr, Prop p) {
   TCOD_list_push(sr->props, p);

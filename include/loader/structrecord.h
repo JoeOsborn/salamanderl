@@ -25,6 +25,7 @@ char *structrecord_type(StructRecord sr);
 char *structrecord_name(StructRecord sr);
 TCOD_list_t structrecord_flags(StructRecord sr);
 void structrecord_add_flag(StructRecord sr, char *flag);
+bool structrecord_has_prop(StructRecord sr, char *propName);
 TCOD_list_t structrecord_props(StructRecord sr);
 void structrecord_add_prop(StructRecord sr, Prop p);
 TCOD_list_t structrecord_children(StructRecord sr);

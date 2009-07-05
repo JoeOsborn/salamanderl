@@ -2,18 +2,76 @@
 
 #include "drawinfo.h"
 
-DrawInfo drawinfo_init_structrecord(DrawInfo di, StructRecord sr) {
+DrawInfo drawinfo_init_structrecord(DrawInfo di, StructRecord sr, int index, int *finalZ) {
+  int z = structrecord_get_prop_value_default(sr, "z", (TCOD_value_t)(index)).i;
   TCOD_color_t fore = structrecord_get_prop_value_default(sr, "fore", (TCOD_value_t)((TCOD_color_t){255, 255, 255})).col;
   TCOD_color_t back = structrecord_get_prop_value_default(sr, "back", (TCOD_value_t)((TCOD_color_t){0, 0, 0})).col;
   unsigned char symbol = structrecord_get_prop_value_default(sr, "symbol", (TCOD_value_t)' ').c;
-  return drawinfo_init(di, fore, back, symbol);
+  if(finalZ) {
+    *finalZ = z;
+  }
+  return drawinfo_init(di, z, fore, back, symbol);
 }
 
 Tile tile_init_structrecord(Tile t, StructRecord sr) {
-  DrawInfo di = drawinfo_init_structrecord(drawinfo_new(), sr);
-  unsigned char opacity = structrecord_get_prop_value(sr, "opacity").c;
-  #warning desc is being ignored
-  return tile_init(t, opacity, di);
+  TCOD_list_t drawInfos = TCOD_list_new();
+  int drawIndex = 0;
+  for(int i = 0; i < TCOD_list_size(structrecord_children(sr)); i++) {
+    StructRecord kid = TCOD_list_get(structrecord_children(sr), i);
+    if(strcmp(structrecord_type(kid), "draw") == 0) {
+      TCOD_list_push(drawInfos, drawinfo_init_structrecord(drawinfo_new(), kid, drawIndex, &drawIndex));
+      drawIndex++;
+    }
+  }
+  Flagset opacity = tile_opacity_flagset_make();
+  //use base first
+  if(structrecord_has_prop(sr, "opacity")) {
+    TCOD_list_t opacityFields = structrecord_get_prop_value(sr, "opacity").list;
+    tile_opacity_flagset_set(opacity,
+      (unsigned int)TCOD_list_get(opacityFields, 0),
+      (unsigned int)TCOD_list_get(opacityFields, 1),
+      (unsigned int)TCOD_list_get(opacityFields, 2),
+      (unsigned int)TCOD_list_get(opacityFields, 3),
+      (unsigned int)TCOD_list_get(opacityFields, 4),
+      (unsigned int)TCOD_list_get(opacityFields, 5)
+    );
+  }
+  //then use any shorthands
+  if(structrecord_has_prop(sr, "uniform_opacity")) {
+    char uniformOpacity = structrecord_get_prop_value(sr, "uniform_opacity").c;
+    tile_opacity_flagset_set(opacity,
+      uniformOpacity,
+      uniformOpacity,
+      uniformOpacity,
+      uniformOpacity,
+      uniformOpacity,
+      uniformOpacity
+    );
+  }
+  if(structrecord_has_prop(sr, "wall_opacity")) {
+    char wallOpacity = structrecord_get_prop_value(sr, "wall_opacity").c;
+    tile_opacity_flagset_set(opacity,
+      wallOpacity,
+      wallOpacity,
+      wallOpacity,
+      wallOpacity,
+      -1,
+      -1
+    );
+  }
+  if(structrecord_has_prop(sr, "floor_opacity")) {
+    char floorOpacity = structrecord_get_prop_value(sr, "floor_opacity").c;
+    tile_opacity_flagset_set(opacity,
+      -1,
+      -1,
+      -1,
+      -1,
+      floorOpacity,
+      floorOpacity
+    );
+  }
+  #warning descs are being ignored
+  return tile_init(t, opacity, drawInfos);
 }
 
 Map map_init_structrecord(Map m, StructRecord sr) {

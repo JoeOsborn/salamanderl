@@ -22,21 +22,43 @@ void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
   float xstart = CLIP(pos.x, 0, msz.x);
   float yend = CLIP(pos.y+size.y, 0, msz.y);
   float xend = CLIP(pos.x+size.x, 0, msz.x);
-  int z = CLIP(pos.z, 0, msz.z); //note: different from test.c version
-  for(int y = ystart; y < yend; y++) {
-    for(int x = xstart; x < xend; x++) {
-      index = tile_index(x, y, z, msz, borig, bsz);
-      flags = buf[index];
-      TCOD_console_print_left(NULL, 0, 18, "%i, %i, %i", map_item_lit(flags), map_item_in_volume(flags), map_item_los(flags));
-      tileIndex = map_tile_at(m, x, y, z);
-      drawX = x*2+z*((msz.x*2)+1);
-      drawY = y;
-      DrawInfo context = tile_context(map_get_tile(m, tileIndex));
-      if(map_item_visible(flags)) {
-         //visible and lit and in volume
-        TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(context));
-        TCOD_console_set_background_color(NULL, drawinfo_back_color(context));
-        TCOD_console_print_left(NULL, drawX, drawY, "%c", drawinfo_symbol(context));
+//  float zstart = CLIP(pos.z, 0, msz.z);
+//  float zend = CLIP(pos.z+size.z, 0, msz.z);
+  float zstart = CLIP(volume_position(vol).z, 0, msz.z);
+  float zend = zstart+1;
+  Tile t;
+  int x, y, z;
+  TCOD_list_t drawInfos;
+  for(z = zstart; z < zend; z++) {
+    for(y = ystart; y < yend; y++) {
+      for(x = xstart; x < xend; x++) {
+        int belowZ = z;
+        bool skip = false;
+        do {
+          index = tile_index(x, y, belowZ, size, borig, bsz);
+          flags = buf[index];
+          tileIndex = map_tile_at(m, x, y, belowZ);
+          skip = (tileIndex == 0); //later, skip if drawinfo's symbol is ' '?
+          if(skip && (belowZ > 0) && (belowZ > borig.z)) { belowZ--; }
+        } while(skip && (belowZ >= 0) && (belowZ >= borig.z));
+//        drawX = x*2+z*((msz.x*2)+1);
+        drawX = x*2;
+        drawY = y;
+        t = map_get_tile(m, tileIndex);
+        drawInfos = tile_context(t);
+        if(drawInfos && map_item_visible(flags)) {
+          //in los and lit and in volume
+          DrawInfo di = NULL; //wrap this for loop in a method on drawinfo?
+          for(int i = 0; i < TCOD_list_size(drawInfos); i++) {
+            DrawInfo test = TCOD_list_get(drawInfos, i);
+            if(drawinfo_z(test) == (z-belowZ)) {
+              di = test;
+            }
+          }
+          TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(di));
+          TCOD_console_set_background_color(NULL, drawinfo_back_color(di));
+          TCOD_console_print_left(NULL, drawX, drawY, "%c", drawinfo_symbol(di));
+        }
       }
     }
   }
@@ -172,6 +194,12 @@ int main( int argc, char *argv[] ) {
           break;
         case 'd':
           map_move_object(map, "@", (mapVec){1, 0, 0});
+          break;
+        case '<':
+          map_move_object(map, "@", (mapVec){0, 0, 1});
+          break;
+        case '>':
+          map_move_object(map, "@", (mapVec){0, 0, -1});
           break;
         case 'q':
           finished = 1;
