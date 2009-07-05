@@ -154,32 +154,32 @@ void loader_load_save(Loader l, char *saveName) {
     playerDraw
   );
   map_add_object(m, player);
-  Sensor leftEye = sensor_init(sensor_new(), "left_eye",
-    frustum_init(frustum_new(),
-      mapvec_zero,
-      (mapVec){1, -1, 0},
-      1, 2,
-      0, 10
-    ),
-    NULL
-  );
-  Sensor rightEye = sensor_init(sensor_new(), "right_eye",
-    frustum_init(frustum_new(),
-      mapvec_zero,
-      (mapVec){1, 1, 0},
-      1, 2,
-      0, 10
-    ),
-    NULL
-  );
+  // Sensor leftEye = sensor_init(sensor_new(), "left_eye",
+  //   frustum_init(frustum_new(),
+  //     mapvec_zero,
+  //     (mapVec){1, -1, 0},
+  //     1, 2,
+  //     0, 10
+  //   ),
+  //   NULL
+  // );
+  // Sensor rightEye = sensor_init(sensor_new(), "right_eye",
+  //   frustum_init(frustum_new(),
+  //     mapvec_zero,
+  //     (mapVec){1, 1, 0},
+  //     1, 2,
+  //     0, 10
+  //   ),
+  //   NULL
+  // );
   Sensor basicSense = sensor_init(sensor_new(), "basic_sense",
     sphere_init(sphere_new(),
       mapvec_zero,
-      2
+      8
     ),
     NULL
   );
-  object_add_sensor(player, leftEye);
-  object_add_sensor(player, rightEye);
+  // object_add_sensor(player, leftEye);
+  // object_add_sensor(player, rightEye);
   object_add_sensor(player, basicSense);
 }
