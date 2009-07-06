@@ -9,10 +9,10 @@
 #include "loader.h"
 #include "drawinfo.h"
 
-void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
+void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size) {
   int index=0;
   unsigned char tileIndex;
-  unsigned char flags;
+  perception flags;
   int drawX, drawY;
   Volume vol = sensor_volume(s);
   mapVec borig, bsz;
@@ -41,23 +41,35 @@ void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
           skip = (tileIndex == 0); //later, skip if drawinfo's symbol is ' '?
           if(skip && (belowZ > 0) && (belowZ > borig.z)) { belowZ--; }
         } while(skip && (belowZ >= 0) && (belowZ >= borig.z));
-//        drawX = x*2+z*((msz.x*2)+1);
+        // drawX = x*2+z*((msz.x*2)+1);
         drawX = x*2;
         drawY = y;
         t = map_get_tile(m, tileIndex);
         drawInfos = tile_context(t);
-        if(drawInfos && map_item_visible(flags)) {
+        if(drawInfos) {
           //in los and lit and in volume
           DrawInfo di = NULL; //wrap this for loop in a method on drawinfo?
           for(int i = 0; i < TCOD_list_size(drawInfos); i++) {
             DrawInfo test = TCOD_list_get(drawInfos, i);
             if(drawinfo_z(test) == (z-belowZ)) {
               di = test;
+              break;
             }
           }
-          TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(di));
-          TCOD_console_set_background_color(NULL, drawinfo_back_color(di));
-          TCOD_console_print_left(NULL, drawX, drawY, "%c", drawinfo_symbol(di));
+          bool visible = false;
+          if(z == belowZ) {
+            visible = (flags.surflos > 1) && (flags.surfvol > 1) && (flags.surflit > 1);
+          } else if(z > belowZ) {
+            visible = flags.toplos && flags.topvol && flags.toplit;
+          }
+          // else if(z < belowZ) {
+          //   visible = flags.underlos && flags.undervol && flags.underlit;
+          // }
+          if(visible && di) {
+            TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(di));
+            TCOD_console_set_background_color(NULL, drawinfo_back_color(di));
+            TCOD_console_print_left(NULL, drawX, drawY, "%c", drawinfo_symbol(di));
+          }
         }
       }
     }
@@ -65,7 +77,7 @@ void drawtiles(Map m, unsigned char *buf, Sensor s, mapVec pos, mapVec size) {
 }
 
 void draw_object(Stimulus st) {
-  unsigned char visflags = stimulus_obj_sight_change_get_new_flags(st);
+  perception visflags = stimulus_obj_sight_change_get_new_perception(st);
   mapVec pos = stimulus_obj_sight_change_get_position(st);
   DrawInfo context = stimulus_obj_sight_change_get_context(st);
   if(!map_item_visible(visflags)) {
@@ -79,9 +91,9 @@ void draw_object(Stimulus st) {
 
 void drawstimuli(Map m, Sensor s) {
   TCOD_list_t stims = sensor_consume_stimuli(s);
-  unsigned char *tiles;
+  perception *tiles;
   mapVec pos, size, oldPt, delta;
-  unsigned char visflags;
+  perception visflags;
   for(int i = 0; i < TCOD_list_size(stims); i++) {
     //this is a very naive approach that completely ignores the possibility of overdraw and 'forgets' object positions
     Stimulus st = TCOD_list_get(stims, i);
@@ -91,7 +103,7 @@ void drawstimuli(Map m, Sensor s) {
       case StimTileLitChange:
       case StimTileVisChange:
         //redraw all tiles
-        tiles = stimulus_tile_sight_change_get_new_tiles(st);
+        tiles = stimulus_tile_sight_change_get_new_perceptmap(st);
         pos = stimulus_tile_sight_change_get_position(st);
         size = stimulus_tile_sight_change_get_size(st);
         drawtiles(m, tiles, s, pos, size);
@@ -102,7 +114,7 @@ void drawstimuli(Map m, Sensor s) {
         draw_object(st);
         break;
       case StimObjMoved:
-        visflags = stimulus_obj_sight_change_get_new_flags(st);
+        visflags = stimulus_obj_sight_change_get_new_perception(st);
         pos = stimulus_obj_sight_change_get_position(st);
         delta = stimulus_obj_moved_get_dir(st);
         oldPt = mapvec_subtract(pos, delta);
@@ -180,6 +192,10 @@ int main( int argc, char *argv[] ) {
       map_turn_object(map, "@", 1);
     } else if(key.vk == TCODK_LEFT) {
       map_turn_object(map, "@", -1);
+    } else if(key.vk == TCODK_UP) {
+      map_move_object(map, "@", (mapVec){0, 0,  1});
+    } else if(key.vk == TCODK_DOWN) {
+      map_move_object(map, "@", (mapVec){0, 0, -1});
     } else if(key.vk == TCODK_CHAR) {
       switch(key.c) {
         case 'w':
@@ -194,12 +210,6 @@ int main( int argc, char *argv[] ) {
           break;
         case 'd':
           map_move_object(map, "@", (mapVec){1, 0, 0});
-          break;
-        case '<':
-          map_move_object(map, "@", (mapVec){0, 0, 1});
-          break;
-        case '>':
-          map_move_object(map, "@", (mapVec){0, 0, -1});
           break;
         case 'q':
           finished = 1;

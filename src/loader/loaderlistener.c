@@ -33,13 +33,17 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
       (unsigned int)TCOD_list_get(opacityFields, 2),
       (unsigned int)TCOD_list_get(opacityFields, 3),
       (unsigned int)TCOD_list_get(opacityFields, 4),
-      (unsigned int)TCOD_list_get(opacityFields, 5)
+      (unsigned int)TCOD_list_get(opacityFields, 5),
+      (unsigned int)TCOD_list_get(opacityFields, 6),
+      (unsigned int)TCOD_list_get(opacityFields, 7)
     );
   }
   //then use any shorthands
   if(structrecord_has_prop(sr, "uniform_opacity")) {
     char uniformOpacity = structrecord_get_prop_value(sr, "uniform_opacity").c;
     tile_opacity_flagset_set(opacity,
+      uniformOpacity,
+      uniformOpacity,
       uniformOpacity,
       uniformOpacity,
       uniformOpacity,
@@ -56,6 +60,8 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
       wallOpacity,
       wallOpacity,
       -1,
+      -1,
+      -1,
       -1
     );
   }
@@ -67,7 +73,22 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
       -1,
       -1,
       floorOpacity,
-      floorOpacity
+      floorOpacity,
+      -1,
+      -1
+    );
+  }
+  if(structrecord_has_prop(sr, "ceiling_opacity")) {
+    char ceilingOpacity = structrecord_get_prop_value(sr, "ceiling_opacity").c;
+    tile_opacity_flagset_set(opacity,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      ceilingOpacity,
+      ceilingOpacity
     );
   }
   #warning descs are being ignored
@@ -129,36 +150,36 @@ void maplistener_handle_events(MapListener listener, TCOD_list_t evts) {
     TCOD_parser_event_t *evt = TCOD_list_get(evts, i);
     switch(evt->type) {
       case TCOD_PARSER_EVENT_NEW_STRUCT:
-        if(!maplistener_new_struct(listener, evt->event.event_struct.str, evt->event.event_struct.name)) {
+        if(!maplistener_new_struct(listener, evt->event_struct.str, evt->event_struct.name)) {
           maplistener_error(listener, "bad struct start");
         }
-        if(evt->event.event_struct.name) {
-//          free(evt->event.event_struct.name);
+        if(evt->event_struct.name) {
+//          free(evt->event_struct.name);
         }
         break;
       case TCOD_PARSER_EVENT_FLAG:
-        if(!maplistener_new_flag(listener, evt->event.event_flag.name)) {
+        if(!maplistener_new_flag(listener, evt->event_flag.name)) {
           maplistener_error(listener, "bad flag");
         }
-//        free(evt->event.event_flag.name);
+//        free(evt->event_flag.name);
         break;
       case TCOD_PARSER_EVENT_PROPERTY:
-        if(!maplistener_new_property(listener, evt->event.event_property.name, evt->event.event_property.type, evt->event.event_property.value)) {
+        if(!maplistener_new_property(listener, evt->event_property.name, evt->event_property.type, evt->event_property.value)) {
           maplistener_error(listener, "bad prop");
         }
-//        free(evt->event.event_property.name);
+//        free(evt->event_property.name);
         break;
       case TCOD_PARSER_EVENT_END_STRUCT:
-        if(!maplistener_end_struct(listener, evt->event.event_struct.str, evt->event.event_struct.name)) {
+        if(!maplistener_end_struct(listener, evt->event_struct.str, evt->event_struct.name)) {
           maplistener_error(listener, "bad struct end");
         }
-        if(evt->event.event_struct.name) {
-//          free(evt->event.event_struct.name);
+        if(evt->event_struct.name) {
+//          free(evt->event_struct.name);
         }
         break;
       case TCOD_PARSER_EVENT_ERROR:
-        maplistener_error(listener, evt->event.event_error.message);
-//        free(evt->event.event_error.message);
+        maplistener_error(listener, evt->event_error.message);
+//        free(evt->event_error.message);
         break;
       default:
         maplistener_error(listener, "unrecognized parser event");

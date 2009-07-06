@@ -49,10 +49,11 @@ void loader_init_parser(Loader l) {
 
   TCOD_parser_struct_t tst = TCOD_parser_new_struct(l->parser, "tile");
   //opacity
-  TCOD_struct_add_list_property(tst, "opacity", TCOD_TYPE_CHAR, false); //defaults to [0,0,0,0,15,15]
+  TCOD_struct_add_list_property(tst, "opacity", TCOD_TYPE_CHAR, false); //defaults to [0,0,0,0,15,15,0,0] -- an opaque floor, no ceiling
   //opacity shorthands
   TCOD_struct_add_property(tst, "wall_opacity", TCOD_TYPE_CHAR, false); //defaults to 0
   TCOD_struct_add_property(tst, "floor_opacity", TCOD_TYPE_CHAR, false); //defaults to 15
+  TCOD_struct_add_property(tst, "ceiling_opacity", TCOD_TYPE_CHAR, false); //defaults to 15
   TCOD_struct_add_property(tst, "uniform_opacity", TCOD_TYPE_CHAR, false); //defaults to 0
 
   //desc

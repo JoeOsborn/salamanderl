@@ -2,7 +2,7 @@ SRCDIR=./src
 INCDIR=./include
 TCINCDIR=tilesense/libtcod/include
 CC=gcc
-FLAGS=-ggdb -std=c99
+FLAGS=-ggdb -std=gnu9x
 .SUFFIXES: .o .h .c
 
 C_OBJS=\

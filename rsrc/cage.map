@@ -1,8 +1,9 @@
 tile "floor" { //1
 	wall_opacity=0 //transparent from sides
-	floor_opacity=15 //opaque from above/below
+	floor_opacity=15 //opaque from below
+	ceiling_opacity=0 //transparent from above
 	//this is actually the default, but it's here to show how the shorthand works.
-	//it's equivalent to opacity=[0,0,0,0,15,15]
+	//it's equivalent to opacity=[0,0,0,0,15,15,0,0]
   movement_default="allow"
   draw {
     z=0
@@ -34,7 +35,8 @@ tile "wall" { //2
 }
 
 tile "shallow pool" { //3
-  floor_opacity=8
+//  floor_opacity=8  //could do this if there were stuff below for a watery effect?
+//  ceiling_opacity=8 //see above
   action "splash" {
 		on_enter
 		/* once
@@ -72,7 +74,8 @@ tile "shallow pool" { //3
 tile "dry passage" { //4
   wall_opacity=6
   floor_opacity=15
-  //the combination of those two results in opacity=[6,6,6,6,15,15]
+  ceiling_opacity=15
+  //the combination of those three results in opacity=[6,6,6,6,15,15,15,15]
   movement_default="deny"
 	movement {
 		wet=true
@@ -141,6 +144,7 @@ tile "branch" { //6
 
 tile "stairs" { //7
   floor_opacity=15
+  //ceil_opacity?
   movement_default="allow"
   draw {
     z=0
