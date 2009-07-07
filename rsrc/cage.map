@@ -1,9 +1,9 @@
 tile "floor" { //1
-	wall_opacity=0 //transparent from sides
-	floor_opacity=15 //opaque from below
-	ceiling_opacity=0 //transparent from above
+	wall_opacity=0 //transparent from sides (xm,xp,ym,yp)
+	floor_opacity=15 //opaque from below (zpIn, zmOut)
+	ceiling_opacity=0 //transparent from above (zpOut, zmIn)
 	//this is actually the default, but it's here to show how the shorthand works.
-	//it's equivalent to opacity=[0,0,0,0,15,15,0,0]
+	//it's equivalent to opacity=[0,0,0,0,15,0,0,15]
   movement_default="allow"
   draw {
     z=0
@@ -143,8 +143,8 @@ tile "branch" { //6
 }
 
 tile "stairs" { //7
-  floor_opacity=15
-  //ceil_opacity?
+  floor_opacity=8
+  ceil_opacity=8
   movement_default="allow"
   draw {
     z=0

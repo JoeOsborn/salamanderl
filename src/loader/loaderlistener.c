@@ -72,10 +72,10 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
       -1,
       -1,
       -1,
-      floorOpacity,
-      floorOpacity,
-      -1,
-      -1
+      floorOpacity, //zmOut -- floor out
+      -1, //zmIn -- ceiling in
+      -1, //zpOut -- ceiling out
+      floorOpacity //zpIn -- floor in
     );
   }
   if(structrecord_has_prop(sr, "ceiling_opacity")) {
@@ -86,9 +86,9 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
       -1,
       -1,
       -1,
-      -1,
       ceilingOpacity,
-      ceilingOpacity
+      ceilingOpacity,
+      -1
     );
   }
   #warning descs are being ignored

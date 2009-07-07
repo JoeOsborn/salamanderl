@@ -58,13 +58,10 @@ void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size) {
           }
           bool visible = false;
           if(z == belowZ) {
-            visible = (flags.surflos > 1) && (flags.surfvol > 1) && (flags.surflit > 1);
+            visible = ((flags.edgelos > 1 || flags.surflos > 1)) && (flags.surfvol > 1) && (flags.surflit > 1);
           } else if(z > belowZ) {
-            visible = flags.toplos && flags.topvol && flags.toplit;
+            visible = ((flags.edgelos > 1 || flags.surflos > 1)) && (flags.surfvol > 1) && (flags.toplit > 1);
           }
-          // else if(z < belowZ) {
-          //   visible = flags.underlos && flags.undervol && flags.underlit;
-          // }
           if(visible && di) {
             TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(di));
             TCOD_console_set_background_color(NULL, drawinfo_back_color(di));
