@@ -1,9 +1,13 @@
 tile "floor" { //1
-	wall_opacity=0 //transparent from sides (xm,xp,ym,yp)
-	floor_opacity=15 //opaque from below (zpIn, zmOut)
-	ceiling_opacity=0 //transparent from above (zpOut, zmIn)
+	wall_opacity=0 //transparent from sides
+	floor_opacity=15 //opaque from below
+	ceiling_opacity=0 //transparent from above
 	//this is actually the default, but it's here to show how the shorthand works.
-	//it's equivalent to opacity=[0,0,0,0,15,0,0,15]
+	//it's equivalent to opacity=[0,15,0]
+	//note that tilesense does not yet technically support any opacity levels besides
+	//on and off, and will treat any non-zero value as 'opaque'.
+	//this may change in the future, and tilesense will also be able to differentiate
+	//between 'moving left opacity' and 'moving right opacity', for instance.
   movement_default="allow"
   draw {
     z=0
@@ -14,6 +18,11 @@ tile "floor" { //1
     z=1
   	fore="#669900"
   	symbol=','
+  }
+  draw {
+    z=1
+  	fore="#336600"
+  	symbol='_'
   }
 	allow_desc="The moss and soil squish beneath your feet."
 }
@@ -30,6 +39,11 @@ tile "wall" { //2
     z=1
   	fore="#BBBBBB"
   	symbol='='
+  }
+  draw {
+    z=2
+  	fore="#BBBBBB"
+  	symbol='+'
   }
 	deny_desc="The material is clear, but hard.  It stops you."
 }
@@ -66,6 +80,11 @@ tile "shallow pool" { //3
   draw {
     z=1
   	fore="#333366"
+  	symbol='-'
+  }
+  draw {
+    z=2
+  	fore="#000033"
   	symbol='.'
   }
   allow_desc="The water feels pleasant and cool."
@@ -75,7 +94,7 @@ tile "dry passage" { //4
   wall_opacity=6
   floor_opacity=15
   ceiling_opacity=15
-  //the combination of those three results in opacity=[6,6,6,6,15,15,15,15]
+  //the combination of those three results in opacity=[6,15,15]
   movement_default="deny"
 	movement {
 		wet=true
@@ -99,7 +118,12 @@ tile "dry passage" { //4
   draw {
     z=1
   	fore="#C0C0C0"
-  	symbol=','
+  	symbol=':'
+  }
+  draw {
+    z=2
+  	fore="#909090"
+  	symbol='|'
   }
   deny_desc="There is a hole here.  It's almost big enough to fit through."
   allow_desc="Lubricated, you slide through unhindered."
@@ -117,6 +141,11 @@ tile "rock" { //5
   draw {
     z=1
   	fore="#C0C0C0"
+  	symbol='='
+  }
+  draw {
+    z=2
+  	fore="#909090"
   	symbol='-'
   }
   deny_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
@@ -136,7 +165,12 @@ tile "branch" { //6
   draw {
     z=1
   	fore="#8A360F"
-  	symbol=':'
+  	symbol='.'
+  }
+  draw {
+    z=2
+  	fore="#471305"
+  	symbol='\''
   }
   deny_desc="You bump into the edge of a very fun branch.  There's probably a way up somewhere."
   ontop_desc="The branch is fun.  It's the most fun thing in the cell."
@@ -144,8 +178,14 @@ tile "branch" { //6
 
 tile "stairs" { //7
   floor_opacity=8
-  ceil_opacity=8
+  ceiling_opacity=8
+	wall_opacity=0
   movement_default="allow"
+  draw {
+    z=-1
+  	fore="#666666"
+  	symbol='+'
+  }
   draw {
     z=0
   	fore="#FFFFFF"
@@ -155,6 +195,11 @@ tile "stairs" { //7
     z=1
   	fore="#AAAAAA"
   	symbol='>'
+  }
+  draw {
+    z=2
+  	fore="#666666"
+  	symbol='-'
   }
   stairs
   up_desc="You ascend the stairs."
@@ -178,6 +223,11 @@ tile "weakground" { //8
   draw {
     z=2
   	fore="#669900"
+  	symbol='+'
+  }
+  draw {
+    z=3
+  	fore="#336600"
   	symbol='-'
   }
   allow_desc="This spot slumps when you stand on it."
@@ -212,8 +262,8 @@ map "cage" {
 	  2,0,0,0,0,0,0,0,0,0,0,2, //stairs pass through here
 	  2,0,0,0,0,0,0,0,0,0,7,2,
 	  2,0,0,0,0,0,0,0,0,5,7,2,
-	  2,0,0,0,0,0,0,0,5,5,0,2,
-	  2,0,0,0,0,0,0,5,5,5,0,2,
+	  2,0,0,0,0,0,0,0,5,5,5,2,
+	  2,0,0,0,0,0,0,5,5,5,5,2,
 	  2,0,0,0,0,0,0,0,5,0,0,2,
 	  2,2,2,2,2,2,2,2,2,2,2,2,
 	  
@@ -222,12 +272,12 @@ map "cage" {
 	  2,3,3,3,3,1,1,1,1,6,6,2,
 	  2,3,3,3,1,1,1,1,1,6,6,2,
 	  2,3,3,1,1,1,1,1,1,6,6,2,
-	  2,1,1,1,1,1,1,1,1,7,7,2,
+	  2,1,1,1,1,1,1,1,1,6,7,2,
 	  2,1,1,1,1,1,1,1,1,5,5,2,
 	  2,1,1,1,1,1,1,1,5,5,5,2,
 	  2,1,1,1,1,1,1,5,5,5,1,2,
 	  2,1,1,1,1,1,5,5,5,5,1,2,
-	  2,1,1,1,1,1,1,4,4,1,1,2,
+	  2,1,1,1,1,1,1,4,1,1,1,2,
 	  2,2,2,2,2,2,2,2,2,2,2,2
 	]
 }

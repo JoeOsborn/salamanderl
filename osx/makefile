@@ -11,6 +11,8 @@ C_OBJS=\
   $(SRCDIR)/loader/structrecord.o \
   $(SRCDIR)/loader.o \
   $(SRCDIR)/drawinfo.o \
+  $(SRCDIR)/moveinfo.o \
+  $(SRCDIR)/tileinfo.o \
   $(SRCDIR)/salamanderl.o 
 
 HEADERS=\
@@ -19,6 +21,8 @@ HEADERS=\
   $(INCDIR)/loader/structrecord.h \
   $(INCDIR)/loader.h \
   $(INCDIR)/drawinfo.h \
+  $(INCDIR)/moveinfo.h \
+  $(INCDIR)/tileinfo.h \
   $(INCDIR)/uthash.h \
   $(INCDIR)/utlist.h
 
@@ -46,7 +50,7 @@ TS_LIBS=$(TS_DIR)/libtilesense.a
 CFLAGS=$(FLAGS) -I$(INCDIR) -I$(TCINCDIR) -I$(TCINCDIR)/gui -Wall $(TS_FLAGS) $(SDL_FLAGS) $(ZLIB_FLAGS) $(PNG_FLAGS) -fno-strict-aliasing
 
 salamanderl : $(C_OBJS) 
-	$(CC) $(C_OBJS) $(CFLAGS) -o $@ -L./tilesense/libtcod -ltcod -L./tilesense -ltilesense $(ZLIB_LIBS) $(PNG_LIBS) $(SDL_LIBS) 
+	$(CC) $(C_OBJS) $(CFLAGS) -o $@ -L./tilesense/libtcod -ltcod-debug -L./tilesense -ltilesense $(ZLIB_LIBS) $(PNG_LIBS) $(SDL_LIBS) 
 
 salamanderl.app : salamanderl
 	mkdir -p $@/Contents/MacOS

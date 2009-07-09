@@ -28,6 +28,7 @@ void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size) {
   float zend = zstart+1;
   Tile t;
   int x, y, z;
+  TileInfo ti;
   TCOD_list_t drawInfos;
   for(z = zstart; z < zend; z++) {
     for(y = ystart; y < yend; y++) {
@@ -45,7 +46,8 @@ void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size) {
         drawX = x*2;
         drawY = y;
         t = map_get_tile(m, tileIndex);
-        drawInfos = tile_context(t);
+        ti = tile_context(t);
+        drawInfos = tileinfo_get_drawinfos(ti);
         if(drawInfos) {
           //in los and lit and in volume
           DrawInfo di = NULL; //wrap this for loop in a method on drawinfo?
@@ -140,6 +142,16 @@ void drawmap(Map m, Object o) {
   TCOD_console_set_background_color(NULL, (TCOD_color_t){0, 0, 0});
 }
 
+void smap_turn_object(Map map, char *obj, int amt) {
+  map_turn_object(map, obj, amt);
+}
+
+void smap_move_object(Map map, char *obj, mapVec amt) {
+  #warning check movementinfo
+  #warning move up/down stairs
+  map_move_object(map, obj, amt);
+}
+
 //next steps: initialize from files, introduce chomping.
 //it's okay to hard-code chomping.
 
@@ -186,27 +198,27 @@ int main( int argc, char *argv[] ) {
 		TCOD_console_flush();
 
     if(key.vk == TCODK_RIGHT) {
-      map_turn_object(map, "@", 1);
+      smap_turn_object(map, "@", 1);
     } else if(key.vk == TCODK_LEFT) {
-      map_turn_object(map, "@", -1);
+      smap_turn_object(map, "@", -1);
     } else if(key.vk == TCODK_UP) {
-      map_move_object(map, "@", (mapVec){0, 0,  1});
+      smap_move_object(map, "@", (mapVec){0, 0,  1});
     } else if(key.vk == TCODK_DOWN) {
-      map_move_object(map, "@", (mapVec){0, 0, -1});
+      smap_move_object(map, "@", (mapVec){0, 0, -1});
     } else if(key.vk == TCODK_CHAR) {
       switch(key.c) {
         case 'w':
           #warning wrap this move with a new move that checks collision
-          map_move_object(map, "@", (mapVec){0, -1, 0});
+          smap_move_object(map, "@", (mapVec){0, -1, 0});
           break;
         case 'a':
-          map_move_object(map, "@", (mapVec){-1, 0, 0});
+          smap_move_object(map, "@", (mapVec){-1, 0, 0});
           break;
         case 's':
-          map_move_object(map, "@", (mapVec){0, 1, 0});
+          smap_move_object(map, "@", (mapVec){0, 1, 0});
           break;
         case 'd':
-          map_move_object(map, "@", (mapVec){1, 0, 0});
+          smap_move_object(map, "@", (mapVec){1, 0, 0});
           break;
         case 'q':
           finished = 1;

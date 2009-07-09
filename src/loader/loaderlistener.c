@@ -13,86 +13,75 @@ DrawInfo drawinfo_init_structrecord(DrawInfo di, StructRecord sr, int index, int
   return drawinfo_init(di, z, fore, back, symbol);
 }
 
+MoveInfo moveinfo_init_structrecord(MoveInfo mi, StructRecord sr) {
+  TCOD_list_t props = structrecord_props(sr);
+  FlagSchema fs = flagschema_init(flagschema_new());
+  for(int i = 0; i < TCOD_list_size(props); i++) {
+    Prop p = TCOD_list_get(props, i);
+    flagschema_insert(fs, prop_name(prop), 1);    
+  }
+  Flagset fset = flagset_init(flagset_new(fs));
+  for(int i = 0; i < TCOD_list_size(props); i++) {
+    Prop p = TCOD_list_get(props, i);
+    flagset_set_path(fset, fs, prop_name(prop), prop_value(prop).b);    
+  }
+  return moveinfo_init(mi, fs, fset);
+}
+
 Tile tile_init_structrecord(Tile t, StructRecord sr) {
   TCOD_list_t drawInfos = TCOD_list_new();
+  TCOD_list_t moveInfos = TCOD_list_new();
   int drawIndex = 0;
   for(int i = 0; i < TCOD_list_size(structrecord_children(sr)); i++) {
     StructRecord kid = TCOD_list_get(structrecord_children(sr), i);
     if(strcmp(structrecord_type(kid), "draw") == 0) {
       TCOD_list_push(drawInfos, drawinfo_init_structrecord(drawinfo_new(), kid, drawIndex, &drawIndex));
       drawIndex++;
+    } else if(strcmp(structrecord_type(kid), "draw") == 0) {
+      TCOD_list_push(moveInfos, moveinfo_init_structrecord(moveinfo_new(), kid));
     }
   }
-  Flagset opacity = tile_opacity_flagset_make();
+  bool moveDefaultAllowed = true;
+  if(structrecord_has_prop(sr, "movement_default")) {
+    moveDefaultAllowed = strcmp(
+      structrecord_get_prop_value(sr, "movement_default").s, 
+      "allow"
+    ) == 0;
+  }
+  bool wallTransp=true, floorTransp=false, ceilTransp=true;
+  #warning later, see if we can bring back fractional opacity.
+  //it would be a postprocessing step after fov check.
   //use base first
   if(structrecord_has_prop(sr, "opacity")) {
     TCOD_list_t opacityFields = structrecord_get_prop_value(sr, "opacity").list;
-    tile_opacity_flagset_set(opacity,
-      (unsigned int)TCOD_list_get(opacityFields, 0),
-      (unsigned int)TCOD_list_get(opacityFields, 1),
-      (unsigned int)TCOD_list_get(opacityFields, 2),
-      (unsigned int)TCOD_list_get(opacityFields, 3),
-      (unsigned int)TCOD_list_get(opacityFields, 4),
-      (unsigned int)TCOD_list_get(opacityFields, 5),
-      (unsigned int)TCOD_list_get(opacityFields, 6),
-      (unsigned int)TCOD_list_get(opacityFields, 7)
-    );
+    wallTransp = !((unsigned int)TCOD_list_get(opacityFields, 0));
+    floorTransp = !((unsigned int)TCOD_list_get(opacityFields, 1));
+    ceilTransp = !((unsigned int)TCOD_list_get(opacityFields, 2));
   }
   //then use any shorthands
   if(structrecord_has_prop(sr, "uniform_opacity")) {
     char uniformOpacity = structrecord_get_prop_value(sr, "uniform_opacity").c;
-    tile_opacity_flagset_set(opacity,
-      uniformOpacity,
-      uniformOpacity,
-      uniformOpacity,
-      uniformOpacity,
-      uniformOpacity,
-      uniformOpacity,
-      uniformOpacity,
-      uniformOpacity
-    );
+    wallTransp = floorTransp = ceilTransp = !uniformOpacity;
   }
   if(structrecord_has_prop(sr, "wall_opacity")) {
     char wallOpacity = structrecord_get_prop_value(sr, "wall_opacity").c;
-    tile_opacity_flagset_set(opacity,
-      wallOpacity,
-      wallOpacity,
-      wallOpacity,
-      wallOpacity,
-      -1,
-      -1,
-      -1,
-      -1
-    );
+    wallTransp = !wallOpacity;
   }
   if(structrecord_has_prop(sr, "floor_opacity")) {
     char floorOpacity = structrecord_get_prop_value(sr, "floor_opacity").c;
-    tile_opacity_flagset_set(opacity,
-      -1,
-      -1,
-      -1,
-      -1,
-      floorOpacity, //zmOut -- floor out
-      -1, //zmIn -- ceiling in
-      -1, //zpOut -- ceiling out
-      floorOpacity //zpIn -- floor in
-    );
+    floorTransp = !floorOpacity;
   }
   if(structrecord_has_prop(sr, "ceiling_opacity")) {
     char ceilingOpacity = structrecord_get_prop_value(sr, "ceiling_opacity").c;
-    tile_opacity_flagset_set(opacity,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      ceilingOpacity,
-      ceilingOpacity,
-      -1
-    );
+    ceilTransp = !ceilingOpacity;
   }
+  #warning moveinfo categories for up/down should exist
+  //the default, however, should just be to treat the flag 'stairs' as meaning
+  //bidirectional and automatic when entered.
+  
   #warning descs are being ignored
-  return tile_init(t, opacity, drawInfos);
+  TileInfo ti = tileinfo_init(tileinfo_new(), drawinfos, moveinfos, moveDefaultAllowed);
+  return tile_init(t, wallTransp, floorTransp, ceilTransp, ti);
 }
 
 Map map_init_structrecord(Map m, StructRecord sr) {

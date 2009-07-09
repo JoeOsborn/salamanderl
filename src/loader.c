@@ -146,6 +146,7 @@ void loader_load_save(Loader l, char *saveName) {
   //for now, just make a player
   
   Map m = loader_get_map(l, "cage");
+  #warning make this an objectinfo with moveinfos and drawinfos.
   DrawInfo playerDraw = drawinfo_init(drawinfo_new(), 0, TCOD_white, TCOD_black, '@');
   Object player = object_init(object_new(), 
     "@", 
