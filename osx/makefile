@@ -12,6 +12,7 @@ C_OBJS=\
   $(SRCDIR)/loader.o \
   $(SRCDIR)/drawinfo.o \
   $(SRCDIR)/moveinfo.o \
+  $(SRCDIR)/objectinfo.o \
   $(SRCDIR)/tileinfo.o \
   $(SRCDIR)/salamanderl.o 
 
@@ -22,6 +23,7 @@ HEADERS=\
   $(INCDIR)/loader.h \
   $(INCDIR)/drawinfo.h \
   $(INCDIR)/moveinfo.h \
+  $(INCDIR)/objectinfo.h \
   $(INCDIR)/tileinfo.h \
   $(INCDIR)/uthash.h \
   $(INCDIR)/utlist.h

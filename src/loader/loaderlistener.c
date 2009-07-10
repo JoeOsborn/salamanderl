@@ -1,6 +1,8 @@
 #include "loader/loaderlistener.h"
 
 #include "drawinfo.h"
+#include "moveinfo.h"
+#include "tileinfo.h"
 
 DrawInfo drawinfo_init_structrecord(DrawInfo di, StructRecord sr, int index, int *finalZ) {
   int z = structrecord_get_prop_value_default(sr, "z", (TCOD_value_t)(index)).i;
@@ -15,17 +17,12 @@ DrawInfo drawinfo_init_structrecord(DrawInfo di, StructRecord sr, int index, int
 
 MoveInfo moveinfo_init_structrecord(MoveInfo mi, StructRecord sr) {
   TCOD_list_t props = structrecord_props(sr);
-  FlagSchema fs = flagschema_init(flagschema_new());
+  TCOD_list_t flags = TCOD_list_new();
   for(int i = 0; i < TCOD_list_size(props); i++) {
     Prop p = TCOD_list_get(props, i);
-    flagschema_insert(fs, prop_name(prop), 1);    
+    TCOD_list_push(flags, moveflag_init(moveflag_new(), prop_name(p), prop_value(p).b));    
   }
-  Flagset fset = flagset_init(flagset_new(fs));
-  for(int i = 0; i < TCOD_list_size(props); i++) {
-    Prop p = TCOD_list_get(props, i);
-    flagset_set_path(fset, fs, prop_name(prop), prop_value(prop).b);    
-  }
-  return moveinfo_init(mi, fs, fset);
+  return moveinfo_init(mi, flags);
 }
 
 Tile tile_init_structrecord(Tile t, StructRecord sr) {
@@ -80,7 +77,7 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
   //bidirectional and automatic when entered.
   
   #warning descs are being ignored
-  TileInfo ti = tileinfo_init(tileinfo_new(), drawinfos, moveinfos, moveDefaultAllowed);
+  TileInfo ti = tileinfo_init(tileinfo_new(), drawInfos, moveInfos, moveDefaultAllowed);
   return tile_init(t, wallTransp, floorTransp, ceilTransp, ti);
 }
 

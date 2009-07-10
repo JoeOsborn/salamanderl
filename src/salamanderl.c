@@ -8,6 +8,9 @@
 
 #include "loader.h"
 #include "drawinfo.h"
+#include "moveinfo.h"
+#include "tileinfo.h"
+#include "objectinfo.h"
 
 void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size) {
   int index=0;
@@ -47,17 +50,10 @@ void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size) {
         drawY = y;
         t = map_get_tile(m, tileIndex);
         ti = tile_context(t);
-        drawInfos = tileinfo_get_drawinfos(ti);
+        drawInfos = tileinfo_drawinfos(ti);
         if(drawInfos) {
           //in los and lit and in volume
-          DrawInfo di = NULL; //wrap this for loop in a method on drawinfo?
-          for(int i = 0; i < TCOD_list_size(drawInfos); i++) {
-            DrawInfo test = TCOD_list_get(drawInfos, i);
-            if(drawinfo_z(test) == (z-belowZ)) {
-              di = test;
-              break;
-            }
-          }
+          DrawInfo di = drawinfo_get_z_level(drawInfos, z, belowZ);
           bool visible = false;
           if(z == belowZ) {
             visible = ((flags.edgelos > 1 || flags.surflos > 1)) && (flags.surfvol > 1) && (flags.surflit > 1);
@@ -75,16 +71,21 @@ void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size) {
   }
 }
 
-void draw_object(Stimulus st) {
-  perception visflags = stimulus_obj_sight_change_get_new_perception(st);
+void draw_object(Sensor s, Stimulus st) {
+  perception flags = stimulus_obj_sight_change_get_new_perception(st);
   mapVec pos = stimulus_obj_sight_change_get_position(st);
-  DrawInfo context = stimulus_obj_sight_change_get_context(st);
-  if(!map_item_visible(visflags)) {
+  ObjectInfo context = stimulus_obj_sight_change_get_context(st);
+  mapVec sensePos = sensor_position(s);
+  
+  TCOD_list_t drawInfos = objectinfo_drawinfos(context);
+  DrawInfo di = drawinfo_get_z_level(drawInfos, sensePos.z, pos.z);
+    
+  if(!map_item_visible(flags)) {
 //    TCOD_console_print_left(NULL, pos.x*2, pos.y, "X");
   } else {
-    TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(context));
-    TCOD_console_set_background_color(NULL, drawinfo_back_color(context));
-    TCOD_console_print_left(NULL, pos.x*2, pos.y, "%c", drawinfo_symbol(context));
+    TCOD_console_set_foreground_color(NULL, drawinfo_fore_color(di));
+    TCOD_console_set_background_color(NULL, drawinfo_back_color(di));
+    TCOD_console_print_left(NULL, pos.x*2, pos.y, "%c", drawinfo_symbol(di));
   }
 }
 
@@ -110,7 +111,7 @@ void drawstimuli(Map m, Sensor s) {
       case StimObjLitChange:
       case StimObjVisChange:
         //redraw object
-        draw_object(st);
+        draw_object(s, st);
         break;
       case StimObjMoved:
         visflags = stimulus_obj_sight_change_get_new_perception(st);
@@ -118,7 +119,7 @@ void drawstimuli(Map m, Sensor s) {
         delta = stimulus_obj_moved_get_dir(st);
         oldPt = mapvec_subtract(pos, delta);
         // TCOD_console_print_left(NULL, oldPt.x*2, oldPt.y, "x");
-        draw_object(st);
+        draw_object(s, st);
         // TCOD_console_print_left(NULL, 0, 15, "got move");
         break;
       case StimGeneric:
@@ -142,14 +143,25 @@ void drawmap(Map m, Object o) {
   TCOD_console_set_background_color(NULL, (TCOD_color_t){0, 0, 0});
 }
 
-void smap_turn_object(Map map, char *obj, int amt) {
+bool smap_turn_object(Map map, char *obj, int amt) {
   map_turn_object(map, obj, amt);
+  return true;
 }
 
-void smap_move_object(Map map, char *obj, mapVec amt) {
+bool smap_move_object(Map map, char *obj, mapVec amt) {
   #warning check movementinfo
+  //get the destination tile's tileinfo
+  //get the object's objectinfo
+  Object o = map_get_object_named(map, obj);
+  mapVec newPos = mapvec_add(object_position(o), amt);
+  TileInfo ti = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z));
+  ObjectInfo oi = object_context(o);
+  if(tileinfo_moveinfo_can_enter(ti, objectinfo_moveinfo(oi))) {
+    map_move_object(map, obj, amt);
+    return true;
+  }
+  return false;
   #warning move up/down stairs
-  map_move_object(map, obj, amt);
 }
 
 //next steps: initialize from files, introduce chomping.
@@ -186,7 +198,8 @@ int main( int argc, char *argv[] ) {
 		TCOD_console_print_left(NULL,0,27,"other stat stuff can go here");
 		//map
     drawmap(map, player);
-    TCOD_console_print_left(NULL, object_position(player).x*2, object_position(player).y,"@");
+    DrawInfo pdi = TCOD_list_get(objectinfo_drawinfos(object_context(player)), 0);
+    TCOD_console_print_left(NULL, object_position(player).x*2, object_position(player).y, "%c", drawinfo_symbol(pdi));
 		//divider
 		TCOD_console_print_left(NULL,0,28,
 		  "--------------------------------------------------------------------------------"

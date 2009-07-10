@@ -1,5 +1,7 @@
 #include "loader.h"
 #include "drawinfo.h"
+#include "moveinfo.h"
+#include "objectinfo.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +10,7 @@
 #include "loader/prop.h"
 #include "loader/structrecord.h"
 #include "loader/loaderlistener.h"
+
 
 char *makeRsrcPath(Loader l, char *subPath, char *suffix) {
   //basePath / subPath . suffix
@@ -148,12 +151,18 @@ void loader_load_save(Loader l, char *saveName) {
   Map m = loader_get_map(l, "cage");
   #warning make this an objectinfo with moveinfos and drawinfos.
   DrawInfo playerDraw = drawinfo_init(drawinfo_new(), 0, TCOD_white, TCOD_black, '@');
+  TCOD_list_t moveFlags = TCOD_list_new();
+  TCOD_list_push(moveFlags, moveflag_init(moveflag_new(), "normal", 1));
+  TCOD_list_push(moveFlags, moveflag_init(moveflag_new(), "wet", 0));
+  MoveInfo playerMove = moveinfo_init(moveinfo_new(), moveFlags);
+  ObjectInfo oi = objectinfo_init(objectinfo_new(), NULL, playerMove);
+  objectinfo_add_drawinfo(oi, playerDraw);
   Object player = object_init(object_new(), 
     "@", 
     (mapVec){1, 1, 0}, 
     (mapVec){1, 0, 0},
     m,
-    playerDraw
+    oi
   );
   map_add_object(m, player);
   // Sensor leftEye = sensor_init(sensor_new(), "left_eye",

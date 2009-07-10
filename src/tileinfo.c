@@ -39,5 +39,30 @@ TCOD_list_t tileinfo_moveinfos(TileInfo ti) {
   return ti->moveinfos;
 }
 bool tileinfo_move_default_allowed(TileInfo ti) {
-  return ti->move_default_allowed;
+  if(!ti) { return true; }
+  return ti->moveDefaultAllowed;
+}
+
+bool tileinfo_moveinfo_can_enter(TileInfo ti, MoveInfo mi) {
+  if(!ti) { return true; }
+  //see if the object's moveinfo matches any of the tile's movementinfos.
+  //if so, 
+    //if the tile defaults to allow, then deny
+    //if the tile defaults to deny, then allow
+  bool match = false;
+  for(int i = 0; i < TCOD_list_size(ti->moveinfos); i++) {
+    MoveInfo tmi = TCOD_list_get(ti->moveinfos, i);
+    if(moveinfo_match(tmi, mi)) {
+      match = true;
+    }
+  }
+  //XOR -- 
+  //match  mda  allow
+  //    0    0      0
+  //    1    0      1
+  //    0    1      1
+  //    1    1      0
+  //if match is true and move_default_allowed is true, we deny; if match is true and; if match is false and move_default_allowed is false, we allow;
+  //This is what logical xor looks like in C.  Sure would be nice to have ^^!
+  return (!match != !(ti->moveDefaultAllowed));
 }

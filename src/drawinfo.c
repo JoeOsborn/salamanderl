@@ -26,3 +26,16 @@ char drawinfo_symbol(DrawInfo inf) {
 int drawinfo_z(DrawInfo inf) {
   return inf ? inf->z : 0;
 }
+
+DrawInfo drawinfo_get_z_level(TCOD_list_t drawInfos, int senseZ, int posZ) {
+  int zOff = senseZ - posZ;
+  DrawInfo di = NULL;
+  for(int i = 0; i < TCOD_list_size(drawInfos); i++) {
+    di = TCOD_list_get(drawInfos, i);
+    if(drawinfo_z(di) == zOff) {
+      return di;
+    }
+  }
+  return NULL;
+}
+

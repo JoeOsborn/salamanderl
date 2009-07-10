@@ -1,6 +1,10 @@
 #ifndef _TILE_INFO_H
 #define _TILE_INFO_H
 
+#include <libtcod.h>
+#include "drawinfo.h"
+#include "moveinfo.h"
+
 struct _tile_info {
   TCOD_list_t drawinfos;
   TCOD_list_t moveinfos;
@@ -17,5 +21,7 @@ TCOD_list_t tileinfo_drawinfos(TileInfo ti);
 void tileinfo_add_moveinfo(TileInfo ti, MoveInfo mi);
 TCOD_list_t tileinfo_moveinfos(TileInfo ti);
 bool tileinfo_move_default_allowed(TileInfo ti);
+
+bool tileinfo_moveinfo_can_enter(TileInfo ti, MoveInfo mi);
 
 #endif

@@ -21,4 +21,6 @@ TCOD_color_t drawinfo_back_color(DrawInfo inf);
 char drawinfo_symbol(DrawInfo inf);
 int drawinfo_z(DrawInfo inf);
 
+DrawInfo drawinfo_get_z_level(TCOD_list_t drawInfos, int senseZ, int posZ);
+
 #endif
