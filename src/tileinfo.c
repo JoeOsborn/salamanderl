@@ -4,10 +4,12 @@
 TileInfo tileinfo_new() {
   return calloc(1, sizeof(struct _tile_info));
 }
-TileInfo tileinfo_init(TileInfo ti, TCOD_list_t dis, TCOD_list_t mis, bool moveDefaultAllowed) {
+TileInfo tileinfo_init(TileInfo ti, TCOD_list_t dis, TCOD_list_t mis, bool moveDefaultAllowed, bool stairs, bool pit) {
   ti->drawinfos = dis ? dis : TCOD_list_new();
   ti->moveinfos = mis ? mis : TCOD_list_new();
   ti->moveDefaultAllowed=moveDefaultAllowed;
+  ti->stairs = stairs;
+  ti->pit = pit;
   return ti;
 }
 void tileinfo_free(TileInfo ti) {
@@ -41,6 +43,12 @@ TCOD_list_t tileinfo_moveinfos(TileInfo ti) {
 bool tileinfo_move_default_allowed(TileInfo ti) {
   if(!ti) { return true; }
   return ti->moveDefaultAllowed;
+}
+bool tileinfo_is_stairs(TileInfo ti) {
+  return ti ? ti->stairs : false;
+}
+bool tileinfo_is_pit(TileInfo ti) {
+  return ti ? ti->pit : true;
 }
 
 bool tileinfo_moveinfo_can_enter(TileInfo ti, MoveInfo mi) {

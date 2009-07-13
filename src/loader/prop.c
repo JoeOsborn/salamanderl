@@ -4,11 +4,11 @@ Prop prop_new() {
   return calloc(1, sizeof(struct _prop));
 }
 Prop prop_init(Prop p, char *name, TCOD_value_type_t type, TCOD_value_t value) {
-  p->name=strdup(name);
+  p->name=name ? strdup(name) : NULL;
   p->type=type;
   //make a copy
   if(type == TCOD_TYPE_STRING) {
-    p->value.s = strdup(value.s);
+    p->value.s = value.s ? strdup(value.s) : "";
   } else if((type & TCOD_TYPE_LIST) == TCOD_TYPE_LIST) {
     #warning will this be safe for lists of strings?  otoh, will it leak?
     p->value.list = TCOD_list_duplicate(value.list);

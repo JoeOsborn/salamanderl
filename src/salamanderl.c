@@ -149,19 +149,70 @@ bool smap_turn_object(Map map, char *obj, int amt) {
 }
 
 bool smap_move_object(Map map, char *obj, mapVec amt) {
-  #warning check movementinfo
   //get the destination tile's tileinfo
   //get the object's objectinfo
   Object o = map_get_object_named(map, obj);
   mapVec newPos = mapvec_add(object_position(o), amt);
+  mapVec firstPos=object_position(o);
   TileInfo ti = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z));
+  TileInfo belowTi=NULL, aboveTi=NULL;
+  TileInfo firstTi=NULL;
   ObjectInfo oi = object_context(o);
-  if(tileinfo_moveinfo_can_enter(ti, objectinfo_moveinfo(oi))) {
+  //is it a pit? if so, move the player there and down a z level.
+  //repeat until a tile is reached.
+  MoveInfo mi = objectinfo_moveinfo(oi);
+  if(tileinfo_is_pit(ti)) {
     map_move_object(map, obj, amt);
+    if(newPos.z > 0) {
+      belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
+    } else {
+      return true; //we're done, we've hit rock bottom
+    }
+    //if there's only one level of pit or there's a wall below, there's no need to drop further.
+    firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z));
+    if(tileinfo_is_pit(firstTi) && firstPos.z > 0) {
+      firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z-1));
+    }
+    while(tileinfo_is_pit(belowTi) || tileinfo_moveinfo_can_enter(belowTi, mi)) { 
+      //first off, bail if the below is a stairs and the player was on a stairs before (and hasn't already fallen some). no need to go down the stairs in that case.
+      if(tileinfo_is_stairs(belowTi) && (firstPos.z == newPos.z) && tileinfo_is_stairs(firstTi)) {
+        break;
+      }
+      amt = (mapVec){0, 0, -1};
+      newPos.z--;
+      map_move_object(map, obj, amt);
+      ti = belowTi;
+      if(newPos.z > 0) {
+        belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
+      } else {
+        break; //we're done, we've hit rock bottom
+      }
+    }
     return true;
+  } else if(tileinfo_moveinfo_can_enter(ti, mi)) {
+    //is it a stairway?
+    map_move_object(map, obj, amt);
+    if(tileinfo_is_stairs(ti)) {
+    //if the player's z is the same as this tile's z and he's not standing on a stairs and the tile above is enterable, move player z up to z+1. 
+    //[no need for the position check since the other case is caught by the pitfall.]
+//      if(objectPosition.z == newPos.z) { //stairs up
+        //no need to go up if the old tile is stairs or if the new tile is non-enterable
+      if(newPos.z < (map_size(map).z-1)) {
+        aboveTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z+1));
+      } else {
+        return true; //we're done, we've hit rock bottom
+      }
+        if(!tileinfo_is_stairs(firstTi) && tileinfo_moveinfo_can_enter(aboveTi, mi)) {
+          map_move_object(map, obj, (mapVec){0, 0, 1});
+          newPos.z++;
+        }
+//      }
+    //if the player's z is higher than this tile's z and he's not standing on a stairs, move him down to this z. ((this is already handled by pit-dropping.))
+    }
+    return true;
+  } else {
+    return false;
   }
-  return false;
-  #warning move up/down stairs
 }
 
 //next steps: initialize from files, introduce chomping.
@@ -221,7 +272,6 @@ int main( int argc, char *argv[] ) {
     } else if(key.vk == TCODK_CHAR) {
       switch(key.c) {
         case 'w':
-          #warning wrap this move with a new move that checks collision
           smap_move_object(map, "@", (mapVec){0, -1, 0});
           break;
         case 'a':

@@ -75,9 +75,17 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
   #warning moveinfo categories for up/down should exist
   //the default, however, should just be to treat the flag 'stairs' as meaning
   //bidirectional and automatic when entered.
-  
+  //for now, we'll just use a boolean for 'stairs'
+  bool stairs = false;
+  if(structrecord_is_flag_set(sr, "stairs")) {
+    stairs = true;
+  }
+  bool pit = false;
+  if(structrecord_is_flag_set(sr, "pit")) {
+    pit = true;
+  }
   #warning descs are being ignored
-  TileInfo ti = tileinfo_init(tileinfo_new(), drawInfos, moveInfos, moveDefaultAllowed);
+  TileInfo ti = tileinfo_init(tileinfo_new(), drawInfos, moveInfos, moveDefaultAllowed, stairs, pit);
   return tile_init(t, wallTransp, floorTransp, ceilTransp, ti);
 }
 

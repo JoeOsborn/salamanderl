@@ -20,7 +20,7 @@ tile "floor" { //1
   	symbol=','
   }
   draw {
-    z=1
+    z=2
   	fore="#336600"
   	symbol='_'
   }
@@ -201,6 +201,7 @@ tile "stairs" { //7
   	fore="#666666"
   	symbol='-'
   }
+//later, consider making stairs {} and pit {} use movement flag sets.
   stairs
   up_desc="You ascend the stairs."
   down_desc="You descend the stairs."
@@ -272,7 +273,7 @@ map "cage" {
 	  2,3,3,3,3,1,1,1,1,6,6,2,
 	  2,3,3,3,1,1,1,1,1,6,6,2,
 	  2,3,3,1,1,1,1,1,1,6,6,2,
-	  2,1,1,1,1,1,1,1,1,6,7,2,
+	  2,1,1,1,1,1,1,1,1,7,7,2,
 	  2,1,1,1,1,1,1,1,1,5,5,2,
 	  2,1,1,1,1,1,1,1,5,5,5,2,
 	  2,1,1,1,1,1,1,5,5,5,1,2,
