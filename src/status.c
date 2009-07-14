@@ -15,6 +15,9 @@ Grant grant_init(Grant g, char *n, float d, int p, void *cause) {
   g->cause = cause;
   return g;
 }
+Grant grant_copy(Grant g, Grant g2) {
+  return grant_init(g, g2->status, g2->duration, g2->priority, g2->cause);
+}
 void grant_free(Grant g) {
   free(g->status);
   free(g);
@@ -47,6 +50,9 @@ Revoke revoke_init(Revoke r, char *n, int p, void *cause) {
   r->priority = p;
   r->cause = cause;
   return r;
+}
+Revoke revoke_copy(Revoke r, Revoke r2) {
+  return revoke_init(r, r2->status, r2->priority, r2->cause);
 }
 void revoke_free(Revoke r) {
   free(r->status);

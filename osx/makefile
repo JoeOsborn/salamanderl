@@ -6,8 +6,13 @@ FLAGS=-ggdb -std=gnu9x
 .SUFFIXES: .o .h .c
 
 C_OBJS=\
-	$(SRCDIR)/action.o \
-	$(SRCDIR)/condition.o \
+	$(SRCDIR)/action/action.o \
+	$(SRCDIR)/action/bindings.o \
+	$(SRCDIR)/action/check.o \
+	$(SRCDIR)/action/comparison.o \
+	$(SRCDIR)/action/condition.o \
+	$(SRCDIR)/action/effect_grantrevoke.o \
+	$(SRCDIR)/action/effect_set.o \
   $(SRCDIR)/loader/loaderlistener.o \
   $(SRCDIR)/loader/prop.o \
   $(SRCDIR)/loader/structrecord.o \
@@ -20,8 +25,13 @@ C_OBJS=\
   $(SRCDIR)/tileinfo.o
 
 HEADERS=\
-	$(INCDIR)/action.h \
-  $(INCDIR)/condition.h \
+	$(INCDIR)/action/action.h \
+  $(INCDIR)/action/bindings.h \
+  $(INCDIR)/action/check.h \
+  $(INCDIR)/action/comparison.h \
+  $(INCDIR)/action/condition.h \
+  $(INCDIR)/action/effect_grantrevoke.h \
+  $(INCDIR)/action/effect_set.h \
   $(INCDIR)/loader/loaderlistener.h \
   $(INCDIR)/loader/prop.h \
   $(INCDIR)/loader/structrecord.h \

@@ -17,6 +17,7 @@ typedef struct _grant *Grant;
 
 Grant grant_new();
 Grant grant_init(Grant g, char *n, float d, int p, void *cause);
+Grant grant_copy(Grant g, Grant g2);
 void grant_free(Grant g);
 char *grant_status(Grant g);
 float grant_duration(Grant g);
@@ -35,6 +36,7 @@ typedef struct _revoke *Revoke;
 
 Revoke revoke_new();
 Revoke revoke_init(Revoke r, char *n, int p, void *cause);
+Revoke revoke_copy(Revoke r, Revoke r2);
 void revoke_free(Revoke r);
 char *revoke_status(Revoke r);
 int revoke_priority(Revoke r);
