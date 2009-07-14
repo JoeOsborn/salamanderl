@@ -123,6 +123,6 @@ void action_free(Action a);
 
 void action_bind(Action a, Bindings b);
 //these triggers _MUST_ be in the same schema as the action's schema for now.
-bool action_apply(Action a, Flagset triggers, Bindings b);
+bool action_apply(Action a, Flagset triggers);
 
 #endif

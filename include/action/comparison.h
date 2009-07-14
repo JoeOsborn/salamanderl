@@ -28,17 +28,17 @@ typedef enum {
 
 struct _comparison {
   ComparisonMode mode;
-  TCOD_value_t value; //may be undefined, in which case pass the value
+  TCOD_value_t *value; //may be undefined, in which case pass the value
 };
 typedef struct _comparison *Comparison;
 
 Comparison comparison_new();
-Comparison comparison_init(Comparison c, ComparisonMode mode, TCOD_value_t val);
+Comparison comparison_init(Comparison c, ComparisonMode mode, TCOD_value_t *val);
 void comparison_free(Comparison c);
 
 bool comparison_expects_rval(Comparison c);
 
-bool comparison_result(Comparison c, TCOD_value_t lval, TCOD_value_t rval);
+bool comparison_result(Comparison c, TCOD_value_t *lval, TCOD_value_t *rval);
 
 
 #endif

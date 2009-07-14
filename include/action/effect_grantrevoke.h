@@ -11,7 +11,7 @@ struct _effect_grantrevoke {
   };
   char *target;
 };
-typedef struct _effect_grantrevoke EffectGrantRevoke;
+typedef struct _effect_grantrevoke *EffectGrantRevoke;
 
 EffectGrantRevoke effect_grantrevoke_new();
 EffectGrantRevoke effect_grantrevoke_init(EffectGrantRevoke gr, void *effect, char *target);

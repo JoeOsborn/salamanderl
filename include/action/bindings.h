@@ -1,12 +1,16 @@
 #ifndef _BINDINGS_H
 #define _BINDINGS_H
 
+#include <libtcod.h>
+
 struct _bindings {
   char *label;
   void *value;
   TCOD_list_t subbindings;
-  Bindings parent;
+  struct _bindings *parent;
 };
+
+typedef struct _bindings *Bindings;
 
 Bindings bindings_new();
 Bindings bindings_init(Bindings b, Bindings parent, char *label, void *value, TCOD_list_t subbindings);
