@@ -20,7 +20,9 @@ status "dry" {
     movement {
       wet=false
     }
-    revoke=["wet"]
+    revoke "wet" {
+			reason="dried off"
+		}
     message="Your skin feels dry again."
   }
 }

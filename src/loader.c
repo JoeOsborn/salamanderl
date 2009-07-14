@@ -42,10 +42,13 @@ void loader_init_parser(Loader l) {
   l->parser = TCOD_parser_new();
   
   TCOD_parser_struct_t grantst = TCOD_parser_new_struct(l->parser, "grant");
-  TCOD_struct_add_property(grantst, "duration", TCOD_TYPE_FLOAT, false); //defaults to 1 min
+  TCOD_struct_add_property(grantst, "duration", TCOD_TYPE_FLOAT, false); //defaults to infinity
+  TCOD_struct_add_property(grantst, "priority", TCOD_TYPE_INT, false); //defaults to 1
+  TCOD_struct_add_property(grantst, "reason", TCOD_TYPE_STRING, false); //defaults to NULL
 
   TCOD_parser_struct_t revokest = TCOD_parser_new_struct(l->parser, "revoke");
-//  TCOD_struct_add_flag(revokest, ""); ??
+  TCOD_struct_add_property(revokest, "priority", TCOD_TYPE_INT, false); //defaults to 1
+  TCOD_struct_add_property(revokest, "reason", TCOD_TYPE_STRING, false); //defaults to NULL
 
   TCOD_parser_struct_t actionst = TCOD_parser_new_struct(l->parser, "action");
   TCOD_struct_add_flag(actionst, "on_enter");
@@ -193,8 +196,8 @@ void loader_load_save(Loader l, char *saveName) {
   ObjectInfo oi = objectinfo_init(objectinfo_new(), l, NULL, playerMove);
   objectinfo_add_drawinfo(oi, playerDraw);
   
-  //for now, we'll just make the player wet
-  objectinfo_apply_status_named(oi, "wet");
+  //for now, we'll just make the player wet for a minute at start
+  objectinfo_grant(oi, grant_init(grant_new(), "wet", 60, 5, "naturally moist"));
   
   Object player = object_init(object_new(), 
     "@", 

@@ -3,6 +3,43 @@
 
 #include <libtcod.h>
 
+struct _grant {
+  char *status;
+  float duration; //seconds
+  int priority;
+  void *cause;
+  
+  //should not be used until the grant has been applied.
+  bool active;
+  float timeLeft;
+};
+typedef struct _grant *Grant;
+
+Grant grant_new();
+Grant grant_init(Grant g, char *n, float d, int p, void *cause);
+void grant_free(Grant g);
+char *grant_status(Grant g);
+float grant_duration(Grant g);
+int grant_priority(Grant g);
+void *grant_cause(Grant g);
+
+bool grant_active(Grant g);
+void grant_set_active(Grant g, bool active);
+
+struct _revoke {
+  char *status;
+  int priority;
+  void *cause;
+};
+typedef struct _revoke *Revoke;
+
+Revoke revoke_new();
+Revoke revoke_init(Revoke r, char *n, int p, void *cause);
+void revoke_free(Revoke r);
+char *revoke_status(Revoke r);
+int revoke_priority(Revoke r);
+void *revoke_cause(Revoke r);
+
 struct _status {
   char *name;
   

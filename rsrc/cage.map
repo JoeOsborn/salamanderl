@@ -53,22 +53,9 @@ tile "shallow pool" { //3
 //  ceiling_opacity=8 //see above
   action "splash" {
 		on_enter
-		/* once
-		tile "shallow pool" {
-		  draw {
-		    z=0
-		    fore="#FFFFFF"
-		    symbol='_'
-		  }
-		  draw {
-		    z=1
-		    fore="#CCCCCC"
-		    symbol='.'
-		  }
-	    desc="All the water has been splashed out of the pool."
-		} */
     grant "wet" {
       duration=60
+			reason="splashed in shallow pool"
     }
   }
   movement_default="allow"
@@ -235,7 +222,7 @@ tile "weakground" { //8
   //need this to start as a floor-door, and open to become empty space when triggered (landed on with weight)
   //this is distinct from wall-doors, which open to become floors when triggered.
   //in general, tiles will change their properties during actions.  probably shouldn't out-and-out swap indices,
-  //but that would be easiest... if not, we potentially need to grant context to every tile index.
+  //but that would be easiest... if not, we potentially need to give context to every tile index.
   //another approach is to have doors as objects.  this gets the per-door context that will be needed.
 }
 map "cage" {

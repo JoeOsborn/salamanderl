@@ -5,6 +5,7 @@
 #include "drawinfo.h"
 #include "moveinfo.h"
 #include "status.h"
+#include "loader.h"
 
 struct _object_info {
   //the object info needs to track the loader so it can
@@ -13,6 +14,11 @@ struct _object_info {
   TCOD_list_t drawinfos;
   TCOD_list_t moveinfos;
   MoveInfo netMoveinfo;
+  //a history of all grants and revocations of statuses.
+  //should it have a maximum size?
+  TCOD_list_t grants;
+  TCOD_list_t revokes;
+  //the currently active statuses.
   TCOD_list_t statuses;
 };
 
@@ -28,8 +34,8 @@ MoveInfo objectinfo_moveinfo(ObjectInfo oi);
 bool objectinfo_move_default_allowed(ObjectInfo oi);
 
 bool objectinfo_status_active(ObjectInfo oi, Status s);
-void objectinfo_apply_status_named(ObjectInfo oi, char *n);
-void objectinfo_revoke_status_named(ObjectInfo oi, char *n);
+void objectinfo_grant(ObjectInfo oi, Grant g);
+void objectinfo_revoke(ObjectInfo oi, Revoke r);
 void objectinfo_apply_status(ObjectInfo oi, Status s);
 void objectinfo_revoke_status(ObjectInfo oi, Status s);
 

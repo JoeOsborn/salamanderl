@@ -5,6 +5,63 @@
 #include "moveinfo.h"
 #include "loader.h"
 
+Grant grant_new() {
+  return calloc(1, sizeof(struct _grant));
+}
+Grant grant_init(Grant g, char *n, float d, int p, void *cause) {
+  g->status = strdup(n);
+  g->duration = d;
+  g->priority = p;
+  g->cause = cause;
+  return g;
+}
+void grant_free(Grant g) {
+  free(g->status);
+  free(g);
+}
+char *grant_status(Grant g) {
+  return g->status;
+}
+float grant_duration(Grant g) {
+  return g->duration;
+}
+int grant_priority(Grant g) {
+  return g->priority;
+}
+void *grant_cause(Grant g) {
+  return g->cause;
+}
+bool grant_active(Grant g) {
+  return g->active;
+}
+void grant_set_active(Grant g, bool active) {
+  g->active = active;
+}
+
+
+Revoke revoke_new() {
+  return calloc(1, sizeof(struct _revoke));
+}
+Revoke revoke_init(Revoke r, char *n, int p, void *cause) {
+  r->status = strdup(n);
+  r->priority = p;
+  r->cause = cause;
+  return r;
+}
+void revoke_free(Revoke r) {
+  free(r->status);
+  free(r);
+}
+char *revoke_status(Revoke r) {
+  return r->status;
+}
+int revoke_priority(Revoke r) {
+  return r->priority;
+}
+void *revoke_cause(Revoke r) {
+  return r->cause;
+}
+
 Status status_new() {
   return calloc(1, sizeof(struct _status));
 }
