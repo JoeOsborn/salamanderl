@@ -4,6 +4,8 @@
 #include "uthash.h"
 #include <tilesense.h>
 
+#include "status.h"
+
 typedef struct _genwrap {
   char *name;
   void *guts;
@@ -17,7 +19,7 @@ struct _loader {
   Hash maps;
   TCOD_parser_t parser;
   void *listener;
-//  Hash statuses;
+  Hash statuses;
 //  Hash objectDefs;
 };
 
@@ -33,6 +35,8 @@ Map loader_get_map(Loader l, char *name);
 void loader_load_status(Loader l, char *name);
 void loader_load_object(Loader l, char *objType);
 void loader_load_save(Loader l, char *saveName);
+
+Status loader_get_status(Loader l, char *name);
 
 //for listeners only
 void loader_add_map(Loader l, Map m, char *name);

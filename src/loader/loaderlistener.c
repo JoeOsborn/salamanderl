@@ -34,7 +34,7 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
     if(strcmp(structrecord_type(kid), "draw") == 0) {
       TCOD_list_push(drawInfos, drawinfo_init_structrecord(drawinfo_new(), kid, drawIndex, &drawIndex));
       drawIndex++;
-    } else if(strcmp(structrecord_type(kid), "draw") == 0) {
+    } else if(strcmp(structrecord_type(kid), "movement") == 0) {
       TCOD_list_push(moveInfos, moveinfo_init_structrecord(moveinfo_new(), kid));
     }
   }

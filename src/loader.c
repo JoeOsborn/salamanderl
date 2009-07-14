@@ -11,6 +11,21 @@
 #include "loader/structrecord.h"
 #include "loader/loaderlistener.h"
 
+#define LOADER_DICT_FREE(_src, _freefunc) { \
+  while(_src) { \
+    genwrap *__w = _src;  \
+    _freefunc(__w->guts); \
+    free(__w->name);  \
+    HASH_DEL(_src, __w);  \
+    free(__w);  \
+  } \
+}
+
+#define LOADER_DICT_SET(_dest, _label, _guts) { \
+  genwrap *__w = loader_wrap(_label, _guts);  \
+  HASH_ADD_KEYPTR(hh, _dest, __w->name, strlen(__w->name), __w);  \
+}
+
 
 char *makeRsrcPath(Loader l, char *subPath, char *suffix) {
   //basePath / subPath . suffix
@@ -93,16 +108,10 @@ Loader loader_init(Loader l, char *basePath) {
   loader_load_config(l, "init");
   return l;
 }
-void loader_free(Loader l) {
-  genwrap *gw;
 
-  while(l->maps) {
-    gw = l->maps;
-    map_free(gw->guts);
-    free(gw->name);
-    HASH_DEL(l->maps,gw);
-    free(gw);
-  }
+void loader_free(Loader l) {
+  LOADER_DICT_FREE(l->maps, map_free);
+  LOADER_DICT_FREE(l->statuses, status_free);  
   
   TCOD_parser_delete(l->parser);
 }
@@ -120,22 +129,48 @@ void loader_load_map(Loader l, char *mapName) {
   free(fileName);
 }
 
-void loader_add_map(Loader l, Map map, char *mapName) {
-  genwrap *mapw = calloc(1, sizeof(genwrap));
-  mapw->name=strdup(mapName);
-  mapw->guts = map;
+genwrap *loader_wrap(char *name, void *data) {
+  genwrap *w = calloc(1, sizeof(genwrap));
+  w->name=strdup(name);
+  w->guts = data;
+  return w;
+}
 
-  HASH_ADD_KEYPTR(hh, l->maps, mapw->name, strlen(mapw->name), mapw);  
+void loader_add_map(Loader l, Map map, char *mapName) {
+  LOADER_DICT_SET(l->maps, mapName, map);
 }
 
 Map loader_get_map(Loader l, char *name) {
-  genwrap *mapw=NULL;
-  HASH_FIND_STR(l->maps, name, mapw);  
-  return mapw ? mapw->guts : NULL;
+  //tried to macrofy this, but it just didn't work
+  genwrap *w = NULL;
+  HASH_FIND_STR(l->maps, name, w);
+  return w ? w->guts : NULL;
 }
 void loader_load_status(Loader l, char *name) {
-  //don't even worry about this right now
+  //don't even worry about this right now -- hardcode it
+  TCOD_list_t moves = TCOD_list_new();
+  TCOD_list_t wetFlags = TCOD_list_new();
+  TCOD_list_push(wetFlags, moveflag_init(moveflag_new(), "wet", true));
+  TCOD_list_push(moves, moveinfo_init(moveinfo_new(), wetFlags));
+  Status wet = status_init(status_new(), "wet",
+    NULL,
+    NULL,
+    moves,
+    "You are soaking wet.",
+    "You've become quite damp.",
+    
+    NULL,
+    NULL,
+    "Your skin is dry again."
+  );
+  LOADER_DICT_SET(l->statuses, "wet", wet);
 }
+Status loader_get_status(Loader l, char *name) {
+  genwrap *w = NULL;
+  HASH_FIND_STR(l->statuses, name, w);
+  return w ? w->guts : NULL;
+}
+
 void loader_load_object(Loader l, char *objType) {
   //hardcode player below for now
 
@@ -155,8 +190,12 @@ void loader_load_save(Loader l, char *saveName) {
   TCOD_list_push(moveFlags, moveflag_init(moveflag_new(), "normal", 1));
   TCOD_list_push(moveFlags, moveflag_init(moveflag_new(), "wet", 0));
   MoveInfo playerMove = moveinfo_init(moveinfo_new(), moveFlags);
-  ObjectInfo oi = objectinfo_init(objectinfo_new(), NULL, playerMove);
+  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, NULL, playerMove);
   objectinfo_add_drawinfo(oi, playerDraw);
+  
+  //for now, we'll just make the player wet
+  objectinfo_apply_status_named(oi, "wet");
+  
   Object player = object_init(object_new(), 
     "@", 
     (mapVec){1, 1, 0}, 

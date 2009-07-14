@@ -3,19 +3,25 @@ status "wet" {
     movement {
       wet=true
     }
-    revoke=["dry"]
-    description="You've become quite damp."
+		description="Your skin is soaking wet."
+    message="You've become quite damp."
   }
+//status effects in "on" fall off automatically.
+//for persistent effects, use the persist { } set
+//which does not yet exist.
+//movements can no longer be provided in off.
   off {
-    grant=["dry"]
+		message="Your skin feels dry again."
   }
 }
+/*
 status "dry" {
   on {
     movement {
       wet=false
     }
     revoke=["wet"]
-    description="Your skin feels dry again."
+    message="Your skin feels dry again."
   }
 }
+*/
