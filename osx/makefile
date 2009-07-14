@@ -2,47 +2,63 @@ SRCDIR=./src
 INCDIR=./include
 TCINCDIR=tilesense/libtcod/include
 CC=gcc
-FLAGS=-ggdb -std=gnu9x
+FLAGS=-g
+CFLAGS=$(FLAGS) -std=gnu9x -I$(INCDIR) -I$(TCINCDIR) -I$(TCINCDIR)/gui -Wall $(TS_FLAGS) $(SDL_FLAGS) $(ZLIB_FLAGS) $(PNG_FLAGS) -fno-strict-aliasing
 .SUFFIXES: .o .h .c
+TMPDIR=/tmp/salamanderl
 
 C_OBJS=\
-	$(SRCDIR)/action/action.o \
-	$(SRCDIR)/action/bindings.o \
-	$(SRCDIR)/action/check.o \
-	$(SRCDIR)/action/comparison.o \
-	$(SRCDIR)/action/condition.o \
-	$(SRCDIR)/action/effect_grantrevoke.o \
-	$(SRCDIR)/action/effect_set.o \
-  $(SRCDIR)/loader/loaderlistener.o \
-  $(SRCDIR)/loader/prop.o \
-  $(SRCDIR)/loader/structrecord.o \
-  $(SRCDIR)/loader.o \
-  $(SRCDIR)/drawinfo.o \
-  $(SRCDIR)/moveinfo.o \
-  $(SRCDIR)/objectinfo.o \
-  $(SRCDIR)/salamanderl.o \
-  $(SRCDIR)/status.o \
-  $(SRCDIR)/tileinfo.o
+	$(TMPDIR)/action/action.o \
+	$(TMPDIR)/action/bindings.o \
+	$(TMPDIR)/action/check.o \
+	$(TMPDIR)/action/comparison.o \
+	$(TMPDIR)/action/condition.o \
+	$(TMPDIR)/action/effect_grantrevoke.o \
+	$(TMPDIR)/action/effect_set.o \
+	$(TMPDIR)/loader/loaderlistener.o \
+	$(TMPDIR)/loader/prop.o \
+	$(TMPDIR)/loader/structrecord.o \
+	$(TMPDIR)/loader.o \
+	$(TMPDIR)/drawinfo.o \
+	$(TMPDIR)/moveinfo.o \
+	$(TMPDIR)/objectinfo.o \
+	$(TMPDIR)/salamanderl.o \
+	$(TMPDIR)/status.o \
+	$(TMPDIR)/tileinfo.o
 
 HEADERS=\
 	$(INCDIR)/action/action.h \
-  $(INCDIR)/action/bindings.h \
-  $(INCDIR)/action/check.h \
-  $(INCDIR)/action/comparison.h \
-  $(INCDIR)/action/condition.h \
-  $(INCDIR)/action/effect_grantrevoke.h \
-  $(INCDIR)/action/effect_set.h \
-  $(INCDIR)/loader/loaderlistener.h \
-  $(INCDIR)/loader/prop.h \
-  $(INCDIR)/loader/structrecord.h \
-  $(INCDIR)/loader.h \
-  $(INCDIR)/drawinfo.h \
-  $(INCDIR)/moveinfo.h \
-  $(INCDIR)/objectinfo.h \
-  $(INCDIR)/status.h \
-  $(INCDIR)/tileinfo.h \
-  $(INCDIR)/uthash.h \
-  $(INCDIR)/utlist.h
+	$(INCDIR)/action/bindings.h \
+	$(INCDIR)/action/check.h \
+	$(INCDIR)/action/comparison.h \
+	$(INCDIR)/action/condition.h \
+	$(INCDIR)/action/effect_grantrevoke.h \
+	$(INCDIR)/action/effect_set.h \
+	$(INCDIR)/loader/loaderlistener.h \
+	$(INCDIR)/loader/prop.h \
+	$(INCDIR)/loader/structrecord.h \
+	$(INCDIR)/loader.h \
+	$(INCDIR)/drawinfo.h \
+	$(INCDIR)/moveinfo.h \
+	$(INCDIR)/objectinfo.h \
+	$(INCDIR)/status.h \
+	$(INCDIR)/tileinfo.h \
+	$(INCDIR)/uthash.h \
+	$(INCDIR)/utlist.h
+
+$(TMPDIR) :
+	mkdir -p $@
+$(TMPDIR)/action : $(TMPDIR)
+	mkdir -p $@
+$(TMPDIR)/loader : $(TMPDIR)
+	mkdir -p $@
+
+$(TMPDIR)/action/%.o : $(SRCDIR)/action/%.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+$(TMPDIR)/loader/%.o : $(SRCDIR)/loader/%.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+$(TMPDIR)/%.o : $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 #dependencies
 # SDL
@@ -65,9 +81,7 @@ TS_DIR=tilesense
 TS_FLAGS=-I $(TS_DIR)/include
 TS_LIBS=$(TS_DIR)/libtilesense.a
 
-CFLAGS=$(FLAGS) -I$(INCDIR) -I$(TCINCDIR) -I$(TCINCDIR)/gui -Wall $(TS_FLAGS) $(SDL_FLAGS) $(ZLIB_FLAGS) $(PNG_FLAGS) -fno-strict-aliasing
-
-salamanderl : $(C_OBJS) 
+salamanderl : $(TMPDIR)/action $(TMPDIR)/loader $(C_OBJS) 
 	$(CC) $(C_OBJS) $(CFLAGS) -o $@ -L./tilesense/libtcod -ltcod-debug -L./tilesense -ltilesense $(ZLIB_LIBS) $(PNG_LIBS) $(SDL_LIBS) 
 
 salamanderl.app : salamanderl
@@ -76,5 +90,5 @@ salamanderl.app : salamanderl
 	cp salamanderl $@/Contents/MacOS/
 
 clean :
-	rm -f $(C_OBJS) salamanderl
+	rm -rf $(TMPDIR) salamanderl
 	rm -rf salamanderl.app
