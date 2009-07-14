@@ -6,6 +6,8 @@ FLAGS=-ggdb -std=gnu9x
 .SUFFIXES: .o .h .c
 
 C_OBJS=\
+	$(SRCDIR)/action.o \
+	$(SRCDIR)/condition.o \
   $(SRCDIR)/loader/loaderlistener.o \
   $(SRCDIR)/loader/prop.o \
   $(SRCDIR)/loader/structrecord.o \
@@ -18,6 +20,8 @@ C_OBJS=\
   $(SRCDIR)/tileinfo.o
 
 HEADERS=\
+	$(INCDIR)/action.h \
+  $(INCDIR)/condition.h \
   $(INCDIR)/loader/loaderlistener.h \
   $(INCDIR)/loader/prop.h \
   $(INCDIR)/loader/structrecord.h \

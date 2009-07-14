@@ -52,10 +52,7 @@ MoveInfo moveinfo_init(MoveInfo mi, TCOD_list_t flags) {
   return mi;
 }
 void moveinfo_free(MoveInfo mi) {
-  for(int i = 0; i < TCOD_list_size(mi->flags); i++) {
-    moveflag_free(TCOD_list_get(mi->flags, i));
-  }
-  TCOD_list_delete(mi->flags);
+  TS_LIST_CLEAR_AND_DELETE(mi->flags, moveflag);
   free(mi);
 }
 TCOD_list_t moveinfo_flags(MoveInfo mi) {

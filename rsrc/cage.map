@@ -57,6 +57,22 @@ tile "shallow pool" { //3
       duration=60
 			reason="splashed in shallow pool"
     }
+/*
+		condition { //if this is true
+			any //if any of these are true
+			//blah blah blah
+		}
+		condition { //or this is true
+			all //all of these are true
+			condition { //conditions can be nested
+				any
+				//blah blah blah
+			}
+			condition {
+				//blah blah
+			}
+		}
+*/
   }
   movement_default="allow"
   draw {

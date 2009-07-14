@@ -11,7 +11,7 @@
 #include "loader/structrecord.h"
 #include "loader/loaderlistener.h"
 
-#define LOADER_DICT_FREE(_src, _freefunc) { \
+#define LOADER_DICT_FREE(_src, _freefunc) do { \
   while(_src) { \
     genwrap *__w = _src;  \
     _freefunc(__w->guts); \
@@ -19,13 +19,20 @@
     HASH_DEL(_src, __w);  \
     free(__w);  \
   } \
-}
+} while(0)
 
-#define LOADER_DICT_SET(_dest, _label, _guts) { \
+#define LOADER_DICT_SET(_dest, _label, _guts) do { \
   genwrap *__w = loader_wrap(_label, _guts);  \
   HASH_ADD_KEYPTR(hh, _dest, __w->name, strlen(__w->name), __w);  \
-}
+} while(0)
 
+//statements inside expression - evaluates to last statement.
+//GCC extension.
+#define LOADER_DICT_GUTS(_dst, _name) ({ \
+  genwrap *_wrap=NULL; \
+  HASH_FIND_STR(_dst, _name, _wrap); \
+  _wrap ? _wrap->guts : NULL; \
+})
 
 char *makeRsrcPath(Loader l, char *subPath, char *suffix) {
   //basePath / subPath . suffix
@@ -144,10 +151,7 @@ void loader_add_map(Loader l, Map map, char *mapName) {
 }
 
 Map loader_get_map(Loader l, char *name) {
-  //tried to macrofy this, but it just didn't work
-  genwrap *w = NULL;
-  HASH_FIND_STR(l->maps, name, w);
-  return w ? w->guts : NULL;
+  return LOADER_DICT_GUTS(l->maps, name);
 }
 void loader_load_status(Loader l, char *name) {
   //don't even worry about this right now -- hardcode it
@@ -169,9 +173,7 @@ void loader_load_status(Loader l, char *name) {
   LOADER_DICT_SET(l->statuses, "wet", wet);
 }
 Status loader_get_status(Loader l, char *name) {
-  genwrap *w = NULL;
-  HASH_FIND_STR(l->statuses, name, w);
-  return w ? w->guts : NULL;
+  return LOADER_DICT_GUTS(l->statuses, name);
 }
 
 void loader_load_object(Loader l, char *objType) {

@@ -1,5 +1,6 @@
 #include "loader/structrecord.h"
 #include <string.h>
+#include <tilesense.h>
 
 StructRecord structrecord_new() {
   return calloc(1, sizeof(struct _structrecord));
@@ -20,18 +21,9 @@ void structrecord_free(StructRecord sr) {
   if(sr->name) {
     free(sr->name);
   }
-  for(int i = 0; i < TCOD_list_size(sr->flags); i++) {
-    free(TCOD_list_get(sr->flags, i));
-  }
-  TCOD_list_delete(sr->flags);
-  for(int i = 0; i < TCOD_list_size(sr->props); i++) {
-    prop_free(TCOD_list_get(sr->props, i));
-  }
-  TCOD_list_delete(sr->props);
-  for(int i = 0; i < TCOD_list_size(sr->children); i++) {
-    structrecord_free(TCOD_list_get(sr->children, i));
-  }
-  TCOD_list_delete(sr->children);
+  TCOD_list_clear_and_delete(sr->flags);
+  TS_LIST_CLEAR_AND_DELETE(sr->props, prop);
+  TS_LIST_CLEAR_AND_DELETE(sr->children, structrecord);
   sr->parent = NULL;
   free(sr);
 }

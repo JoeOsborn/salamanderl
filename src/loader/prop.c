@@ -1,4 +1,5 @@
 #include "loader/prop.h"
+#include <tilesense.h>
 
 Prop prop_new() {
   return calloc(1, sizeof(struct _prop));
@@ -18,7 +19,7 @@ Prop prop_init(Prop p, char *name, TCOD_value_type_t type, TCOD_value_t value) {
   return p;
 }
 void prop_free(Prop p) {
-  free(p->name);
+  if(p->name) { free(p->name); }
   if(p->type == TCOD_TYPE_STRING) {
     free(p->value.s);
   } else if((p->type & TCOD_TYPE_LIST) == TCOD_TYPE_LIST) {

@@ -90,17 +90,14 @@ Status status_init(Status s, char *name,
 }
 
 void status_free(Status s) {
-  free(s->activateMsg);
-  free(s->onDescription);
-  TCOD_list_clear_and_delete(s->onRevokes);
-  TCOD_list_clear_and_delete(s->onGrants);
-  for(int i = 0; i < TCOD_list_size(s->onMoves); i++) {
-    moveinfo_free(TCOD_list_get(s->onMoves, i));
-  }
-  TCOD_list_delete(s->onMoves);
-  free(s->deactivateMsg);
-  TCOD_list_clear_and_delete(s->offRevokes);
-  TCOD_list_clear_and_delete(s->offGrants);
+  if(s->activateMsg) { free(s->activateMsg); }
+  if(s->onDescription) { free(s->onDescription); }
+  TS_LIST_CLEAR_AND_DELETE(s->onRevokes, revoke);
+  TS_LIST_CLEAR_AND_DELETE(s->onGrants, grant);
+  TS_LIST_CLEAR_AND_DELETE(s->onMoves, moveinfo);
+  if(s->deactivateMsg) { free(s->deactivateMsg); }
+  TS_LIST_CLEAR_AND_DELETE(s->offRevokes, revoke);
+  TS_LIST_CLEAR_AND_DELETE(s->offGrants, grant);
   free(s);
 }
 

@@ -4,6 +4,8 @@
 #include "moveinfo.h"
 #include "tileinfo.h"
 
+#include <tilesense.h>
+
 DrawInfo drawinfo_init_structrecord(DrawInfo di, StructRecord sr, int index, int *finalZ) {
   int z = structrecord_get_prop_value_default(sr, "z", (TCOD_value_t)(index)).i;
   TCOD_color_t fore = structrecord_get_prop_value_default(sr, "fore", (TCOD_value_t)((TCOD_color_t){255, 255, 255})).col;
@@ -131,11 +133,9 @@ void maplistener_free(MapListener l) {
     structrecord_free(sr);
   }
   if(!l->map) {
-    for(int i = 0; i < TCOD_list_size(l->tiles); i++) {
-      tile_free(TCOD_list_get(l->tiles, i));
-    }
+    TS_LIST_CLEAR_AND_DELETE(l->tiles, tile);
   }
-  TCOD_list_delete(l->tiles);
+  if(l->tiles) { TCOD_list_delete(l->tiles); }
   free(l);
 }
 

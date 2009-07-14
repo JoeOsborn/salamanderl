@@ -17,15 +17,8 @@ ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi
 }
 void objectinfo_free(ObjectInfo oi) {
   if(!oi) { return; }
-  for(int i = 0; i < TCOD_list_size(oi->statuses); i++) {
-    status_free(TCOD_list_get(oi->statuses, i));
-  }
-  TCOD_list_delete(oi->statuses);
-  for(int i = 0; i < TCOD_list_size(oi->drawinfos); i++) {
-    drawinfo_free(TCOD_list_get(oi->drawinfos, i));
-  }
-  TCOD_list_delete(oi->drawinfos);
-  
+  TS_LIST_CLEAR_AND_DELETE(oi->statuses, status);
+  TS_LIST_CLEAR_AND_DELETE(oi->drawinfos, drawinfo);
   moveinfo_free(TCOD_list_get(oi->moveinfos, 0));
   TCOD_list_delete(oi->moveinfos);
   moveinfo_free(oi->netMoveinfo);
