@@ -4,16 +4,12 @@
 #include <libtcod.h>
 
 typedef enum {
+  None,
   GreaterThan,
   LessThan,
   EqualTo,
   GreaterThanOrEqualTo,
   LessThanOrEqualTo,
-  
-  StartsWith,
-  EndsWith,
-  FindString,
-  IsString,
   
   CountGreaterThan,
   CountLessThan,
@@ -22,7 +18,13 @@ typedef enum {
   CountLessThanOrEqualTo,
   
   ContainsNumber,
+  
+  StartsWith,
+  EndsWith,
+  FindString,
+  IsString,
   ContainsString,
+  
   ContainsAll,
   ContainsAllString
 } ComparisonMode;
@@ -32,6 +34,8 @@ struct _comparison {
   TCOD_value_t *value; //may be undefined, in which case pass the value
 };
 typedef struct _comparison *Comparison;
+
+ComparisonMode comparison_mode_from_name(char *n);
 
 Comparison comparison_new();
 Comparison comparison_init(Comparison c, ComparisonMode mode, TCOD_value_t *val);

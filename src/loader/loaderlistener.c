@@ -6,6 +6,97 @@
 
 #include <tilesense.h>
 
+//now we just need to actually use them (salamanderl.c) [ and factor these methods out somewhere maybe! ]
+//for tile actions, do we want to check/execute them for every instance of the tile on the map?
+//or can we safely limit tile actions to only triggering for the tile being stepped on? I think that's fine.
+
+#define STREQ(_a, _b) (strcmp((_a), (_b)) == 0)
+
+EffectSet effect_set_init_structrecord(EffectSet es, StructRecord sr, char *defaultTarget) {
+  
+}
+
+EffectGrantRevoke effect_grantrevoke_init_structrecord(EffectSet es, StructRecord sr, char *defaultTarget) {
+  
+}
+
+Check check_init_structrecord(Check c, StructRecord sr, char *defaultTarget) {
+  //srcO, srcV, targetO, targetV
+  //comparisons -- check for every flag and property.
+  //if property, provide rval; otherwise, provide null.
+  char *targV = structrecord_name(sr);
+  char *targO = structrecord_has_prop(sr, "target") ? structrecord_get_prop_value(sr, "target").s : defaultTarget;
+  char *srcV = structrecord_has_prop(sr, "source") ? structrecord_get_prop_value(sr, "source").s : targV;
+  char *srcO = structrecord_has_prop(sr, "source_object") ? structrecord_get_prop_value(sr, "source_object").s : targO;
+  
+  TCOD_list_t comparisons = TCOD_list_new();
+  
+  TCOD_list_t props = structrecord_props(sr);
+  ComparisonMode comparisonMode=None;
+  TCOD_value_t val;
+  TS_LIST_FOREACH(props, 
+    val = prop_value(each);
+    comparisonMode = comparison_mode_from_name(prop_name(each));
+    if(comparisonMode != None) {
+      TCOD_list_push(comparisons, comparison_init(comparison_new(), comparisonMode, &val));
+    }
+  );
+  TCOD_list_t flags = structrecord_flags(sr);
+  TS_LIST_FOREACH(flags, 
+    comparisonMode = comparison_mode_from_name(each);
+    if(comparisonMode != None) {
+      TCOD_list_push(comparisons, comparison_init(comparison_new(), comparisonMode, NULL));
+    }
+  );
+  return check_init(c, targV, targO, srcV, srcO, comparisons);
+}
+
+Condition condition_init_structrecord(Condition c, StructRecord sr, char *defaultTarget) {
+  //all/any, negate, conditions, checks
+  TCOD_list_t checks = TCOD_list_new();
+  TCOD_list_t subconditions = TCOD_list_new();
+  for(int i = 0; i < TCOD_list_size(structrecord_children(sr)); i++) {
+    StructRecord kid = TCOD_list_get(structrecord_children(sr), i);
+    char *kidType = structrecord_type(kid);
+    if(strcmp(kidType, "check") == 0) {
+      TCOD_list_push(checks, check_init_structrecord(check_new(), kid, defaultTarget));
+    } else if(strcmp(kidType, "condition") == 0) {
+      TCOD_list_push(subconditions, condition_init_structrecord(condition_new(), kid, defaultTarget));
+    }
+  }
+  BooleanMode mode = BooleanAll;
+  if(structrecord_has_prop(sr, "requires")) {
+    mode = (strcmp(
+      structrecord_get_prop_value(sr, "requires").s, 
+      "all"
+    ) == 0) ? BooleanAll : BooleanAny;
+  }
+  bool negate = structrecord_has_flag(sr, "negate");
+  return condition_init(c, mode, negate, checks, subconditions);
+}
+
+Action action_init_structrecord(Action a, StructRecord sr, FlagSchema trigSchema, char *defaultTarget) {
+  TCOD_list_t conditions = TCOD_list_new();
+  TCOD_list_t grants = TCOD_list_new();
+  TCOD_list_t revokes = TCOD_list_new();
+  TCOD_list_t sets = TCOD_list_new();
+  Flagset triggers = flagset_init(flagset_new(trigSchema), trigSchema);
+  for(int i = 0; i < TCOD_list_size(structrecord_children(sr)); i++) {
+    StructRecord kid = TCOD_list_get(structrecord_children(sr), i);
+    char *kidType = structrecord_type(kid);
+    if(strcmp(kidType, "condition") == 0) {
+      TCOD_list_push(conditions, condition_init_structrecord(condition_new(), sr, defaultTarget));
+    } else if(strcmp(kidType, "grant") == 0) {
+      TCOD_list_push(grants, effect_grantrevoke_init_structrecord(effect_grantrevoke_new(), sr, defaultTarget));
+    } else if(strcmp(kidType, "revoke") == 0) {
+      TCOD_list_push(revokes, effect_grantrevoke_init_structrecord(effect_grantrevoke_new(), sr, defaultTarget));
+    } else if(strcmp(kidType, "set") == 0) {
+      TCOD_list_push(sets, effect_set_init_structrecord(effect_set_new(), sr, defaultTarget));
+    }
+  }
+  return action_init(a, structrecord_name(sr), triggers, trigSchema, conditions, grants, revokes, sets);
+}
+
 DrawInfo drawinfo_init_structrecord(DrawInfo di, StructRecord sr, int index, int *finalZ) {
   int z = structrecord_get_prop_value_default(sr, "z", (TCOD_value_t)(index)).i;
   TCOD_color_t fore = structrecord_get_prop_value_default(sr, "fore", (TCOD_value_t)((TCOD_color_t){255, 255, 255})).col;
@@ -27,17 +118,21 @@ MoveInfo moveinfo_init_structrecord(MoveInfo mi, StructRecord sr) {
   return moveinfo_init(mi, flags);
 }
 
-Tile tile_init_structrecord(Tile t, StructRecord sr) {
+Tile tile_init_structrecord(Tile t, StructRecord sr, FlagSchema actionTriggers) {
   TCOD_list_t drawInfos = TCOD_list_new();
   TCOD_list_t moveInfos = TCOD_list_new();
+  TCOD_list_t actions = TCOD_list_new();
   int drawIndex = 0;
   for(int i = 0; i < TCOD_list_size(structrecord_children(sr)); i++) {
     StructRecord kid = TCOD_list_get(structrecord_children(sr), i);
-    if(strcmp(structrecord_type(kid), "draw") == 0) {
+    char *kidType = structrecord_type(kid);
+    if(strcmp(kidType, "draw") == 0) {
       TCOD_list_push(drawInfos, drawinfo_init_structrecord(drawinfo_new(), kid, drawIndex, &drawIndex));
       drawIndex++;
-    } else if(strcmp(structrecord_type(kid), "movement") == 0) {
+    } else if(strcmp(kidType, "movement") == 0) {
       TCOD_list_push(moveInfos, moveinfo_init_structrecord(moveinfo_new(), kid));
+    } else if(strcmp(kidType, "action") == 0) {
+      TCOD_list_push(actions, action_init_structrecord(action_new(), kid, actionTriggers, "object"));
     }
   }
   bool moveDefaultAllowed = true;
@@ -87,7 +182,7 @@ Tile tile_init_structrecord(Tile t, StructRecord sr) {
     pit = true;
   }
   #warning descs are being ignored
-  TileInfo ti = tileinfo_init(tileinfo_new(), drawInfos, moveInfos, moveDefaultAllowed, stairs, pit);
+  TileInfo ti = tileinfo_init(tileinfo_new(), actions, drawInfos, moveInfos, moveDefaultAllowed, stairs, pit);
   return tile_init(t, wallTransp, floorTransp, ceilTransp, ti);
 }
 
@@ -118,8 +213,9 @@ Map map_init_structrecord(Map m, StructRecord sr) {
 MapListener maplistener_new() {
   return calloc(1, sizeof(struct _maplistener));
 }
-MapListener maplistener_init(MapListener l, Loader loader) {
+MapListener maplistener_init(MapListener l, FlagSchema triggerSchema, Loader loader) {
   l->loader = loader;
+  l->triggerSchema = triggerSchema;
   l->workingStruct = NULL;
   l->tiles = TCOD_list_new();
   return l;
@@ -233,7 +329,7 @@ bool maplistener_end_struct(MapListener l, TCOD_parser_struct_t str, const char 
     return true;
   } else if(strcmp(TCOD_struct_get_name(str), "tile") == 0) {
     //other stuff later! movement etc!
-    Tile t = tile_init_structrecord(tile_new(), sr);
+    Tile t = tile_init_structrecord(tile_new(), sr, l->triggerSchema);
     if(l->map) {
       //add to map
       map_add_tile(l->map, t);

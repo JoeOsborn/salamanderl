@@ -52,15 +52,123 @@ void loader_init_parser(Loader l) {
   TCOD_struct_add_property(grantst, "duration", TCOD_TYPE_FLOAT, false); //defaults to infinity
   TCOD_struct_add_property(grantst, "priority", TCOD_TYPE_INT, false); //defaults to 1
   TCOD_struct_add_property(grantst, "reason", TCOD_TYPE_STRING, false); //defaults to NULL
+  //this is actually only valid in grants {} on actions
+  TCOD_struct_add_property(grantst, "target", TCOD_TYPE_STRING, false);
 
   TCOD_parser_struct_t revokest = TCOD_parser_new_struct(l->parser, "revoke");
   TCOD_struct_add_property(revokest, "priority", TCOD_TYPE_INT, false); //defaults to 1
   TCOD_struct_add_property(revokest, "reason", TCOD_TYPE_STRING, false); //defaults to NULL
+  //this is actually only valid in revokes {} on actions
+  TCOD_struct_add_property(revokest, "target", TCOD_TYPE_STRING, false);
+
+  TCOD_parser_struct_t checkst = TCOD_parser_new_struct(l->parser, "check");
+  TCOD_struct_add_property(checkst, "target", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(checkst, "source", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(checkst, "source_object", TCOD_TYPE_STRING, false);
+
+  TCOD_struct_add_property(checkst, "greater_than", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(checkst, "greater_than_or_equal_to", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(checkst, "less_than", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(checkst, "less_than_or_equal_to", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(checkst, "equal_to", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_flag(checkst, "greater_than");
+  TCOD_struct_add_flag(checkst, "greater_than_or_equal_to");
+  TCOD_struct_add_flag(checkst, "less_than");
+  TCOD_struct_add_flag(checkst, "less_than_or_equal_to");
+  TCOD_struct_add_flag(checkst, "equal_to");
+
+  TCOD_struct_add_property(checkst, "starts_with", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(checkst, "ends_with", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(checkst, "find_string", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(checkst, "is_string", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_flag(checkst, "starts_with");
+  TCOD_struct_add_flag(checkst, "ends_with");
+  TCOD_struct_add_flag(checkst, "find_string");
+  TCOD_struct_add_flag(checkst, "is_string");
+
+  TCOD_struct_add_property(checkst, "count_greater_than", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(checkst, "count_greater_than_or_equal_to", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(checkst, "count_less_than", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(checkst, "count_less_than_or_equal_to", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(checkst, "count_equal_to", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_flag(checkst, "count_greater_than");
+  TCOD_struct_add_flag(checkst, "count_greater_than_or_equal_to");
+  TCOD_struct_add_flag(checkst, "count_less_than");
+  TCOD_struct_add_flag(checkst, "count_less_than_or_equal_to");
+  TCOD_struct_add_flag(checkst, "count_equal_to");
+  
+  TCOD_struct_add_property(checkst, "contains", TCOD_TYPE_INT, false);
+  TCOD_struct_add_property(checkst, "contains_string", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_list_property(checkst, "contains_all", TCOD_TYPE_INT, false);
+  TCOD_struct_add_list_property(checkst, "contains_all_strings", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_flag(checkst, "contains");
+  TCOD_struct_add_flag(checkst, "contains_string");
+  TCOD_struct_add_flag(checkst, "contains_all");
+  TCOD_struct_add_flag(checkst, "contains_all_strings");
+
+  static const char *condition_modes[] = { "all", "any", NULL };    
+  TCOD_parser_struct_t conditionst = TCOD_parser_new_struct(l->parser, "condition");
+  TCOD_struct_add_value_list(conditionst, "require", condition_modes, false); //defaults to 'all'
+  TCOD_struct_add_flag(conditionst, "negate");
+  TCOD_struct_add_structure(conditionst, checkst);
+  TCOD_struct_add_structure(conditionst, conditionst);  
+
+  TCOD_parser_struct_t setst = TCOD_parser_new_struct(l->parser, "set");
+  TCOD_struct_add_property(setst, "increase", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(setst, "decrease", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(setst, "set_number", TCOD_TYPE_FLOAT, false);
+  //srcvar-using variants
+  TCOD_struct_add_flag(setst, "increase");
+  TCOD_struct_add_flag(setst, "decrease");
+  TCOD_struct_add_flag(setst, "set_number");
+  
+  TCOD_struct_add_property(setst, "concat", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(setst, "excise", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(setst, "set_string", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_flag(setst, "concat");
+  TCOD_struct_add_flag(setst, "excise");
+  TCOD_struct_add_flag(setst, "set_string");
+
+  TCOD_struct_add_property(setst, "push", TCOD_TYPE_INT, false);
+  TCOD_struct_add_list_property(setst, "append_all", TCOD_TYPE_INT, false);
+  TCOD_struct_add_property(setst, "remove", TCOD_TYPE_INT, false);
+  TCOD_struct_add_list_property(setst, "remove_all", TCOD_TYPE_INT, false);
+  TCOD_struct_add_list_property(setst, "set_list", TCOD_TYPE_INT, false);  
+  TCOD_struct_add_flag(setst, "push");
+  TCOD_struct_add_flag(setst, "append_all");
+  TCOD_struct_add_flag(setst, "remove");
+  TCOD_struct_add_flag(setst, "remove_all");
+  TCOD_struct_add_flag(setst, "set_list");
+
+  TCOD_struct_add_property(setst, "push_string", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_list_property(setst, "append_all_strings", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(setst, "remove_string", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_list_property(setst, "remove_all_strings", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_list_property(setst, "set_string_list", TCOD_TYPE_STRING, false);  
+  TCOD_struct_add_flag(setst, "push_string");
+  TCOD_struct_add_flag(setst, "append_all_strings");
+  TCOD_struct_add_flag(setst, "remove_string");
+  TCOD_struct_add_flag(setst, "remove_all_strings");
+  TCOD_struct_add_flag(setst, "set_string_list");
+  
 
   TCOD_parser_struct_t actionst = TCOD_parser_new_struct(l->parser, "action");
   TCOD_struct_add_flag(actionst, "on_enter");
+  TCOD_struct_add_flag(actionst, "on_exit");
+  TCOD_struct_add_flag(actionst, "on_bump");
+  TCOD_struct_add_flag(actionst, "on_atop");
+  TCOD_struct_add_flag(actionst, "on_fall_onto");
+  TCOD_struct_add_flag(actionst, "on_fall_through");
+  TCOD_struct_add_flag(actionst, "on_chomp");
+  TCOD_struct_add_flag(actionst, "on_unchomp");
+  TCOD_struct_add_flag(actionst, "on_tug_left");
+  TCOD_struct_add_flag(actionst, "on_tug_right");
+  TCOD_struct_add_flag(actionst, "on_tug_back");
+  //timers not supported yet
+  TCOD_struct_add_structure(actionst, conditionst);
   TCOD_struct_add_structure(actionst, grantst);  
   TCOD_struct_add_structure(actionst, revokest);  
+  TCOD_struct_add_structure(actionst, setst);
 
   TCOD_parser_struct_t movst = TCOD_parser_new_struct(l->parser, "movement");
   TCOD_struct_add_property(movst, "normal", TCOD_TYPE_BOOL, false);
@@ -112,10 +220,13 @@ void loader_init_parser(Loader l) {
 }
 Loader loader_init(Loader l, char *basePath) {
   l->path = strdup(basePath);
-  l->listener = maplistener_init(maplistener_new(), l);
-  loader_init_parser(l);
 
   loader_load_config(l, "init");
+
+  loader_init_parser(l);
+
+  l->mapListener = maplistener_init(maplistener_new(), l->triggerSchema, l);
+
   return l;
 }
 
@@ -127,13 +238,26 @@ void loader_free(Loader l) {
 }
 void loader_load_config(Loader l, char *configName) {
   //don't even think about this yet
+  l->triggerSchema = flagschema_init(flagschema_new());
+  flagschema_insert(l->triggerSchema, "on_enter", 1);
+  flagschema_insert(l->triggerSchema, "on_exit", 1);
+  flagschema_insert(l->triggerSchema, "on_bump", 1);
+  flagschema_insert(l->triggerSchema, "on_atop", 1);
+  flagschema_insert(l->triggerSchema, "on_fall_onto", 1);
+  flagschema_insert(l->triggerSchema, "on_fall_through", 1);
+  flagschema_insert(l->triggerSchema, "on_chomp", 1);
+  flagschema_insert(l->triggerSchema, "on_unchomp", 1);
+  flagschema_insert(l->triggerSchema, "on_tug_left", 1);
+  flagschema_insert(l->triggerSchema, "on_tug_right", 1);
+  flagschema_insert(l->triggerSchema, "on_tug_back", 1);
+  //timers and then custom triggers go here.  not sure what to do for those.
 }
 
 void loader_load_map(Loader l, char *mapName) {  
   char *fileName = makeRsrcPath(l, mapName, "map");
   
   TCOD_list_t evts = TCOD_parser_run_stax(l->parser, fileName);
-  maplistener_handle_events(l->listener, evts);
+  maplistener_handle_events(l->mapListener, evts);
   
   TCOD_list_clear_and_delete(evts);
   free(fileName);

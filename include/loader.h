@@ -18,7 +18,8 @@ struct _loader {
   char *path;
   Hash maps;
   TCOD_parser_t parser;
-  void *listener;
+  void *mapListener;
+  FlagSchema triggerSchema;
   Hash statuses;
 //  Hash objectDefs;
 };

@@ -13,13 +13,13 @@ typedef enum {
   Excise, //not yet supported
   StringSet,
   
-  Append,
+  Push,
   AppendAll,
   Remove,
   RemoveAll,
   ListSet,
   
-  SAppend,
+  SPush,
   SAppendAll,
   SRemove,
   SRemoveAll,

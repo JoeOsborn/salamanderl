@@ -3,16 +3,94 @@
 #include <string.h>
 #include <tilesense.h>
 
+ComparisonMode comparison_mode_from_name(char *n) {
+  ComparisonMode comparisonMode = None;
+  if(STREQ(n, "greater_than")) {
+    comparisonMode = GreaterThan;
+  } else if(STREQ(n, "greater_than_or_equal_to")) {
+    comparisonMode = GreaterThanOrEqualTo;
+  } else if(STREQ(n, "less_than")) {
+    comparisonMode = LessThan;
+  } else if(STREQ(n, "less_than_or_equal_to")) {
+    comparisonMode = LessThanOrEqualTo;
+  } else if(STREQ(n, "equal_to")) {
+    comparisonMode = EqualTo;
+  } else if(STREQ(n, "count_greater_than")) {
+    comparisonMode = CountGreaterThan;
+  } else if(STREQ(n, "count_greater_than_or_equal_to")) {
+    comparisonMode = CountGreaterThanOrEqualTo;
+  } else if(STREQ(n, "count_less_than")) {
+    comparisonMode = CountLessThan;
+  } else if(STREQ(n, "count_less_than_or_equal_to")) {
+    comparisonMode = CountLessThanOrEqualTo;
+  } else if(STREQ(n, "count_equal_to")) {
+    comparisonMode = CountEqualTo;
+  } else if(STREQ(n, "starts_with")) {
+    comparisonMode = StartsWith;
+  } else if(STREQ(n, "ends_with")) {
+    comparisonMode = EndsWith;
+  } else if(STREQ(n, "find_string")) {
+    comparisonMode = FindString;
+  } else if(STREQ(n, "is_string")) {
+    comparisonMode = IsString;
+  } else if(STREQ(n, "contains_number")) {
+    comparisonMode = ContainsNumber;
+  } else if(STREQ(n, "contains_string")) {
+    comparisonMode = ContainsString;
+  } else if(STREQ(n, "contains_all")) {
+    comparisonMode = ContainsAll;
+  } else if(STREQ(n, "contains_all_strings")) {
+    comparisonMode = ContainsAllString;
+  }
+  return comparisonMode;
+}
+
+bool comparison_uses_string_rval(ComparisonMode mode) {
+  return (mode >= StartsWith && mode <= ContainsString); 
+}
+
+bool comparison_uses_list_rval(ComparisonMode mode) {
+  return (mode >= ContainsAll && mode <= ContainsAllString);
+}
+
+bool comparison_uses_string_list_rval(ComparisonMode mode) {
+  return (mode == ContainsAllString);
+}
+
 Comparison comparison_new() {
   return calloc(1, sizeof(struct _comparison));
 }
 Comparison comparison_init(Comparison c, ComparisonMode mode, TCOD_value_t *val) {
   c->mode = mode;
-  c->value = val;
+  if(val) {
+    //make a copy
+    c->value = calloc(1, sizeof(TCOD_value_t));
+    if(comparison_uses_string_rval(mode)) {
+      c->value->s = val->s ? strdup(val->s) : "";
+    } else if(comparison_uses_list_rval(mode)) {
+      c->value->list = TCOD_list_duplicate(value->list);
+    } else if(comparison_uses_string_list_rval(mode)) {
+      c->value->list = TCOD_list_new();
+      TS_LIST_FOREACH(value->list, TCOD_list_push(c->value->list, strdup(each)));
+    } else {
+      *(c->value) = *(val);
+    }
+  } else {
+    c->value = NULL;
+  }
   return c;
 }
 void comparison_free(Comparison c) {
-  //warning, free TCOD_value_t?
+  if(c->value) {
+    if(comparison_uses_string_rval(mode)) {
+      free(c->value->s);
+    } else if(comparison_uses_list_rval(mode)) {
+      TCOD_list_delete(c->value->list);
+    } else if(comparison_uses_string_list_rval(mode)) {
+      TCOD_list_clear_and_delete(c->value->list);
+    }
+    free(c->value);
+  }
   free(c);
 }
 

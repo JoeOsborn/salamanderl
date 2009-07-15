@@ -4,7 +4,8 @@
 TileInfo tileinfo_new() {
   return calloc(1, sizeof(struct _tile_info));
 }
-TileInfo tileinfo_init(TileInfo ti, TCOD_list_t dis, TCOD_list_t mis, bool moveDefaultAllowed, bool stairs, bool pit) {
+TileInfo tileinfo_init(TileInfo ti, TCOD_list_t actions, TCOD_list_t dis, TCOD_list_t mis, bool moveDefaultAllowed, bool stairs, bool pit) {
+  ti->actions = actions ? actions : TCOD_list_new();
   ti->drawinfos = dis ? dis : TCOD_list_new();
   ti->moveinfos = mis ? mis : TCOD_list_new();
   ti->moveDefaultAllowed=moveDefaultAllowed;
@@ -14,9 +15,17 @@ TileInfo tileinfo_init(TileInfo ti, TCOD_list_t dis, TCOD_list_t mis, bool moveD
 }
 void tileinfo_free(TileInfo ti) {
   if(!ti) { return; }
+  TS_LIST_CLEAR_AND_DELETE(ti->actions, action);
   TS_LIST_CLEAR_AND_DELETE(ti->drawinfos, drawinfo);
   TS_LIST_CLEAR_AND_DELETE(ti->moveinfos, moveinfo);
   free(ti);
+}
+void tileinfo_add_action(TileInfo ti, Action a) {
+  if(!ti) { return; }
+  TCOD_list_push(ti->actions, a);
+}
+TCOD_list_t tileinfo_actions(TileInfo ti) {
+  return ti ? ti->actions : NULL;
 }
 void tileinfo_add_drawinfo(TileInfo ti, DrawInfo di) {
   if(!ti) { return; }

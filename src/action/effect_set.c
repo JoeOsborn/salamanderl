@@ -67,7 +67,7 @@ Bindings effect_set_modify_bindings(EffectSet v, Bindings b) {
       newVal->s = strdup(rstr);
       break;
 
-    case Append:
+    case Push:
       newVal->list = TCOD_list_new();
       TS_LIST_FOREACH(ll, TCOD_list_push(newVal->list, each));
       TCOD_list_push(newVal->list, (void *)rnumi);
@@ -101,7 +101,7 @@ Bindings effect_set_modify_bindings(EffectSet v, Bindings b) {
       TS_LIST_FOREACH(rl, TCOD_list_push(newVal->list, each));
       break;
     
-    case SAppend:
+    case SPush:
       newVal->list = TCOD_list_new();
       TS_LIST_FOREACH(ll, TCOD_list_push(newVal->list, strdup(each)));
       TCOD_list_push(newVal->list, strdup(rstr));

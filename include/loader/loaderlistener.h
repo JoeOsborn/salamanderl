@@ -12,13 +12,15 @@ struct _maplistener {
   Loader loader;
   StructRecord workingStruct;
   
+  FlagSchema triggerSchema;
+  
   TCOD_list_t tiles;
   Map map;
 };
 typedef struct _maplistener * MapListener;
 
 MapListener maplistener_new();
-MapListener maplistener_init(MapListener l, Loader loader);
+MapListener maplistener_init(MapListener l, FlagSchema triggerSchema, Loader loader);
 void maplistener_free(MapListener l);
 TCOD_parser_listener_t *maplistener_listener(MapListener l);
 
