@@ -10,15 +10,17 @@ typedef enum {
   NumberSet,
 
   Concat,
-  Excise,
+  Excise, //not yet supported
   StringSet,
   
   Append,
+  AppendAll,
   Remove,
   RemoveAll,
   ListSet,
   
   SAppend,
+  SAppendAll,
   SRemove,
   SRemoveAll,
   SListSet
@@ -29,15 +31,15 @@ typedef enum {
 struct _effect_set {
   SetMode mode;
   char *dstObject;
-  char *dstVariable;
-  TCOD_value_t value; //if defined; else use:
+  char *dstVar;
+  TCOD_value_t *value; //if defined; else use:
   char *srcObject;
-  char *srcVariable;
+  char *srcVar;
 };
 typedef struct _effect_set *EffectSet;
 
 EffectSet effect_set_new();
-EffectSet effect_set_init(EffectSet v, SetMode mode, char *dstO, char *dstV, TCOD_value_t value, char *srcO, char *srcV);
+EffectSet effect_set_init(EffectSet v, SetMode mode, char *dstO, char *dstV, TCOD_value_t *value, char *srcO, char *srcV);
 void effect_set_free(EffectSet v);
 
 void effect_set_request_bindings(EffectSet v, Bindings b);

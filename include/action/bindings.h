@@ -32,7 +32,8 @@ void bindings_unbind(Bindings b);
 Bindings bindings_next_unbound(Bindings b);
 
 Bindings bindings_parent(Bindings b);
-void bindings_set_parent(Bindings b, Bindings p);
 char *bindings_full_path(Bindings b);
+
+int bindings_index_of_subbinding(Bindings b, Bindings sub);
 
 #endif

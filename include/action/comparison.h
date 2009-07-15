@@ -23,7 +23,8 @@ typedef enum {
   
   ContainsNumber,
   ContainsString,
-  ContainsAll
+  ContainsAll,
+  ContainsAllString
 } ComparisonMode;
 
 struct _comparison {
