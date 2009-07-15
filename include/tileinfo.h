@@ -4,6 +4,7 @@
 #include <libtcod.h>
 #include "drawinfo.h"
 #include "moveinfo.h"
+#include "action/action.h"
 
 struct _tile_info {
   TCOD_list_t actions;

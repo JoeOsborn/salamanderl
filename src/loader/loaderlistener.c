@@ -4,20 +4,78 @@
 #include "moveinfo.h"
 #include "tileinfo.h"
 
+#include "action/action.h"
+#include "action/bindings.h"
+#include "action/check.h"
+#include "action/comparison.h"
+#include "action/condition.h"
+#include "action/effect_grantrevoke.h"
+#include "action/effect_set.h"
+
 #include <tilesense.h>
 
 //now we just need to actually use them (salamanderl.c) [ and factor these methods out somewhere maybe! ]
 //for tile actions, do we want to check/execute them for every instance of the tile on the map?
 //or can we safely limit tile actions to only triggering for the tile being stepped on? I think that's fine.
 
-#define STREQ(_a, _b) (strcmp((_a), (_b)) == 0)
-
-EffectSet effect_set_init_structrecord(EffectSet es, StructRecord sr, char *defaultTarget) {
-  
+Grant grant_init_structrecord(Grant g, StructRecord sr) {
+  char *statusName = structrecord_name(sr);
+  float duration = structrecord_has_prop(sr, "duration") ? structrecord_get_prop_value(sr, "duration").f : 0;
+  int priority = structrecord_has_prop(sr, "priority") ? structrecord_get_prop_value(sr, "priority").i : 1;
+  char *reason = structrecord_has_prop(sr, "reason") ? structrecord_get_prop_value(sr, "reason").s : NULL;
+  return grant_init(g, statusName, duration, priority, reason);
 }
 
-EffectGrantRevoke effect_grantrevoke_init_structrecord(EffectSet es, StructRecord sr, char *defaultTarget) {
+Revoke revoke_init_structrecord(Revoke r, StructRecord sr) {
+  char *statusName = structrecord_name(sr);
+  int priority = structrecord_has_prop(sr, "priority") ? structrecord_get_prop_value(sr, "priority").i : 1;
+  char *reason = structrecord_has_prop(sr, "reason") ? structrecord_get_prop_value(sr, "reason").s : NULL;
+  return revoke_init(r, statusName, priority, reason);
+}
+
+EffectSet effect_set_init_structrecord(EffectSet es, StructRecord sr, char *defaultTarget) {
+  //srcO, srcV, dstO, dstV
+  //set -- get first appropriate flag or property and use it.
+  //if property, provide rval; otherwise, provide null.
+  //properties override flags.
+  //really, you should only have ONE property OR flag in a set. later, this should throw a warning.
+  char *dstV = structrecord_name(sr);
+  char *dstO = structrecord_has_prop(sr, "target") ? structrecord_get_prop_value(sr, "target").s : defaultTarget;
+  char *srcV = structrecord_has_prop(sr, "source") ? structrecord_get_prop_value(sr, "source").s : dstV;
+  char *srcO = structrecord_has_prop(sr, "source_object") ? structrecord_get_prop_value(sr, "source_object").s : dstO;
   
+  TCOD_list_t flags = structrecord_flags(sr);
+  TCOD_list_t props = structrecord_props(sr);
+  
+  TCOD_value_t *valPtr = NULL;
+  SetMode mode = SetNone;
+  TS_LIST_FOREACH(flags, 
+    mode = effect_set_mode_from_name(each);
+    if(mode != ComparisonNone) {
+      break;
+    }
+  );
+  TCOD_value_t val;
+  TS_LIST_FOREACH(props,
+    mode = effect_set_mode_from_name(prop_name(each));
+    if(mode != ComparisonNone) {
+      val = prop_value(each);
+      valPtr = &val;
+      break;
+    }
+  );
+  return effect_set_init(es, mode, dstO, dstV, srcO, srcV, valPtr);
+}
+
+EffectGrantRevoke effect_grantrevoke_init_structrecord(EffectGrantRevoke gr, StructRecord sr, char *defaultTarget) {
+  char *target = structrecord_has_prop(sr, "target") ? structrecord_get_prop_value(sr, "target").s : defaultTarget;
+  void *effect = NULL;
+  if(STREQ(structrecord_type(sr), "grant")) {
+    effect = grant_init_structrecord(grant_new(), sr);
+  } else if(STREQ(structrecord_type(sr), "revoke")) {
+    effect = revoke_init_structrecord(revoke_new(), sr);
+  }
+  return effect_grantrevoke_init(gr, effect, target);
 }
 
 Check check_init_structrecord(Check c, StructRecord sr, char *defaultTarget) {
@@ -32,19 +90,19 @@ Check check_init_structrecord(Check c, StructRecord sr, char *defaultTarget) {
   TCOD_list_t comparisons = TCOD_list_new();
   
   TCOD_list_t props = structrecord_props(sr);
-  ComparisonMode comparisonMode=None;
+  ComparisonMode comparisonMode=ComparisonNone;
   TCOD_value_t val;
   TS_LIST_FOREACH(props, 
     val = prop_value(each);
     comparisonMode = comparison_mode_from_name(prop_name(each));
-    if(comparisonMode != None) {
+    if(comparisonMode != ComparisonNone) {
       TCOD_list_push(comparisons, comparison_init(comparison_new(), comparisonMode, &val));
     }
   );
   TCOD_list_t flags = structrecord_flags(sr);
   TS_LIST_FOREACH(flags, 
     comparisonMode = comparison_mode_from_name(each);
-    if(comparisonMode != None) {
+    if(comparisonMode != ComparisonNone) {
       TCOD_list_push(comparisons, comparison_init(comparison_new(), comparisonMode, NULL));
     }
   );
@@ -71,7 +129,7 @@ Condition condition_init_structrecord(Condition c, StructRecord sr, char *defaul
       "all"
     ) == 0) ? BooleanAll : BooleanAny;
   }
-  bool negate = structrecord_has_flag(sr, "negate");
+  bool negate = structrecord_is_flag_set(sr, "negate");
   return condition_init(c, mode, negate, checks, subconditions);
 }
 

@@ -4,7 +4,7 @@
 #include <tilesense.h>
 
 ComparisonMode comparison_mode_from_name(char *n) {
-  ComparisonMode comparisonMode = None;
+  ComparisonMode comparisonMode = ComparisonNone;
   if(STREQ(n, "greater_than")) {
     comparisonMode = GreaterThan;
   } else if(STREQ(n, "greater_than_or_equal_to")) {
@@ -45,15 +45,15 @@ ComparisonMode comparison_mode_from_name(char *n) {
   return comparisonMode;
 }
 
-bool comparison_uses_string_rval(ComparisonMode mode) {
+bool comparison_string_rval(ComparisonMode mode) {
   return (mode >= StartsWith && mode <= ContainsString); 
 }
 
-bool comparison_uses_list_rval(ComparisonMode mode) {
+bool comparison_list_rval(ComparisonMode mode) {
   return (mode >= ContainsAll && mode <= ContainsAllString);
 }
 
-bool comparison_uses_string_list_rval(ComparisonMode mode) {
+bool comparison_string_list_rval(ComparisonMode mode) {
   return (mode == ContainsAllString);
 }
 
@@ -65,13 +65,13 @@ Comparison comparison_init(Comparison c, ComparisonMode mode, TCOD_value_t *val)
   if(val) {
     //make a copy
     c->value = calloc(1, sizeof(TCOD_value_t));
-    if(comparison_uses_string_rval(mode)) {
+    if(comparison_string_rval(c->mode)) {
       c->value->s = val->s ? strdup(val->s) : "";
-    } else if(comparison_uses_list_rval(mode)) {
-      c->value->list = TCOD_list_duplicate(value->list);
-    } else if(comparison_uses_string_list_rval(mode)) {
+    } else if(comparison_list_rval(c->mode)) {
+      c->value->list = TCOD_list_duplicate(val->list);
+    } else if(comparison_string_list_rval(c->mode)) {
       c->value->list = TCOD_list_new();
-      TS_LIST_FOREACH(value->list, TCOD_list_push(c->value->list, strdup(each)));
+      TS_LIST_FOREACH(val->list, TCOD_list_push(c->value->list, strdup(each)));
     } else {
       *(c->value) = *(val);
     }
@@ -82,11 +82,11 @@ Comparison comparison_init(Comparison c, ComparisonMode mode, TCOD_value_t *val)
 }
 void comparison_free(Comparison c) {
   if(c->value) {
-    if(comparison_uses_string_rval(mode)) {
+    if(comparison_string_rval(c->mode)) {
       free(c->value->s);
-    } else if(comparison_uses_list_rval(mode)) {
+    } else if(comparison_list_rval(c->mode)) {
       TCOD_list_delete(c->value->list);
-    } else if(comparison_uses_string_list_rval(mode)) {
+    } else if(comparison_string_list_rval(c->mode)) {
       TCOD_list_clear_and_delete(c->value->list);
     }
     free(c->value);

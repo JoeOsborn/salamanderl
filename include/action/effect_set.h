@@ -5,23 +5,27 @@
 #include "action/bindings.h"
 
 typedef enum {
+  SetNone,
+  
   Increase,
   Decrease,
   NumberSet,
 
+  Push,
+  Remove,
+  
   Concat,
   Excise, //not yet supported
   StringSet,
-  
-  Push,
+    
+  SPush,
+  SRemove,
+
   AppendAll,
-  Remove,
   RemoveAll,
   ListSet,
-  
-  SPush,
+
   SAppendAll,
-  SRemove,
   SRemoveAll,
   SListSet
   
@@ -38,8 +42,10 @@ struct _effect_set {
 };
 typedef struct _effect_set *EffectSet;
 
+SetMode effect_set_mode_from_name(char *n);
+
 EffectSet effect_set_new();
-EffectSet effect_set_init(EffectSet v, SetMode mode, char *dstO, char *dstV, TCOD_value_t *value, char *srcO, char *srcV);
+EffectSet effect_set_init(EffectSet v, SetMode mode, char *dstV, char *dstO, char *srcV, char *srcO, TCOD_value_t *value);
 void effect_set_free(EffectSet v);
 
 void effect_set_request_bindings(EffectSet v, Bindings b);

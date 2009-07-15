@@ -4,7 +4,7 @@
 #include <libtcod.h>
 
 typedef enum {
-  None,
+  ComparisonNone,
   GreaterThan,
   LessThan,
   EqualTo,

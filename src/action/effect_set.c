@@ -3,18 +3,80 @@
 #include <stdlib.h>
 #include <tilesense.h>
 
+SetMode effect_set_mode_from_name(char *n) {
+  SetMode mode = SetNone;
+  if(STREQ(n, "increase")) {
+    mode = Increase;
+  } else if(STREQ(n, "decrease")) {
+    mode = Decrease;
+  } else if(STREQ(n, "set_number")) {
+    mode = NumberSet;
+  } else if(STREQ(n, "concat")) {
+    mode = Concat;
+  } else if(STREQ(n, "excise")) {
+    mode = Excise;
+  } else if(STREQ(n, "set_string")) {
+    mode = StringSet;
+  } else if(STREQ(n, "push")) {
+    mode = Push;
+  } else if(STREQ(n, "append_all")) {
+    mode = AppendAll;
+  } else if(STREQ(n, "remove")) {
+    mode = Remove;
+  } else if(STREQ(n, "remove_all")) {
+    mode = RemoveAll;
+  } else if(STREQ(n, "set_list")) {
+    mode = ListSet;
+  } else if(STREQ(n, "push_string")) {
+    mode = SPush;
+  } else if(STREQ(n, "append_all_strings")) {
+    mode = SAppendAll;
+  } else if(STREQ(n, "remove_string")) {
+    mode = SRemove;
+  } else if(STREQ(n, "remove_all_strings")) {
+    mode = SRemoveAll;
+  } else if(STREQ(n, "set_string_list")) {
+    mode = SListSet;
+  }
+  return mode;
+}
+
+bool effect_set_string_rval(SetMode m) {
+  return m >= Concat && m <= SRemove;
+}
+bool effect_set_list_rval(SetMode m) {
+  return m >= AppendAll && m <= ListSet;
+}
+bool effect_set_string_list_rval(SetMode m) {
+  return m >= SAppendAll && m <= SListSet;
+}
+
 EffectSet effect_set_new() {
   return calloc(1, sizeof(struct _effect_set));
 }
-EffectSet effect_set_init(EffectSet v, SetMode mode, char *dstO, char *dstV, TCOD_value_t *value, char *srcO, char *srcV) {
+EffectSet effect_set_init(EffectSet v, SetMode mode, char *dstV, char *dstO, char *srcV, char *srcO, TCOD_value_t *value) {
   v->mode = mode;
   v->dstObject = strdup(dstO);
   v->dstVar = strdup(dstV);
 
   v->srcObject = srcO ? strdup(srcO) : strdup(dstO);
   v->srcVar = srcV ? strdup(srcV) : strdup(dstV);
-
-  v->value = value; //if not present, src* are used.
+  
+  if(value) {
+    v->value = calloc(1, sizeof(TCOD_value_t));
+    if(effect_set_string_rval(mode)) {
+      v->value->s = value->s ? strdup(value->s) : "";
+    } else if(effect_set_list_rval(mode)) {
+      v->value->list = TCOD_list_duplicate(value->list);
+    } else if(effect_set_string_list_rval(mode)) {
+      v->value->list = TCOD_list_new();
+      TS_LIST_FOREACH(value->list, TCOD_list_push(v->value->list, strdup(each)));
+    } else {
+      *(v->value) = *(value);
+    }
+  } else {
+    v->value = NULL; //use src*
+  }
   return v;
 }
 void effect_set_free(EffectSet v) {
@@ -22,7 +84,16 @@ void effect_set_free(EffectSet v) {
   free(v->dstVar);
   free(v->srcObject);
   free(v->srcVar);
-  //free TCOD_value_t?
+  if(v->value) {
+    if(effect_set_string_rval(v->mode)) {
+      free(v->value->s);
+    } else if(effect_set_list_rval(v->mode)) {
+      TCOD_list_delete(v->value->list);
+    } else if(effect_set_string_list_rval(v->mode)) {
+      TCOD_list_clear_and_delete(v->value->list);
+    }
+    free(v->value);
+  }
   free(v);
 }
 
