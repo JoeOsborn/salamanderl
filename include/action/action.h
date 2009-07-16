@@ -56,8 +56,8 @@ action {
       //and "self" for object actions? the inconsistency could suck.
       greater_than=10 //"if friendliness is > 10"
       //other props include less_than, equal_to (for numbers),
-      //starts_with, ends_with, find_string, is(for strings)
-      //count_greater, count_less..., contains_number, contains_string, contains_all_numbers, contains_all_strings (for lists)
+      //starts_with, ends_with, find_string, is_string(for strings)
+      //count_greater_than, count_less_than..., contains_number, contains_string, contains_all_numbers, contains_all_strings (for lists)
     }
   }
   grant "wet" {
@@ -66,7 +66,7 @@ action {
   set "friendliness" {
     target="object" //default again
     decrease=2 //decrease a number by a floating point value
-    //increase, number=, string=, string_list=, number_list=, append_number, append_string, append_all_numbers, append_all_strings, concatenate(string), remove_number/string(list), remove_all_number/string(list), etc...
+    //increase, set_number, set_string, set_string_list, set_number_list, append, append_string, append_all, append_all_strings, concatenate(string), remove, remove_string, remove_all, remove_all_strings, etc...
     //also from="" & from_object="" to set one object's var to another's var, if the
     //above things are used as flags instead of properties.
     //can values used here be stored from earlier condition checks/etc? that seems really hard to do without exploding the syntax.
