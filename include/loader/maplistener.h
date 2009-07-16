@@ -1,15 +1,16 @@
-#ifndef _LOADERLISTENER_H
-#define _LOADERLISTENER_H
+#ifndef _MAPLISTENER_H
+#define _MAPLISTENER_H
 
 #include <libtcod.h>
 #include <tilesense.h>
 
-#include "loader.h"
 #include "loader/prop.h"
 #include "loader/structrecord.h"
 
+#include "loader.h"
+
 struct _maplistener {
-  Loader loader;
+  Loader loader; //avoid recursive def problem
   StructRecord workingStruct;
   
   FlagSchema triggerSchema;
@@ -19,13 +20,11 @@ struct _maplistener {
 };
 typedef struct _maplistener * MapListener;
 
+TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l, FlagSchema triggerSchema);
+
 MapListener maplistener_new();
 MapListener maplistener_init(MapListener l, FlagSchema triggerSchema, Loader loader);
 void maplistener_free(MapListener l);
-TCOD_parser_listener_t *maplistener_listener(MapListener l);
-
-bool maplistener_start_map(MapListener listener, char *name);
-bool maplistener_finalize_map(MapListener listener);
 
 void maplistener_handle_events(MapListener listener, TCOD_list_t evts);
 

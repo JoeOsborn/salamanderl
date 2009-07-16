@@ -17,14 +17,18 @@ typedef genwrap * Hash;
 struct _loader {
   char *path;
   Hash maps;
-  TCOD_parser_t parser;
-  void *mapListener;
+  TCOD_parser_t configParser, mapParser;
+  void * mapListener; //avoid recursive defs
+  void * configListener; //avoid recursive defs
   FlagSchema triggerSchema;
   Hash statuses;
 //  Hash objectDefs;
 };
 
 typedef struct _loader * Loader;
+
+#include "loader/maplistener.h"
+#include "loader/configlistener.h"
 
 Loader loader_new();
 Loader loader_init(Loader l, char *basePath);
@@ -43,5 +47,8 @@ Flagset loader_make_trigger(Loader l, char *trigName);
 
 //for listeners only
 void loader_add_map(Loader l, Map m, char *name);
+
+void loader_add_trigger(Loader l, char *name);
+void loader_add_status(Loader l, Status s, char *name);
 
 #endif

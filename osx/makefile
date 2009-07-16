@@ -15,7 +15,9 @@ C_OBJS=\
 	$(TMPDIR)/action/condition.o \
 	$(TMPDIR)/action/effect_grantrevoke.o \
 	$(TMPDIR)/action/effect_set.o \
-	$(TMPDIR)/loader/loaderlistener.o \
+	$(TMPDIR)/loader/configlistener.o \
+	$(TMPDIR)/loader/maplistener.o \
+	$(TMPDIR)/loader/model_init_structrecord.o \
 	$(TMPDIR)/loader/prop.o \
 	$(TMPDIR)/loader/structrecord.o \
 	$(TMPDIR)/loader.o \
@@ -34,7 +36,9 @@ HEADERS=\
 	$(INCDIR)/action/condition.h \
 	$(INCDIR)/action/effect_grantrevoke.h \
 	$(INCDIR)/action/effect_set.h \
-	$(INCDIR)/loader/loaderlistener.h \
+	$(INCDIR)/loader/configlistener.h \
+	$(INCDIR)/loader/maplistener.h \
+	$(INCDIR)/loader/model_init_structrecord.h \
 	$(INCDIR)/loader/prop.h \
 	$(INCDIR)/loader/structrecord.h \
 	$(INCDIR)/loader.h \
