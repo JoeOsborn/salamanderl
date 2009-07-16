@@ -34,6 +34,7 @@ void action_free(Action a) {
 void action_bind(Action a, Bindings b) {
   //clear bindings
   bindings_unbind(a->bindings);
+  bindings_set_value(a->bindings, a);
   //fill based on given bindings
   bindings_fill_from(a->bindings, b);
   Bindings unbound=b;

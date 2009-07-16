@@ -148,6 +148,21 @@ bool smap_turn_object(Map map, char *obj, int amt) {
   return true;
 }
 
+/*
+when falling, the top pit gets on_enter, then fall_through, then on_exit.
+the pit below that gets fall_into, on_enter, fall_through, on_exit
+this repeats until:
+  floor: fall_into, on_enter
+  wall: fall_onto, atop
+  pit at z=0: fall_into, on_enter
+when walking normally, the old tile gets on_exit and the new gets on_enter
+when walking up stairs, the old tile gets on_exit, the stairs get on_enter, on_walk_up, on_exit, on_atop, the square above the stairs gets on_enter
+when walking down stairs, the old tile gets on_exit, the tile above the stairs gets on_enter, on_exit, the stairs get on_walk_down, on_enter.
+when walking into a wall, only the wall's on_bump is triggered
+
+this info might be good to have in a diagram
+*/
+
 bool smap_move_object(Map map, char *obj, mapVec amt) {
   //get the destination tile's tileinfo
   //get the object's objectinfo
@@ -161,37 +176,66 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
   //is it a pit? if so, move the player there and down a z level.
   //repeat until a tile is reached.
   MoveInfo mi = objectinfo_moveinfo(oi);
+  firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z));
   if(tileinfo_is_pit(ti)) {
+    tileinfo_trigger(firstTi, o, "on_exit");
     map_move_object(map, obj, amt);
+    tileinfo_trigger(ti, o, "on_enter");
     if(newPos.z > 0) {
       belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
     } else {
+      //z=0 -- don't even bother to do anything
       return true; //we're done, we've hit rock bottom
     }
-    //if there's only one level of pit or there's a wall below, there's no need to drop further.
-    firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z));
+    //if there's only one level of pit or there's a wall below, drop firstTi for the stairs check
     if(tileinfo_is_pit(firstTi) && firstPos.z > 0) {
       firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z-1));
     }
     while(tileinfo_is_pit(belowTi) || tileinfo_moveinfo_can_enter(belowTi, mi)) { 
       //first off, bail if the below is a stairs and the player was on a stairs before (and hasn't already fallen some). no need to go down the stairs in that case.
       if(tileinfo_is_stairs(belowTi) && (firstPos.z == newPos.z) && tileinfo_is_stairs(firstTi)) {
+        tileinfo_trigger(belowTi, o, "on_atop");
         break;
       }
       amt = (mapVec){0, 0, -1};
       newPos.z--;
+      if(!tileinfo_is_stairs(belowTi) && (firstPos.z == (newPos.z+1))) {
+        tileinfo_trigger(ti, o, "on_fall_through");
+      }
+      tileinfo_trigger(ti, o, "on_exit");
+
       map_move_object(map, obj, amt);
+
+      if(tileinfo_is_stairs(belowTi) && (firstPos.z == (newPos.z+1))) {
+        //we must be going down these stairs then
+        tileinfo_trigger(belowTi, o, "on_walk_down");
+      } else {
+        //otherwise we stumbled down
+        tileinfo_trigger(belowTi, o, "on_fall_into");
+      }
+      tileinfo_trigger(belowTi, o, "on_enter");
       ti = belowTi;
       if(newPos.z > 0) {
         belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
       } else {
         break; //we're done, we've hit rock bottom
       }
+      if(tileinfo_is_pit(ti) && !tileinfo_moveinfo_can_enter(belowTi, mi)) {
+        //must be a wall we're on top of
+        if(firstPos.z > (newPos.z+1)) {
+          //we fell a long way
+          tileinfo_trigger(belowTi, o, "on_fall_onto");
+        }
+        tileinfo_trigger(belowTi, o, "on_atop");
+      }
     }
     return true;
   } else if(tileinfo_moveinfo_can_enter(ti, mi)) {
     //is it a stairway?
+    tileinfo_trigger(firstTi, o, "on_exit");
     map_move_object(map, obj, amt);
+    tileinfo_trigger(ti, o, "on_enter");
+    //we just entered the tile
     if(tileinfo_is_stairs(ti)) {
     //if the player's z is the same as this tile's z and he's not standing on a stairs and the tile above is enterable, move player z up to z+1. 
     //[no need for the position check since the other case is caught by the pitfall.]
@@ -203,7 +247,10 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
         return true; //we're done, we've hit rock bottom
       }
         if(!tileinfo_is_stairs(firstTi) && tileinfo_moveinfo_can_enter(aboveTi, mi)) {
+          tileinfo_trigger(ti, o, "on_walk_up");
+          tileinfo_trigger(ti, o, "on_exit");          
           map_move_object(map, obj, (mapVec){0, 0, 1});
+          tileinfo_trigger(aboveTi, o, "on_enter");
           newPos.z++;
         }
 //      }
@@ -211,6 +258,7 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
     }
     return true;
   } else {
+    tileinfo_trigger(ti, o, "on_bump");
     return false;
   }
 }

@@ -143,13 +143,13 @@ Action action_init_structrecord(Action a, StructRecord sr, FlagSchema trigSchema
     StructRecord kid = TCOD_list_get(structrecord_children(sr), i);
     char *kidType = structrecord_type(kid);
     if(strcmp(kidType, "condition") == 0) {
-      TCOD_list_push(conditions, condition_init_structrecord(condition_new(), sr, defaultTarget));
+      TCOD_list_push(conditions, condition_init_structrecord(condition_new(), kid, defaultTarget));
     } else if(strcmp(kidType, "grant") == 0) {
-      TCOD_list_push(grants, effect_grantrevoke_init_structrecord(effect_grantrevoke_new(), sr, defaultTarget));
+      TCOD_list_push(grants, effect_grantrevoke_init_structrecord(effect_grantrevoke_new(), kid, defaultTarget));
     } else if(strcmp(kidType, "revoke") == 0) {
-      TCOD_list_push(revokes, effect_grantrevoke_init_structrecord(effect_grantrevoke_new(), sr, defaultTarget));
+      TCOD_list_push(revokes, effect_grantrevoke_init_structrecord(effect_grantrevoke_new(), kid, defaultTarget));
     } else if(strcmp(kidType, "set") == 0) {
-      TCOD_list_push(sets, effect_set_init_structrecord(effect_set_new(), sr, defaultTarget));
+      TCOD_list_push(sets, effect_set_init_structrecord(effect_set_new(), kid, defaultTarget));
     }
   }
   return action_init(a, structrecord_name(sr), triggers, trigSchema, conditions, grants, revokes, sets);
@@ -176,7 +176,7 @@ MoveInfo moveinfo_init_structrecord(MoveInfo mi, StructRecord sr) {
   return moveinfo_init(mi, flags);
 }
 
-Tile tile_init_structrecord(Tile t, StructRecord sr, FlagSchema actionTriggers) {
+Tile tile_init_structrecord(Tile t, Loader l, StructRecord sr, FlagSchema actionTriggers) {
   TCOD_list_t drawInfos = TCOD_list_new();
   TCOD_list_t moveInfos = TCOD_list_new();
   TCOD_list_t actions = TCOD_list_new();
@@ -240,7 +240,7 @@ Tile tile_init_structrecord(Tile t, StructRecord sr, FlagSchema actionTriggers) 
     pit = true;
   }
   #warning descs are being ignored
-  TileInfo ti = tileinfo_init(tileinfo_new(), actions, drawInfos, moveInfos, moveDefaultAllowed, stairs, pit);
+  TileInfo ti = tileinfo_init(tileinfo_new(), l, actions, drawInfos, moveInfos, moveDefaultAllowed, stairs, pit);
   return tile_init(t, wallTransp, floorTransp, ceilTransp, ti);
 }
 
@@ -387,7 +387,7 @@ bool maplistener_end_struct(MapListener l, TCOD_parser_struct_t str, const char 
     return true;
   } else if(strcmp(TCOD_struct_get_name(str), "tile") == 0) {
     //other stuff later! movement etc!
-    Tile t = tile_init_structrecord(tile_new(), sr, l->triggerSchema);
+    Tile t = tile_init_structrecord(tile_new(), l->loader, sr, l->triggerSchema);
     if(l->map) {
       //add to map
       map_add_tile(l->map, t);

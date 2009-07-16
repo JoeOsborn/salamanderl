@@ -153,18 +153,11 @@ void loader_init_parser(Loader l) {
   
 
   TCOD_parser_struct_t actionst = TCOD_parser_new_struct(l->parser, "action");
-  TCOD_struct_add_flag(actionst, "on_enter");
-  TCOD_struct_add_flag(actionst, "on_exit");
-  TCOD_struct_add_flag(actionst, "on_bump");
-  TCOD_struct_add_flag(actionst, "on_atop");
-  TCOD_struct_add_flag(actionst, "on_fall_onto");
-  TCOD_struct_add_flag(actionst, "on_fall_through");
-  TCOD_struct_add_flag(actionst, "on_chomp");
-  TCOD_struct_add_flag(actionst, "on_unchomp");
-  TCOD_struct_add_flag(actionst, "on_tug_left");
-  TCOD_struct_add_flag(actionst, "on_tug_right");
-  TCOD_struct_add_flag(actionst, "on_tug_back");
-  //timers not supported yet
+  TCOD_list_t triggerLabels = flagschema_get_labels(l->triggerSchema);
+  TS_LIST_FOREACH(triggerLabels,
+    TCOD_struct_add_flag(actionst, each);
+  );
+  TCOD_list_clear_and_delete(triggerLabels);
   TCOD_struct_add_structure(actionst, conditionst);
   TCOD_struct_add_structure(actionst, grantst);  
   TCOD_struct_add_structure(actionst, revokest);  
@@ -243,14 +236,21 @@ void loader_load_config(Loader l, char *configName) {
   flagschema_insert(l->triggerSchema, "on_exit", 1);
   flagschema_insert(l->triggerSchema, "on_bump", 1);
   flagschema_insert(l->triggerSchema, "on_atop", 1);
-  flagschema_insert(l->triggerSchema, "on_fall_onto", 1);
-  flagschema_insert(l->triggerSchema, "on_fall_through", 1);
+  flagschema_insert(l->triggerSchema, "on_fall_onto", 1); //fall and land on ceiling
+  flagschema_insert(l->triggerSchema, "on_fall_into", 1); //fall and land on floor
+  flagschema_insert(l->triggerSchema, "on_fall_through", 1); //fall and keep falling
   flagschema_insert(l->triggerSchema, "on_chomp", 1);
   flagschema_insert(l->triggerSchema, "on_unchomp", 1);
   flagschema_insert(l->triggerSchema, "on_tug_left", 1);
   flagschema_insert(l->triggerSchema, "on_tug_right", 1);
   flagschema_insert(l->triggerSchema, "on_tug_back", 1);
-  //timers and then custom triggers go here.  not sure what to do for those.
+  
+  //timers and then custom triggers go here.  not sure what exactly to do for those.
+}
+Flagset loader_make_trigger(Loader l, char *trig) {
+  Flagset ret = flagset_init(flagset_new(l->triggerSchema), l->triggerSchema);
+  flagset_set_path(ret, l->triggerSchema, trig, 1);
+  return ret;
 }
 
 void loader_load_map(Loader l, char *mapName) {  
@@ -323,11 +323,11 @@ void loader_load_save(Loader l, char *saveName) {
   objectinfo_add_drawinfo(oi, playerDraw);
   
   //for now, we'll just make the player wet for a minute at start
-  objectinfo_grant(oi, grant_init(grant_new(), "wet", 60, 5, "naturally moist"));
+  //objectinfo_grant(oi, grant_init(grant_new(), "wet", 60, 5, "naturally moist"));
   
   Object player = object_init(object_new(), 
     "@", 
-    (mapVec){1, 1, 0}, 
+    (mapVec){5, 1, 0}, 
     (mapVec){1, 0, 0},
     m,
     oi

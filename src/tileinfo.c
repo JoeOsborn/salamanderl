@@ -4,7 +4,8 @@
 TileInfo tileinfo_new() {
   return calloc(1, sizeof(struct _tile_info));
 }
-TileInfo tileinfo_init(TileInfo ti, TCOD_list_t actions, TCOD_list_t dis, TCOD_list_t mis, bool moveDefaultAllowed, bool stairs, bool pit) {
+TileInfo tileinfo_init(TileInfo ti, Loader l, TCOD_list_t actions, TCOD_list_t dis, TCOD_list_t mis, bool moveDefaultAllowed, bool stairs, bool pit) {
+  ti->loader = l;
   ti->actions = actions ? actions : TCOD_list_new();
   ti->drawinfos = dis ? dis : TCOD_list_new();
   ti->moveinfos = mis ? mis : TCOD_list_new();
@@ -76,4 +77,17 @@ bool tileinfo_moveinfo_can_enter(TileInfo ti, MoveInfo mi) {
   //if match is true and move_default_allowed is true, we deny; if match is true and; if match is false and move_default_allowed is false, we allow;
   //This is what logical xor looks like in C.  Sure would be nice to have ^^!
   return (!match != !(ti->moveDefaultAllowed));
+}
+
+void tileinfo_trigger(TileInfo ti, Object walker, char *trig) {
+  Flagset trigger = loader_make_trigger(ti->loader, trig);
+  Bindings defaultBindings = bindings_init(bindings_new(), NULL, "self", ti, NULL);
+  bindings_insert(defaultBindings, "object", walker);
+  //DUNNO LOL, TRIGGER SOME ACTIONS
+  TS_LIST_FOREACH(ti->actions,
+    action_bind(each, defaultBindings);
+    action_apply(each, trigger);
+  );
+  bindings_free(defaultBindings);
+  flagset_free(trigger);
 }

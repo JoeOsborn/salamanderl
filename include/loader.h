@@ -39,6 +39,8 @@ void loader_load_save(Loader l, char *saveName);
 
 Status loader_get_status(Loader l, char *name);
 
+Flagset loader_make_trigger(Loader l, char *trigName);
+
 //for listeners only
 void loader_add_map(Loader l, Map m, char *name);
 
