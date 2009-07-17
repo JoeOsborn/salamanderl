@@ -81,6 +81,7 @@ bool tileinfo_moveinfo_can_enter(TileInfo ti, MoveInfo mi) {
 }
 
 void tileinfo_trigger(TileInfo ti, Object walker, char *trig) {
+  if(!ti) { return; }
   Flagset trigger = loader_make_trigger(ti->loader, trig);
   Bindings defaultBindings = bindings_init(bindings_new(), NULL, "self", ti, NULL);
   bindings_insert(defaultBindings, "object", walker);
