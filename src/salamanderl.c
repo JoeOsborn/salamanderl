@@ -89,16 +89,21 @@ void mem_remember(perception *mem, Map m, perception *tiles, mapVec pos, mapVec 
   }
 }
 
-void mem_draw(perception *mem, Map m, Sensor s) {
-  drawtiles(m, mem, s, mapvec_zero, map_size(m), (TCOD_color_t){90, 90, 90});
-  mapVec borig, bsz;
-  sensor_swept_bounds(s, &borig, &bsz);
-  drawtiles(m, sensor_get_perceptmap(s), s, borig, bsz, (TCOD_color_t){0, 0, 0});
+void mem_draw(perception *mem, Map m, TCOD_list_t sensors) {
+  drawtiles(m, mem, TCOD_list_get(sensors, 0), mapvec_zero, map_size(m), (TCOD_color_t){90, 90, 90});
+  TS_LIST_FOREACH(sensors, 
+    mapVec borig;
+    mapVec bsz;
+    sensor_swept_bounds(each, &borig, &bsz);
+    drawtiles(m, sensor_get_perceptmap(each), each, borig, bsz, (TCOD_color_t){0, 0, 0});
+  );
 }
 
 void draw_objectinfo(ObjectInfo context, perception flags, int senseZ, mapVec pos, TCOD_color_t backAugment, TCOD_list_t drawnOIs) {
   TCOD_list_t drawInfos = objectinfo_drawinfos(context);
   DrawInfo di = drawinfo_get_z_level(drawInfos, senseZ, pos.z);
+
+//if there are multiple objects at this pos this frame (figured through drawnOIs?), choose which one to draw based on the frame count or something
 
   if(!map_item_visible(flags)) {
 //    TCOD_console_print_left(NULL, pos.x*2, pos.y, "X");
@@ -181,9 +186,9 @@ void drawmap(Map m, Object o, TCOD_list_t drawnOIs, perception *mem) {
   TCOD_console_set_background_flag(NULL, TCOD_COLOROP_SET);
   Sensor s;
   //draw tiles from memory
+  mem_draw(mem, m, object_sensors(o));
   for(int i = 0; i < object_sensor_count(o); i++) {
     s = object_get_sensor(o, i);
-    mem_draw(mem, m, s);
     drawstimuli(m, s, drawnOIs, mem);
     TCOD_list_t visible = sensor_get_visible_objects(s);
     TS_LIST_FOREACH(visible,
@@ -316,9 +321,6 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
   }
 }
 
-//next steps: object memory model, introduce chomping.
-//it's okay to hard-code these for now.
-
 int main( int argc, char *argv[] ) {
   char *font="tilesense/libtcod/fonts/courier12x12_aa_tc.png";
   int nb_char_horiz=0,nb_char_vertic=0;
@@ -339,7 +341,6 @@ int main( int argc, char *argv[] ) {
   TCOD_sys_set_fps(30);
   TCOD_list_t drawnOIs = TCOD_list_new();
 
-  float elapsed = 0;
   char finished = 0;
 	TCOD_key_t key = {TCODK_NONE,0};
 	TCOD_console_set_foreground_color(NULL,TCOD_white);
@@ -359,9 +360,9 @@ int main( int argc, char *argv[] ) {
     } else if(key.vk == TCODK_LEFT) {
       smap_turn_object(map, "player", -1);
     } else if(key.vk == TCODK_UP) {
-      smap_move_object(map, "player", (mapVec){0, 0,  1});
+      // smap_move_object(map, "player", (mapVec){0, 0,  1});
     } else if(key.vk == TCODK_DOWN) {
-      smap_move_object(map, "player", (mapVec){0, 0, -1});
+      // smap_move_object(map, "player", (mapVec){0, 0, -1});
     } else if(key.vk == TCODK_CHAR) {
       switch(key.c) {
         case 'w':
@@ -379,7 +380,9 @@ int main( int argc, char *argv[] ) {
         case 'q':
           finished = 1;
           break;
-        //next, handle chomping
+        //next, handle chomping - decide on toggle vs hold
+        //also, print descriptions - have a procedure that handles scrolling, etc of a console
+        //explicitly for text output
         default:
           break;
   		}
@@ -387,9 +390,6 @@ int main( int argc, char *argv[] ) {
     
 		//map
     drawmap(map, player, drawnOIs, mem);
-    // DrawInfo pdi = TCOD_list_get(objectinfo_drawinfos(object_context(player)), 0);
-    // TCOD_console_print_left(NULL, object_position(player).x*2, object_position(player).y, "%c", drawinfo_symbol(pdi));
-		//divider
 		TCOD_console_print_left(NULL,0,28,
 		  "--------------------------------------------------------------------------------"
 		);

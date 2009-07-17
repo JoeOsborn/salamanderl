@@ -326,9 +326,9 @@ Volume volume_init_structrecord(Volume v, StructRecord sr) {
   TCOD_list_t pos = structrecord_has_prop(sr, "position") ? structrecord_get_prop_value(sr, "position").list : NULL;
   mapVec position = pos ? mapvec_make_int_list(pos) : (mapVec){0,0,0};
   TCOD_list_t face = structrecord_has_prop(sr, "facing") ? structrecord_get_prop_value(sr, "facing").list : NULL;
-  mapVec facing = face ? mapvec_make_int_list(face) : (mapVec){1,0,0};
+  mapVec facing = face ? mapvec_make_float_list(face) : (mapVec){1,0,0};
   TCOD_list_t sz = structrecord_has_prop(sr, "extent") ? structrecord_get_prop_value(sr, "extent").list : NULL;
-  mapVec extent = sz ? mapvec_make_int_list(sz) : (mapVec){5,5,5};
+  mapVec extent = sz ? mapvec_make_float_list(sz) : (mapVec){5,5,5};
   char *type = structrecord_type(sr);
   if(STREQ(type, "sphere")) {
     float radius = structrecord_has_prop(sr, "radius") ? structrecord_get_prop_value(sr, "radius").f : 5;

@@ -6,7 +6,7 @@ object "player" {
   sensor "basic sense" {
 	  sphere {
 	    position=[0,0,0]
-			radius=4
+			radius=3
 	  }
 	}
 	movement {
@@ -16,7 +16,7 @@ object "player" {
 	weight=125
 	chomp="no" //nobody can chomp us!
 	
-	/*sensor "left eye" {
+	sensor "left eye" {
     frustum {
       position=[0,0,0]
       facing=[1,-1,0]
@@ -35,7 +35,7 @@ object "player" {
 	    near=0
 	    far=10
   	}
-	}*/
+	}
 	/*sensor "water sense" {
 	  sphere {
 	    position=[0,0,0]

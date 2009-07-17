@@ -21,24 +21,24 @@ TCOD_parser_t objectlistener_init_parser(TCOD_parser_t p, Loader l) {
   TCOD_struct_add_property(drawst, "symbol", TCOD_TYPE_CHAR, true);  
   
   TCOD_parser_struct_t spherest = TCOD_parser_new_struct(p, "sphere");
-  TCOD_struct_add_list_property(spherest, "position", TCOD_TYPE_FLOAT, false); //defaults to [0,0,0]
+  TCOD_struct_add_list_property(spherest, "position", TCOD_TYPE_INT, false); //defaults to [0,0,0]
   TCOD_struct_add_property(spherest, "radius", TCOD_TYPE_FLOAT, false); //defaults to 5
   
   TCOD_parser_struct_t frustumst = TCOD_parser_new_struct(p, "frustum");
-  TCOD_struct_add_list_property(frustumst, "position", TCOD_TYPE_FLOAT, false); //defaults to [0,0,0]
+  TCOD_struct_add_list_property(frustumst, "position", TCOD_TYPE_INT, false); //defaults to [0,0,0]
   TCOD_struct_add_list_property(frustumst, "facing", TCOD_TYPE_FLOAT, false); //defaults to [1,0,0]
-  TCOD_struct_add_property(frustumst, "xfov", TCOD_TYPE_FLOAT, false); //defaults to 2
-  TCOD_struct_add_property(frustumst, "zfov", TCOD_TYPE_FLOAT, false); //defaults to 2
-  TCOD_struct_add_property(frustumst, "near", TCOD_TYPE_FLOAT, false); //defaults to 0
-  TCOD_struct_add_property(frustumst, "far", TCOD_TYPE_FLOAT, false); //defaults to 5
+  TCOD_struct_add_property(frustumst, "xfov", TCOD_TYPE_INT, false); //defaults to 2
+  TCOD_struct_add_property(frustumst, "zfov", TCOD_TYPE_INT, false); //defaults to 2
+  TCOD_struct_add_property(frustumst, "near", TCOD_TYPE_INT, false); //defaults to 0
+  TCOD_struct_add_property(frustumst, "far", TCOD_TYPE_INT, false); //defaults to 5
 
   TCOD_parser_struct_t boxst = TCOD_parser_new_struct(p, "box");
-  TCOD_struct_add_list_property(boxst, "position", TCOD_TYPE_FLOAT, false); //defaults to [0,0,0]
+  TCOD_struct_add_list_property(boxst, "position", TCOD_TYPE_INT, false); //defaults to [0,0,0]
   TCOD_struct_add_list_property(boxst, "facing", TCOD_TYPE_FLOAT, false); //defaults to [1,0,0]
   TCOD_struct_add_list_property(boxst, "extent", TCOD_TYPE_FLOAT, false); //defaults to [5,5,5]
 
   TCOD_parser_struct_t aaboxst = TCOD_parser_new_struct(p, "aabox");
-  TCOD_struct_add_list_property(aaboxst, "position", TCOD_TYPE_FLOAT, false); //defaults to [0,0,0]
+  TCOD_struct_add_list_property(aaboxst, "position", TCOD_TYPE_INT, false); //defaults to [0,0,0]
   TCOD_struct_add_list_property(aaboxst, "extent", TCOD_TYPE_FLOAT, false); //defaults to [5,5,5]
   
   TCOD_parser_struct_t sensorst = TCOD_parser_new_struct(p, "sensor");
