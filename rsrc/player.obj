@@ -13,6 +13,8 @@ object "player" {
 	  normal=true
 	  wet=false
 	}
+	weight=125
+	chomp="no" //nobody can chomp us!
 	
 	/*sensor "left eye" {
     frustum {

@@ -263,8 +263,8 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
   }
 }
 
-//next steps: initialize from files, introduce chomping.
-//it's okay to hard-code chomping.
+//next steps: object memory model, introduce chomping.
+//it's okay to hard-code these for now.
 
 int main( int argc, char *argv[] ) {
   char *font="tilesense/libtcod/fonts/courier12x12_aa_tc.png";

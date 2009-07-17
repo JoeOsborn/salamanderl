@@ -405,7 +405,9 @@ Object object_init_structrecord_overrides(Object o, Loader l, StructRecord base,
   Map map = loader_get_map(l, mapName);
   char *id = structrecord_get_prop_value(over, "id").s;
   
-  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, drawInfos, mi, ctype, foodVolume, digestionTime, weight);
+  char *desc = structrecord_has_prop(over, "description") ? structrecord_get_prop_value(over, "description").s : NULL;
+  
+  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, drawInfos, mi, ctype, foodVolume, digestionTime, weight, desc);
   o = object_init(o, id, position, facing, map, oi);
   TS_LIST_FOREACH(sensors, object_add_sensor(o, each));
   map_add_object(map, o);

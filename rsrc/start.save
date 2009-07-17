@@ -8,6 +8,11 @@ save {
     	//the facing vector. this means "down"
     	facing=[0,1,0]
   	}
+  	make_object "stone" { //forces a load of stone.obj
+    	id="cage_stone"
+    	position=[3,6,0]
+    	facing=[1,0,0]
+  	}
 	}
   //other "start of game" overrides
 }

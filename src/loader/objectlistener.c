@@ -57,6 +57,8 @@ TCOD_parser_t objectlistener_init_parser(TCOD_parser_t p, Loader l) {
   TCOD_struct_add_property(objectst, "food_volume", TCOD_TYPE_FLOAT, false); //defaults to 0.5
   TCOD_struct_add_property(objectst, "food_digest_time", TCOD_TYPE_INT, false); //defaults to 60 seconds
   TCOD_struct_add_property(objectst, "weight", TCOD_TYPE_INT, false); //defaults to 125 grams, apprx the average weight of a salamander
+
+  TCOD_struct_add_property(objectst, "description", TCOD_TYPE_STRING, false); //defaults to "".
   //actions?
   
     /*
