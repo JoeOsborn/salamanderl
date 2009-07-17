@@ -63,10 +63,20 @@ Loader loader_init(Loader l, char *basePath) {
   
   l->configParser = configlistener_init_parser(TCOD_parser_new(), l);
   l->configListener = configlistener_init(configlistener_new(), l);
+  
+  l->moveFlags = TCOD_list_new();
+  loader_add_move_flag(l, "normal");
+  
   loader_load_config(l, "init");
+  
+  l->statusParser = statuslistener_init_parser(TCOD_parser_new(), l);
+  l->statusListener = statuslistener_init(statuslistener_new(), l);
+  
+  TCOD_list_t statusFiles = configlistener_status_files(l->configListener);
+  TS_LIST_FOREACH(statusFiles, loader_load_status(l, each));
 
-  l->mapParser = maplistener_init_parser(TCOD_parser_new(), l, l->triggerSchema);  
-  l->mapListener = maplistener_init(maplistener_new(), l->triggerSchema, l);
+  l->mapParser = maplistener_init_parser(TCOD_parser_new(), l);  
+  l->mapListener = maplistener_init(maplistener_new(), l);
 
   return l;
 }
@@ -76,10 +86,15 @@ void loader_free(Loader l) {
   LOADER_DICT_FREE(l->statuses, status_free);  
   
   TCOD_parser_delete(l->configParser);
+  TCOD_parser_delete(l->statusParser);
   TCOD_parser_delete(l->mapParser);
   
   configlistener_free(l->configListener);
+  statuslistener_free(l->statusListener);
   maplistener_free(l->mapListener);
+  
+  TCOD_list_clear_and_delete(l->moveFlags);
+  flagschema_free(l->triggerSchema);
 }
 
 void loader_load_config(Loader l, char *configName) {
@@ -131,23 +146,13 @@ void loader_add_status(Loader l, Status s, char *name) {
 }
 
 void loader_load_status(Loader l, char *name) {
-  //don't even worry about this right now -- hardcode it
-  TCOD_list_t moves = TCOD_list_new();
-  TCOD_list_t wetFlags = TCOD_list_new();
-  TCOD_list_push(wetFlags, moveflag_init(moveflag_new(), "wet", true));
-  TCOD_list_push(moves, moveinfo_init(moveinfo_new(), wetFlags));
-  Status wet = status_init(status_new(), "wet",
-    NULL,
-    NULL,
-    moves,
-    "You are soaking wet.",
-    "You've become quite damp.",
-    
-    NULL,
-    NULL,
-    "Your skin is dry again."
-  );
-  LOADER_DICT_SET(l->statuses, "wet", wet);
+  char *fileName = makeRsrcPath(l, name, "status");
+  
+  TCOD_list_t evts = TCOD_parser_run_stax(l->statusParser, fileName);
+  statuslistener_handle_events(l->statusListener, evts);
+  
+  TCOD_list_clear_and_delete(evts);
+  free(fileName);
 }
 Status loader_get_status(Loader l, char *name) {
   return LOADER_DICT_GUTS(l->statuses, name);
@@ -213,4 +218,15 @@ void loader_load_save(Loader l, char *saveName) {
   // object_add_sensor(player, leftEye);
   // object_add_sensor(player, rightEye);
   object_add_sensor(player, basicSense);
+}
+
+void loader_add_move_flag(Loader l, char *moveFlag) {
+  TCOD_list_push(l->moveFlags, moveFlag);
+}
+
+FlagSchema loader_trigger_schema(Loader l) {
+  return l->triggerSchema;
+}
+TCOD_list_t loader_move_flags(Loader l) {
+  return l->moveFlags;
 }

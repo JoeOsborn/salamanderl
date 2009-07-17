@@ -17,6 +17,63 @@ Revoke revoke_init_structrecord(Revoke r, StructRecord sr) {
   return revoke_init(r, statusName, priority, reason);
 }
 
+Status status_init_structrecord(Status s, StructRecord sr) {
+  TCOD_list_t onRevokes = TCOD_list_new();
+  TCOD_list_t onGrants = TCOD_list_new();
+  TCOD_list_t onMoves = TCOD_list_new();
+  
+  char *onMsg=NULL;
+  char *onDesc=NULL;
+
+  TCOD_list_t offGrants = TCOD_list_new();
+  TCOD_list_t offRevokes = TCOD_list_new();
+  char *offMsg=NULL;
+  
+  TCOD_list_t kids = structrecord_children(sr);
+  TCOD_list_t subkids = NULL;
+  for(int i = 0; i < TCOD_list_size(kids); i++) {
+    StructRecord kid = TCOD_list_get(kids, i);
+    subkids = structrecord_children(kid);
+    if(STREQ(structrecord_type(kid), "on")) {
+      //add to onStuff
+      TS_LIST_FOREACH(subkids,
+        char *n = structrecord_type(each);
+        if(STREQ(n, "movement")) {
+          TCOD_list_push(onMoves, moveinfo_init_structrecord(moveinfo_new(), each));
+        } else if(STREQ(n, "grant")) {
+          TCOD_list_push(onGrants, grant_init_structrecord(grant_new(), each));
+        } else if(STREQ(n, "revoke")) {
+          TCOD_list_push(onRevokes, revoke_init_structrecord(revoke_new(), each));
+        }
+      );
+      onMsg = structrecord_has_prop(kid, "message") ? structrecord_get_prop_value(kid, "message").s : NULL;
+      onDesc = structrecord_has_prop(kid, "description") ? structrecord_get_prop_value(kid, "description").s : NULL;
+    } else if(STREQ(structrecord_type(kid), "off")) {
+      //add to offStuff
+      TS_LIST_FOREACH(subkids,
+        char *n = structrecord_type(each);
+        if(STREQ(n, "grant")) {
+          TCOD_list_push(offGrants, grant_init_structrecord(grant_new(), each));
+        } else if(STREQ(n, "revoke")) {
+          TCOD_list_push(offRevokes, revoke_init_structrecord(revoke_new(), each));
+        }
+      );
+      offMsg = structrecord_has_prop(kid, "message") ? structrecord_get_prop_value(kid, "message").s : NULL;
+    }
+  }  
+  return status_init(s, structrecord_name(sr), 
+    onRevokes, 
+    onGrants, 
+    onMoves, 
+    onDesc, 
+    onMsg, 
+
+    offRevokes, 
+    offGrants, 
+    offMsg
+  );
+}
+
 EffectSet effect_set_init_structrecord(EffectSet es, StructRecord sr, char *defaultTarget) {
   //srcO, srcV, dstO, dstV
   //set -- get first appropriate flag or property and use it.

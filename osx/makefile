@@ -19,6 +19,7 @@ C_OBJS=\
 	$(TMPDIR)/loader/maplistener.o \
 	$(TMPDIR)/loader/model_init_structrecord.o \
 	$(TMPDIR)/loader/prop.o \
+	$(TMPDIR)/loader/statuslistener.o \
 	$(TMPDIR)/loader/structrecord.o \
 	$(TMPDIR)/loader.o \
 	$(TMPDIR)/drawinfo.o \
@@ -40,6 +41,7 @@ HEADERS=\
 	$(INCDIR)/loader/maplistener.h \
 	$(INCDIR)/loader/model_init_structrecord.h \
 	$(INCDIR)/loader/prop.h \
+	$(INCDIR)/loader/statuslistener.h \
 	$(INCDIR)/loader/structrecord.h \
 	$(INCDIR)/loader.h \
 	$(INCDIR)/drawinfo.h \

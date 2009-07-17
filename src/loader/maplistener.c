@@ -16,7 +16,10 @@
 
 #include "loader/model_init_structrecord.h"
 
-TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l, FlagSchema triggerSchema) {
+TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l) {
+  FlagSchema triggerSchema = loader_trigger_schema(l);
+  TCOD_list_t moveFlags = loader_move_flags(l);
+  
   TCOD_parser_struct_t grantst = TCOD_parser_new_struct(p, "grant");
   TCOD_struct_add_property(grantst, "duration", TCOD_TYPE_FLOAT, false); //defaults to infinity
   TCOD_struct_add_property(grantst, "priority", TCOD_TYPE_INT, false); //defaults to 1
@@ -135,9 +138,9 @@ TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l, FlagSchema trig
   TCOD_struct_add_structure(actionst, setst);
 
   TCOD_parser_struct_t movst = TCOD_parser_new_struct(p, "movement");
-  TCOD_struct_add_property(movst, "normal", TCOD_TYPE_BOOL, false);
-  TCOD_struct_add_property(movst, "wet", TCOD_TYPE_BOOL, false);
-  TCOD_struct_add_property(movst, "ghost", TCOD_TYPE_BOOL, false);
+  TS_LIST_FOREACH(moveFlags,
+    TCOD_struct_add_property(movst, each, TCOD_TYPE_BOOL, false);
+  );
   
   TCOD_parser_struct_t drawst = TCOD_parser_new_struct(p, "draw");
   TCOD_struct_add_property(drawst, "z", TCOD_TYPE_INT, false); //defaults to the index of the drawst.
@@ -187,9 +190,8 @@ TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l, FlagSchema trig
 MapListener maplistener_new() {
   return calloc(1, sizeof(struct _maplistener));
 }
-MapListener maplistener_init(MapListener l, FlagSchema triggerSchema, Loader loader) {
+MapListener maplistener_init(MapListener l, Loader loader) {
   l->loader = loader;
-  l->triggerSchema = triggerSchema;
   l->workingStruct = NULL;
   l->tiles = TCOD_list_new();
   return l;
@@ -300,7 +302,7 @@ bool maplistener_end_struct(MapListener l, TCOD_parser_struct_t str, const char 
     return true;
   } else if(strcmp(TCOD_struct_get_name(str), "tile") == 0) {
     //other stuff later! movement etc!
-    Tile t = tile_init_structrecord(tile_new(), l->loader, sr, l->triggerSchema);
+    Tile t = tile_init_structrecord(tile_new(), l->loader, sr, loader_trigger_schema(l->loader));
     if(l->map) {
       //add to map
       map_add_tile(l->map, t);

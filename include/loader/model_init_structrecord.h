@@ -19,6 +19,7 @@
 
 Grant grant_init_structrecord(Grant g, StructRecord sr);
 Revoke revoke_init_structrecord(Revoke r, StructRecord sr);
+Status status_init_structrecord(Status s, StructRecord sr);
 
 EffectSet effect_set_init_structrecord(EffectSet es, StructRecord sr, char *defaultTarget);
 EffectGrantRevoke effect_grantrevoke_init_structrecord(EffectGrantRevoke gr, StructRecord sr, char *defaultTarget);

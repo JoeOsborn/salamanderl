@@ -10,7 +10,7 @@
 #include "loader.h"
 
 struct _maplistener {
-  Loader loader; //avoid recursive def problem
+  Loader loader;
   StructRecord workingStruct;
   
   FlagSchema triggerSchema;
@@ -20,10 +20,10 @@ struct _maplistener {
 };
 typedef struct _maplistener * MapListener;
 
-TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l, FlagSchema triggerSchema);
+TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l);
 
 MapListener maplistener_new();
-MapListener maplistener_init(MapListener l, FlagSchema triggerSchema, Loader loader);
+MapListener maplistener_init(MapListener l, Loader loader);
 void maplistener_free(MapListener l);
 
 void maplistener_handle_events(MapListener listener, TCOD_list_t evts);

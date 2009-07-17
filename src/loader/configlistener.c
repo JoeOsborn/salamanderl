@@ -1,9 +1,5 @@
 #include "loader/configlistener.h"
 
-#include "drawinfo.h"
-#include "moveinfo.h"
-#include "tileinfo.h"
-
 #include <tilesense.h>
 
 #include "loader/model_init_structrecord.h"
@@ -11,6 +7,7 @@
 TCOD_parser_t configlistener_init_parser(TCOD_parser_t p, Loader l) {
   TCOD_parser_struct_t cfgst = TCOD_parser_new_struct(p, "config");
   TCOD_struct_add_list_property(cfgst, "trigger_types", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_list_property(cfgst, "move_flags", TCOD_TYPE_STRING, false);
   TCOD_struct_add_list_property(cfgst, "load_status", TCOD_TYPE_STRING, false);
   return p;
 }
@@ -21,6 +18,7 @@ ConfigListener configlistener_new() {
 ConfigListener configlistener_init(ConfigListener l, Loader loader) {
   l->loader = loader;
   l->workingStruct = NULL;
+  l->statusFiles = TCOD_list_new();
   return l;
 }
 void configlistener_free(ConfigListener l) {
@@ -31,6 +29,7 @@ void configlistener_free(ConfigListener l) {
     }
     structrecord_free(sr);
   }
+  TCOD_list_clear_and_delete(l->statusFiles);
   free(l);
 }
 
@@ -103,18 +102,22 @@ bool configlistener_end_struct(ConfigListener l, TCOD_parser_struct_t str, const
     l->workingStruct = structrecord_parent(sr);
     return true;
   } else if(strcmp(TCOD_struct_get_name(str), "config") == 0) {
-    //does it have a trigger_types?
     if(structrecord_has_prop(sr, "trigger_types")) {
       TCOD_list_t trigs = structrecord_get_prop_value(sr, "trigger_types").list;
       TS_LIST_FOREACH(trigs,
         loader_add_trigger(l->loader, each);
       );
     }
-    //does it have a load_status?
+    if(structrecord_has_prop(sr, "move_flags")) {
+      TCOD_list_t flags = structrecord_get_prop_value(sr, "move_flags").list;
+      TS_LIST_FOREACH(flags,
+        loader_add_move_flag(l->loader, each);
+      );
+    }
     if(structrecord_has_prop(sr, "load_status")) {
       TCOD_list_t statusFiles = structrecord_get_prop_value(sr, "load_status").list;
       TS_LIST_FOREACH(statusFiles,
-        loader_load_status(l->loader, each);
+        TCOD_list_push(l->statusFiles, each);
       );
     }
     structrecord_free(sr);
@@ -125,4 +128,8 @@ bool configlistener_end_struct(ConfigListener l, TCOD_parser_struct_t str, const
 }
 void configlistener_error(ConfigListener l, const char *msg) {
   abort(); //just completely bail out in case of any error.  can do something useful later!
+}
+
+TCOD_list_t configlistener_status_files(ConfigListener l) {
+  return l->statusFiles;
 }
