@@ -20,6 +20,7 @@ C_OBJS=\
 	$(TMPDIR)/loader/model_init_structrecord.o \
 	$(TMPDIR)/loader/objectlistener.o \
 	$(TMPDIR)/loader/prop.o \
+	$(TMPDIR)/loader/savelistener.o \
 	$(TMPDIR)/loader/statuslistener.o \
 	$(TMPDIR)/loader/structrecord.o \
 	$(TMPDIR)/loader.o \
@@ -43,6 +44,7 @@ HEADERS=\
 	$(INCDIR)/loader/model_init_structrecord.h \
 	$(INCDIR)/loader/objectlistener.h \
 	$(INCDIR)/loader/prop.h \
+	$(INCDIR)/loader/savelistener.h \
 	$(INCDIR)/loader/statuslistener.h \
 	$(INCDIR)/loader/structrecord.h \
 	$(INCDIR)/loader.h \

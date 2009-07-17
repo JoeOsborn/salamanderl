@@ -1,11 +1,13 @@
-//make_object creates an instance of an "object".obj.
-make_object "player" { //forces a load of player.obj
-  id="player"
-  //the starting map
-  map="cage" //forces a load of cage.map
-  //the position vector
-  position=[5,5,0]
-  //the facing vector. this means "down"
-  facing=[0,1,0]
+save {
+	map "cage" {
+  	//make_object creates an instance of an "object".obj.
+  	make_object "player" { //forces a load of player.obj
+    	id="player"
+    	//the position vector
+    	position=[5,5,0]
+    	//the facing vector. this means "down"
+    	facing=[0,1,0]
+  	}
+	}
+  //other "start of game" overrides
 }
-//other "start of game" overrides

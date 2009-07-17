@@ -82,6 +82,9 @@ Loader loader_init(Loader l, char *basePath) {
   l->mapParser = maplistener_init_parser(TCOD_parser_new(), l);  
   l->mapListener = maplistener_init(maplistener_new(), l);
 
+  l->saveParser = savelistener_init_parser(TCOD_parser_new(), l);
+  l->saveListener = savelistener_init(savelistener_new(), l);
+
   return l;
 }
 
@@ -91,12 +94,15 @@ void loader_free(Loader l) {
   
   TCOD_parser_delete(l->configParser);
   TCOD_parser_delete(l->statusParser);
+  TCOD_parser_delete(l->objectParser);
   TCOD_parser_delete(l->mapParser);
+  TCOD_parser_delete(l->saveParser);
   
   configlistener_free(l->configListener);
   statuslistener_free(l->statusListener);
   objectlistener_free(l->objectListener);
   maplistener_free(l->mapListener);
+  maplistener_free(l->saveListener);
   
   TCOD_list_clear_and_delete(l->moveFlags);
   flagschema_free(l->triggerSchema);
@@ -173,29 +179,13 @@ void loader_load_object(Loader l, char *objType) {
   free(fileName);
 }
 void loader_load_save(Loader l, char *saveName) {
-  loader_load_map(l, "cage");
-
-  //for now, just make a player
+  char *fileName = makeRsrcPath(l, saveName, "save");
   
-  StructRecord over = structrecord_init(structrecord_new(), "make_object", "player", NULL);
-  //pos, facing, map, id
-  structrecord_add_prop(over, prop_init(prop_new(), "id", TCOD_TYPE_STRING, (TCOD_value_t)("player")));
-  structrecord_add_prop(over, prop_init(prop_new(), "map", TCOD_TYPE_STRING, (TCOD_value_t)("cage")));
-  TCOD_list_t pos = TCOD_list_new();
-  TCOD_list_push(pos, (void *)5);
-  TCOD_list_push(pos, (void *)5);
-  TCOD_list_push(pos, (void *)0);
-  structrecord_add_prop(over, prop_init(prop_new(), "position", TCOD_TYPE_LIST, (TCOD_value_t)pos));
-  TCOD_list_delete(pos);
-  TCOD_list_t face = TCOD_list_new();
-  float fx = 1, fy = 0, fz = 0;
-  TCOD_list_push(face, *((void **)&fx));
-  TCOD_list_push(face, *((void **)&fy));
-  TCOD_list_push(face, *((void **)&fz));
-  structrecord_add_prop(over, prop_init(prop_new(), "facing", TCOD_TYPE_LIST, (TCOD_value_t)face));
-  TCOD_list_delete(face);
-
-  loader_make_object(l, over);
+  TCOD_list_t evts = TCOD_parser_run_stax(l->saveParser, fileName);
+  savelistener_handle_events(l->saveListener, evts);
+  
+  TCOD_list_clear_and_delete(evts);
+  free(fileName);
 }
 
 void loader_add_move_flag(Loader l, char *moveFlag) {
