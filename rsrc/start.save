@@ -4,8 +4,8 @@ make_object "player" { //forces a load of player.obj
   //the starting map
   map="cage" //forces a load of cage.map
   //the position vector
-  position=[1,1,0]
-  //the facing vector. this means "to the right"
-  facing=[1,0,0]
+  position=[5,5,0]
+  //the facing vector. this means "down"
+  facing=[0,1,0]
 }
 //other "start of game" overrides

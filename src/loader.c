@@ -8,7 +8,8 @@
 #include <stdio.h>
 
 #include "loader/prop.h"
-#include "loader/structrecord.h"
+
+#include "loader/model_init_structrecord.h"
 
 #define LOADER_DICT_FREE(_src, _freefunc) do { \
   while(_src) { \
@@ -75,6 +76,9 @@ Loader loader_init(Loader l, char *basePath) {
   TCOD_list_t statusFiles = configlistener_status_files(l->configListener);
   TS_LIST_FOREACH(statusFiles, loader_load_status(l, each));
 
+  l->objectParser = objectlistener_init_parser(TCOD_parser_new(), l);  
+  l->objectListener = objectlistener_init(objectlistener_new(), l);
+
   l->mapParser = maplistener_init_parser(TCOD_parser_new(), l);  
   l->mapListener = maplistener_init(maplistener_new(), l);
 
@@ -91,6 +95,7 @@ void loader_free(Loader l) {
   
   configlistener_free(l->configListener);
   statuslistener_free(l->statusListener);
+  objectlistener_free(l->objectListener);
   maplistener_free(l->mapListener);
   
   TCOD_list_clear_and_delete(l->moveFlags);
@@ -159,69 +164,61 @@ Status loader_get_status(Loader l, char *name) {
 }
 
 void loader_load_object(Loader l, char *objType) {
-  //hardcode player below for now
-
-  //load the object, create the object def and context prototype
+  char *fileName = makeRsrcPath(l, objType, "obj");
+  
+  TCOD_list_t evts = TCOD_parser_run_stax(l->objectParser, fileName);
+  objectlistener_handle_events(l->objectListener, evts);
+  
+  TCOD_list_clear_and_delete(evts);
+  free(fileName);
 }
 void loader_load_save(Loader l, char *saveName) {
   loader_load_map(l, "cage");
-  loader_load_object(l, "player");
 
   //for now, just make a player
   
-  Map m = loader_get_map(l, "cage");
-  #warning make this an objectinfo with moveinfos and drawinfos.
-  DrawInfo playerDraw = drawinfo_init(drawinfo_new(), 0, TCOD_white, TCOD_black, '@');
-  TCOD_list_t moveFlags = TCOD_list_new();
-  TCOD_list_push(moveFlags, moveflag_init(moveflag_new(), "normal", 1));
-  TCOD_list_push(moveFlags, moveflag_init(moveflag_new(), "wet", 0));
-  MoveInfo playerMove = moveinfo_init(moveinfo_new(), moveFlags);
-  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, NULL, playerMove);
-  objectinfo_add_drawinfo(oi, playerDraw);
-  
-  //for now, we'll just make the player wet for a minute at start
-  //objectinfo_grant(oi, grant_init(grant_new(), "wet", 60, 5, "naturally moist"));
-  
-  Object player = object_init(object_new(), 
-    "@", 
-    (mapVec){5, 1, 0}, 
-    (mapVec){1, 0, 0},
-    m,
-    oi
-  );
-  map_add_object(m, player);
-  // Sensor leftEye = sensor_init(sensor_new(), "left_eye",
-  //   frustum_init(frustum_new(),
-  //     mapvec_zero,
-  //     (mapVec){1, -1, 0},
-  //     1, 2,
-  //     0, 10
-  //   ),
-  //   NULL
-  // );
-  // Sensor rightEye = sensor_init(sensor_new(), "right_eye",
-  //   frustum_init(frustum_new(),
-  //     mapvec_zero,
-  //     (mapVec){1, 1, 0},
-  //     1, 2,
-  //     0, 10
-  //   ),
-  //   NULL
-  // );
-  Sensor basicSense = sensor_init(sensor_new(), "basic_sense",
-    sphere_init(sphere_new(),
-      mapvec_zero,
-      8
-    ),
-    NULL
-  );
-  // object_add_sensor(player, leftEye);
-  // object_add_sensor(player, rightEye);
-  object_add_sensor(player, basicSense);
+  StructRecord over = structrecord_init(structrecord_new(), "make_object", "player", NULL);
+  //pos, facing, map, id
+  structrecord_add_prop(over, prop_init(prop_new(), "id", TCOD_TYPE_STRING, (TCOD_value_t)("player")));
+  structrecord_add_prop(over, prop_init(prop_new(), "map", TCOD_TYPE_STRING, (TCOD_value_t)("cage")));
+  TCOD_list_t pos = TCOD_list_new();
+  TCOD_list_push(pos, (void *)5);
+  TCOD_list_push(pos, (void *)5);
+  TCOD_list_push(pos, (void *)0);
+  structrecord_add_prop(over, prop_init(prop_new(), "position", TCOD_TYPE_LIST, (TCOD_value_t)pos));
+  TCOD_list_delete(pos);
+  TCOD_list_t face = TCOD_list_new();
+  float fx = 1, fy = 0, fz = 0;
+  TCOD_list_push(face, *((void **)&fx));
+  TCOD_list_push(face, *((void **)&fy));
+  TCOD_list_push(face, *((void **)&fz));
+  structrecord_add_prop(over, prop_init(prop_new(), "facing", TCOD_TYPE_LIST, (TCOD_value_t)face));
+  TCOD_list_delete(face);
+
+  loader_make_object(l, over);
 }
 
 void loader_add_move_flag(Loader l, char *moveFlag) {
   TCOD_list_push(l->moveFlags, moveFlag);
+}
+
+void loader_add_object_def(Loader l, StructRecord sr) {
+  char *n = structrecord_name(sr);
+  LOADER_DICT_SET(l->objectDefs, n, sr);
+}
+
+Object loader_make_object(Loader l, StructRecord overrides) {
+  char *name = structrecord_name(overrides);
+  StructRecord def = LOADER_DICT_GUTS(l->objectDefs, name);
+  if(def) {
+    return object_init_structrecord_overrides(object_new(), l, def, overrides);
+  } else {
+    loader_load_object(l, name);
+    if(LOADER_DICT_GUTS(l->objectDefs, name)) {
+      return loader_make_object(l, overrides);
+    }
+  }
+  return NULL;
 }
 
 FlagSchema loader_trigger_schema(Loader l) {

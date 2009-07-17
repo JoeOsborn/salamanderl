@@ -4,7 +4,7 @@
 ObjectInfo objectinfo_new() {
   return calloc(1, sizeof(struct _object_info));
 }
-ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi) {
+ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, ChompReaction reaction, float foodVolume, int digestionDuration, int weight) {
   oi->loader = l;
   oi->drawinfos = dis ? dis : TCOD_list_new();
   oi->grants = TCOD_list_new();
@@ -12,6 +12,10 @@ ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi
   oi->statuses = TCOD_list_new();
   oi->moveinfos = TCOD_list_new();
   TCOD_list_push(oi->moveinfos, mi);
+  oi->reaction = reaction;
+  oi->foodVolume = foodVolume;
+  oi->digestionDuration = digestionDuration;
+  oi->weight = weight;
   objectinfo_remake_net_moveinfo(oi);
   return oi;
 }

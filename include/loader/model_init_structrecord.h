@@ -7,6 +7,7 @@
 #include "drawinfo.h"
 #include "moveinfo.h"
 #include "tileinfo.h"
+#include "objectinfo.h"
 #include "status.h"
 
 #include "action/action.h"
@@ -37,5 +38,7 @@ MoveInfo moveinfo_init_structrecord(MoveInfo mi, StructRecord sr);
 Tile tile_init_structrecord(Tile t, Loader l, StructRecord sr, FlagSchema actionTriggers);
 
 Map map_init_structrecord(Map m, StructRecord sr);
+
+Object object_init_structrecord_overrides(Object o, Loader l, StructRecord sr, StructRecord over);
 
 #endif

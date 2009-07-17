@@ -285,16 +285,29 @@ Tile tile_init_structrecord(Tile t, Loader l, StructRecord sr, FlagSchema action
   return tile_init(t, wallTransp, floorTransp, ceilTransp, ti);
 }
 
+mapVec mapvec_make_int_list(TCOD_list_t l) {
+  int sx = (int)TCOD_list_get(l, 0);
+  int sy = (int)TCOD_list_get(l, 1);
+  int sz = (int)TCOD_list_get(l, 2);
+  return (mapVec){sx, sy, sz};
+}
+
+mapVec mapvec_make_float_list(TCOD_list_t l) {
+  void *px = TCOD_list_get(l, 0);
+  float x = *(float *)(&px);
+  void *py = TCOD_list_get(l, 1);
+  float y = *(float *)(&py);
+  void *pz = TCOD_list_get(l, 2);
+  float z = *(float *)(&pz);
+  return (mapVec){x, y, z};
+}
+
 Map map_init_structrecord(Map m, StructRecord sr) {
   //dimensions, ambient light, tilemap
   //implement these search methods
   int ambientLight = structrecord_get_prop_value(sr, "ambient_light").i;
   TCOD_list_t dimensions = structrecord_get_prop_value(sr, "dimensions").list;
-  //make mapSize from floats in dimensions
-  int sx = (int)TCOD_list_get(dimensions, 0);
-  int sy = (int)TCOD_list_get(dimensions, 1);
-  int sz = (int)TCOD_list_get(dimensions, 2);
-  mapVec mapSize = (mapVec){sx, sy, sz};
+  mapVec mapSize = mapvec_make_int_list(dimensions);
   TCOD_list_t tileIndexList = structrecord_get_prop_value(sr, "tilemap").list;
   //make tileMap from the TCOD_list_t in "tilemap"
   unsigned char *tileMap = calloc(TCOD_list_size(tileIndexList), sizeof(unsigned short));
@@ -307,4 +320,94 @@ Map map_init_structrecord(Map m, StructRecord sr) {
   //also, don't know what to do just yet about null-tile context. null for now!
   void *blankTileCtx = NULL;
   return map_init(map_new(), structrecord_name(sr), mapSize, tileMap, ambientLight, blankTileCtx, mapCtx);
+}
+
+Volume volume_init_structrecord(Volume v, StructRecord sr) {
+  TCOD_list_t pos = structrecord_has_prop(sr, "position") ? structrecord_get_prop_value(sr, "position").list : NULL;
+  mapVec position = pos ? mapvec_make_int_list(pos) : (mapVec){0,0,0};
+  TCOD_list_t face = structrecord_has_prop(sr, "facing") ? structrecord_get_prop_value(sr, "facing").list : NULL;
+  mapVec facing = face ? mapvec_make_int_list(face) : (mapVec){1,0,0};
+  TCOD_list_t sz = structrecord_has_prop(sr, "extent") ? structrecord_get_prop_value(sr, "extent").list : NULL;
+  mapVec extent = sz ? mapvec_make_int_list(sz) : (mapVec){5,5,5};
+  char *type = structrecord_type(sr);
+  if(STREQ(type, "sphere")) {
+    float radius = structrecord_has_prop(sr, "radius") ? structrecord_get_prop_value(sr, "radius").f : 5;
+    return sphere_init(v, position, radius);
+  } else if(STREQ(type, "frustum")) {
+    int xfov = structrecord_has_prop(sr, "xfov") ? structrecord_get_prop_value(sr, "xfov").i : 2;
+    int zfov = structrecord_has_prop(sr, "zfov") ? structrecord_get_prop_value(sr, "zfov").i : 2;
+    int near = structrecord_has_prop(sr, "near") ? structrecord_get_prop_value(sr, "near").i : 0;
+    int far = structrecord_has_prop(sr, "far") ? structrecord_get_prop_value(sr, "far").i : 10;
+    return frustum_init(v, position, facing, xfov, zfov, near, far);
+  } else if(STREQ(type, "box")) {
+    return box_init(v, position, facing, extent);
+  } else if(STREQ(type, "aabox")) {
+    return aabox_init(v, position, extent);
+  }
+  return NULL;
+}
+
+Sensor sensor_init_structrecord(Sensor s, StructRecord sr) {
+  //Sensor sensor_init(Sensor s, char *id, Volume volume, void *context);
+  char *id = structrecord_name(sr) ? structrecord_name(sr) : "sensor";
+  #warning dangerous assumption that sr will have 1 and only 1 child?
+  StructRecord kid = TCOD_list_get(structrecord_children(sr), 0);
+  Volume v = volume_init_structrecord(volume_new(), kid);
+  return sensor_init(s, id, v, NULL);
+}
+
+Object object_init_structrecord_overrides(Object o, Loader l, StructRecord base, StructRecord over) {
+  #warning unsafe assumption that override will only add and not change data
+  //to solve later, implement structrecord_combine() and do: 
+  //s = structrecord_combine(structrecord_combine(structrecord_new(), sr), over)
+  //and work from there. structrecord_combine shall be recursive and appropriate.
+  //also change the code below to refer only to the combined, new sr
+  StructRecord sr = base;
+  MoveInfo mi=NULL;
+  TCOD_list_t drawInfos = TCOD_list_new();
+  TCOD_list_t sensors = TCOD_list_new();
+  TCOD_list_t kids = structrecord_children(sr);
+  int drawIndex = 0;
+  TS_LIST_FOREACH(kids,
+    char *t = structrecord_type(each);
+    if(STREQ(t, "movement")) {
+      mi=moveinfo_init_structrecord(moveinfo_new(), each);
+    } else if(STREQ(t, "draw")) {
+      TCOD_list_push(drawInfos, drawinfo_init_structrecord(drawinfo_new(), each, drawIndex, &drawIndex));
+      drawIndex++;
+    } else if(STREQ(t, "sensor")) {
+      TCOD_list_push(sensors, sensor_init_structrecord(sensor_new(), each));
+    }
+  );
+  #warning should carry strength also be a loaded variable?
+  ChompReaction ctype = ChompNone;
+  if(structrecord_has_prop(sr, "chomp")) {
+    char *type = structrecord_get_prop_value(sr, "chomp").s;
+    if(STREQ(type, "no")) {
+      ctype = ChompNone;
+    } else if(STREQ(type, "eat")) {
+      ctype = ChompEat;
+    } else if(STREQ(type, "carry")) {
+      ctype = ChompCarry;
+    } else if(STREQ(type, "latch")) {
+      ctype = ChompLatch;
+    }
+  }
+  float foodVolume = structrecord_has_prop(sr, "food_volume") ? structrecord_get_prop_value(sr, "food_volume").f : 0.5;
+  int digestionTime = structrecord_has_prop(sr, "food_digest_time") ? structrecord_get_prop_value(sr, "food_digest_time").i : 60;
+  int weight = structrecord_has_prop(sr, "weight") ? structrecord_get_prop_value(sr, "weight").i : 125;
+  
+  TCOD_list_t pos = structrecord_has_prop(over, "position") ? structrecord_get_prop_value(over, "position").list : NULL;
+  mapVec position = pos ? mapvec_make_int_list(pos) : (mapVec) {0, 0, 0};
+  TCOD_list_t face = structrecord_has_prop(over, "facing") ? structrecord_get_prop_value(over, "facing").list : NULL;
+  mapVec facing = face ? mapvec_make_float_list(face) : (mapVec) {1, 0, 0};
+  char *mapName = structrecord_get_prop_value(over, "map").s;
+  Map map = loader_get_map(l, mapName);
+  char *id = structrecord_get_prop_value(over, "id").s;
+  
+  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, drawInfos, mi, ctype, foodVolume, digestionTime, weight);
+  o = object_init(o, id, position, facing, map, oi);
+  TS_LIST_FOREACH(sensors, object_add_sensor(o, each));
+  map_add_object(map, o);
+  return o;
 }

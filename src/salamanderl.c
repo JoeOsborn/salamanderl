@@ -276,7 +276,7 @@ int main( int argc, char *argv[] ) {
   Loader loader = loader_init(loader_new(), "rsrc");
   loader_load_save(loader, "start");
   Map map = loader_get_map(loader, "cage");
-  Object player = map_get_object_named(map, "@");
+  Object player = map_get_object_named(map, "player");
 
   object_sense(player);
   
@@ -310,26 +310,26 @@ int main( int argc, char *argv[] ) {
 		TCOD_console_flush();
 
     if(key.vk == TCODK_RIGHT) {
-      smap_turn_object(map, "@", 1);
+      smap_turn_object(map, "player", 1);
     } else if(key.vk == TCODK_LEFT) {
-      smap_turn_object(map, "@", -1);
+      smap_turn_object(map, "player", -1);
     } else if(key.vk == TCODK_UP) {
-      smap_move_object(map, "@", (mapVec){0, 0,  1});
+      smap_move_object(map, "player", (mapVec){0, 0,  1});
     } else if(key.vk == TCODK_DOWN) {
-      smap_move_object(map, "@", (mapVec){0, 0, -1});
+      smap_move_object(map, "player", (mapVec){0, 0, -1});
     } else if(key.vk == TCODK_CHAR) {
       switch(key.c) {
         case 'w':
-          smap_move_object(map, "@", (mapVec){0, -1, 0});
+          smap_move_object(map, "player", (mapVec){0, -1, 0});
           break;
         case 'a':
-          smap_move_object(map, "@", (mapVec){-1, 0, 0});
+          smap_move_object(map, "player", (mapVec){-1, 0, 0});
           break;
         case 's':
-          smap_move_object(map, "@", (mapVec){0, 1, 0});
+          smap_move_object(map, "player", (mapVec){0, 1, 0});
           break;
         case 'd':
-          smap_move_object(map, "@", (mapVec){1, 0, 0});
+          smap_move_object(map, "player", (mapVec){1, 0, 0});
           break;
         case 'q':
           finished = 1;

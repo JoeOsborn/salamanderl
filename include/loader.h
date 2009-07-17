@@ -5,6 +5,7 @@
 #include <tilesense.h>
 
 #include "status.h"
+#include "loader/structrecord.h"
 
 typedef struct _genwrap {
   char *name;
@@ -17,21 +18,23 @@ typedef genwrap * Hash;
 struct _loader {
   char *path;
   Hash maps;
-  TCOD_parser_t configParser, statusParser, mapParser;
-  void * mapListener; //avoid recursive defs
+  TCOD_parser_t configParser, statusParser, objectParser, mapParser;
   void * configListener; //avoid recursive defs
   void * statusListener; //avoid recursive defs
+  void * objectListener; //avoid recursive defs
+  void * mapListener; //avoid recursive defs
   FlagSchema triggerSchema;
   TCOD_list_t moveFlags;
   Hash statuses;
-//  Hash objectDefs;
+  Hash objectDefs;
 };
 
 typedef struct _loader * Loader;
 
-#include "loader/maplistener.h"
 #include "loader/configlistener.h"
 #include "loader/statuslistener.h"
+#include "loader/objectlistener.h"
+#include "loader/maplistener.h"
 
 Loader loader_new();
 Loader loader_init(Loader l, char *basePath);
@@ -54,7 +57,10 @@ void loader_add_map(Loader l, Map m, char *name);
 void loader_add_trigger(Loader l, char *name);
 void loader_add_status(Loader l, Status s, char *name);
 void loader_add_move_flag(Loader l, char *moveFlag);
+void loader_add_object_def(Loader l, StructRecord sr);
 
 FlagSchema loader_trigger_schema(Loader l);
 TCOD_list_t loader_move_flags(Loader l);
+
+Object loader_make_object(Loader l, StructRecord overrides);
 #endif

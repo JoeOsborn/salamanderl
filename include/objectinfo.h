@@ -7,6 +7,13 @@
 #include "status.h"
 #include "loader.h"
 
+typedef enum {
+  ChompNone,
+  ChompEat,
+  ChompCarry,
+  ChompLatch
+} ChompReaction;
+
 struct _object_info {
   //the object info needs to track the loader so it can
   //ask for statuses.
@@ -20,12 +27,19 @@ struct _object_info {
   TCOD_list_t revokes;
   //the currently active statuses.
   TCOD_list_t statuses;
+  
+  ChompReaction reaction;
+  
+  float foodVolume; //fraction of an average salamander's stomach capacity
+  int digestionDuration; //seconds
+  
+  int weight; //grams
 };
 
 typedef struct _object_info *ObjectInfo;
 
 ObjectInfo objectinfo_new();
-ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi);
+ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, ChompReaction reaction, float foodVolume, int digestionDuration, int weight);
 void objectinfo_free(ObjectInfo oi);
 void objectinfo_add_drawinfo(ObjectInfo oi, DrawInfo di);
 TCOD_list_t objectinfo_drawinfos(ObjectInfo oi);

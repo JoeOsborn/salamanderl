@@ -1,8 +1,20 @@
 object "player" {
-  symbol='@'
-  fore="#FFFFFF"
-  
-	sensor "left eye" {
+	draw {
+  	fore="#FFFFFF"
+  	symbol='@'
+	}
+  sensor "basic sense" {
+	  sphere {
+	    position=[0,0,0]
+			radius=8
+	  }
+	}
+	movement {
+	  normal=true
+	  wet=false
+	}
+	
+	/*sensor "left eye" {
     frustum {
       position=[0,0,0]
       facing=[1,-1,0]
@@ -21,14 +33,8 @@ object "player" {
 	    near=0
 	    far=10
   	}
-	}
-	sensor "basic sense" {
-	  sphere {
-	    position=[0,0,0]
-			radius=2
-	  }
-	}
-	sensor "water sense" {
+	}*/
+	/*sensor "water sense" {
 	  sphere {
 	    position=[0,0,0]
 	    radius=8
@@ -39,9 +45,5 @@ object "player" {
 	    underwater
 	  }
 	  //should 'see thru water' be a thing that's handled in tilesense? prolly, but ignore for now.
-	}
-	movement {
-	  normal=true
-	  wet=false
-	}
+	}*/
 }
