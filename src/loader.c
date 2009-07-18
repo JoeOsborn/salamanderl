@@ -140,7 +140,15 @@ void loader_add_map(Loader l, Map map, char *mapName) {
 }
 
 Map loader_get_map(Loader l, char *name) {
-  return LOADER_DICT_GUTS(l->maps, name);
+  Map *m = LOADER_DICT_GUTS(l->maps, name);
+  if(!m) {
+    loader_load_map(l, name);
+    m = LOADER_DICT_GUTS(l->maps, name);
+    if(!m) {
+      return NULL;
+    }
+  }
+  return m;
 }
 
 Flagset loader_make_trigger(Loader l, char *trigName) {
@@ -166,7 +174,15 @@ void loader_load_status(Loader l, char *name) {
   free(fileName);
 }
 Status loader_get_status(Loader l, char *name) {
-  return LOADER_DICT_GUTS(l->statuses, name);
+  Status s = LOADER_DICT_GUTS(l->statuses, name);
+  if(!s) {
+    loader_load_status(l, name);
+    s = LOADER_DICT_GUTS(l->statuses, name);
+    if(!s) {
+      return NULL;
+    }
+  }
+  return s;
 }
 
 void loader_load_object(Loader l, char *objType) {

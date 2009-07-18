@@ -80,6 +80,7 @@ void mem_remember(perception *mem, Map m, perception *tiles, mapVec pos, mapVec 
            tile_index_in_bounds(x, y, z, msz, mapvec_zero, msz)) {
           int srcIndex = tile_index(x, y, z, msz, pos, size);
           int dstIndex = tile_index(x, y, z, msz, mapvec_zero, msz);
+          #warning this should also look downwards to find tiles below like draw_tiles() does.
           if(map_item_visible(tiles[srcIndex])) {
             mem[dstIndex] = tiles[srcIndex];
           }
@@ -194,6 +195,11 @@ void drawmap(Map m, Object o, TCOD_list_t drawnOIs, perception *mem) {
     TS_LIST_FOREACH(visible,
       draw_object(s, each, drawnOIs);
     );
+    //hack to ensure player is drawn on top of other objects
+    if(TCOD_list_contains(drawnOIs, object_context(o))) {
+      TCOD_list_remove(drawnOIs, object_context(o));
+      draw_object(s, o, drawnOIs);
+    }
     // TCOD_console_print_left(NULL, 0, 13+i, "<%f %f %f>", sensor_facing(s).x, sensor_facing(s).y, sensor_facing(s).z);
   }
   TCOD_list_clear(drawnOIs);
@@ -327,6 +333,7 @@ int main( int argc, char *argv[] ) {
   int font_flags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD;
 	TCOD_console_set_custom_font(font,font_flags,nb_char_horiz,nb_char_vertic);
 	TCOD_console_init_root(80,40,"salamandeRL",false);
+  TCOD_console_t descConsole = TCOD_console_new(80, 11);
 	
   Loader loader = loader_init(loader_new(), "rsrc");
   loader_load_save(loader, "start");
@@ -381,7 +388,7 @@ int main( int argc, char *argv[] ) {
           finished = 1;
           break;
         //next, handle chomping - decide on toggle vs hold
-        //also, print descriptions - have a procedure that handles scrolling, etc of a console
+        //also, print messages and descriptions - have a procedure that handles scrolling, etc of one or more consoles
         //explicitly for text output
         default:
           break;
@@ -394,12 +401,14 @@ int main( int argc, char *argv[] ) {
 		  "--------------------------------------------------------------------------------"
 		);
 	  //text display
-    TCOD_console_print_left(NULL,2,29,"we'll probably put text down here.");
+    TCOD_console_print_left(descConsole,1,1,"we'll probably put text down here.");
+    TCOD_console_blit(descConsole, 0, 0, 80, 11, NULL, 0, 29, 255);
     
     /* update the game screen */
 		TCOD_console_flush();
 
 	} while (!finished && !TCOD_console_is_window_closed());
+  TCOD_console_delete(descConsole);
 	return 0;
 }
 
