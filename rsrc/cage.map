@@ -152,7 +152,7 @@ tile "rock" { //5
   	fore="#909090"
   	symbol='-'
   }
-  on_bump_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
+  on_bump_desc="This rock takes up much of your cell.  The space behind it is invitingly dark.  This description is much longer than one might expect it to be in practice.  Blah blah blah blah blah."
   //atop_desc is used if the player is standing on an empty tile above this tile.
   //it really only makes sense for things that can block movement.
   on_atop_desc="The view of the cage from the top of your rock is inspiring."

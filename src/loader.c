@@ -142,7 +142,7 @@ void loader_add_map(Loader l, Map map, char *mapName) {
 }
 
 Map loader_get_map(Loader l, char *name) {
-  Map *m = LOADER_DICT_GUTS(l->maps, name);
+  Map m = LOADER_DICT_GUTS(l->maps, name);
   if(!m) {
     loader_load_map(l, name);
     m = LOADER_DICT_GUTS(l->maps, name);

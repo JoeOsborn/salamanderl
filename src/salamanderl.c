@@ -12,6 +12,7 @@
 #include "tileinfo.h"
 #include "objectinfo.h"
 #include "action/effect_message.h"
+#include "scrollconsole.h"
 
 void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size, TCOD_color_t sub) {
   int index=0;
@@ -140,7 +141,7 @@ void draw_object(Sensor s, Object o, TCOD_list_t drawnOIs) {
   }
 }
 
-void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem, TCOD_console_t msgConsole) {
+void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem, ScrollConsole msgConsole) {
   TCOD_list_t stims = sensor_consume_stimuli(s);
   perception *tiles;
   mapVec pos, size, oldPt, delta;
@@ -177,7 +178,7 @@ void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem, TCOD_co
         break;
       case SalMessage:
         msg = stimulus_generic_get_context(st);
-        TCOD_console_print_left(msgConsole, 0, 0, msg);
+        scrollconsole_push(msgConsole, msg);
         free(msg);
         break;
       case StimGeneric:
@@ -190,7 +191,7 @@ void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem, TCOD_co
   TCOD_list_delete(stims);
 }
 
-void drawmap(Map m, Object o, TCOD_list_t drawnOIs, perception *mem, TCOD_console_t msgConsole) {
+void drawmap(Map m, Object o, TCOD_list_t drawnOIs, perception *mem, ScrollConsole msgConsole) {
   TCOD_console_set_background_flag(NULL, TCOD_COLOROP_SET);
   Sensor s;
   //draw tiles from memory
@@ -344,7 +345,7 @@ int main( int argc, char *argv[] ) {
   int font_flags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD;
 	TCOD_console_set_custom_font(font,font_flags,nb_char_horiz,nb_char_vertic);
 	TCOD_console_init_root(80,40,"salamandeRL",false);
-  TCOD_console_t descConsole = TCOD_console_new(80, 11);
+  ScrollConsole descConsole = scrollconsole_init(scrollconsole_new(), 80, 11);
 	
   Loader loader = loader_init(loader_new(), "rsrc");
   loader_load_save(loader, "start");
@@ -413,13 +414,13 @@ int main( int argc, char *argv[] ) {
 		  "--------------------------------------------------------------------------------"
 		);
 	  //text display
-    TCOD_console_blit(descConsole, 0, 0, 80, 11, NULL, 0, 29, 255);
+    scrollconsole_blit(descConsole, NULL, 0, 29, 255);
     
     /* update the game screen */
 		TCOD_console_flush();
 
 	} while (!finished && !TCOD_console_is_window_closed());
-  TCOD_console_delete(descConsole);
+  scrollconsole_free(descConsole);
 	return 0;
 }
 
