@@ -24,7 +24,8 @@ tile "floor" { //1
   	fore="#336600"
   	symbol='_'
   }
-	allow_desc="The moss and soil squish beneath your feet."
+//this is a shorthand for action { on_enter message { message="..." }}
+	on_enter_desc="The moss and soil squish beneath your feet."
 }
 
 tile "wall" { //2
@@ -45,7 +46,7 @@ tile "wall" { //2
   	fore="#BBBBBB"
   	symbol='+'
   }
-	deny_desc="The material is clear, but hard.  It stops you."
+	on_bump_desc="The material is clear, but hard.  It stops you."
 }
 
 tile "shallow pool" { //3
@@ -90,7 +91,7 @@ tile "shallow pool" { //3
   	fore="#000033"
   	symbol='.'
   }
-  allow_desc="The water feels pleasant and cool."
+  on_enter_desc="The water feels pleasant and cool."
 }
 
 tile "dry passage" { //4
@@ -128,9 +129,9 @@ tile "dry passage" { //4
   	fore="#909090"
   	symbol='|'
   }
-  deny_desc="There is a hole here.  It's almost big enough to fit through."
-  allow_desc="Lubricated, you slide through unhindered."
-  ontop_desc="You stand across a narrow passageway."
+  on_bump_desc="There is a hole here.  It's almost big enough to fit through."
+  on_enter_desc="Lubricated, you slide through unhindered."
+  on_atop_desc="You stand across a narrow passageway."
 }
 
 tile "rock" { //5
@@ -151,10 +152,10 @@ tile "rock" { //5
   	fore="#909090"
   	symbol='-'
   }
-  deny_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
-  //ontop_desc is used if the player is standing on an empty tile above this tile.
+  on_bump_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
+  //atop_desc is used if the player is standing on an empty tile above this tile.
   //it really only makes sense for things that can block movement.
-  ontop_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
+  on_atop_desc="The view of the cage from the top of your rock is inspiring."
 }
 
 tile "branch" { //6
@@ -175,8 +176,8 @@ tile "branch" { //6
   	fore="#471305"
   	symbol='\''
   }
-  deny_desc="You bump into the edge of a very fun branch.  There's probably a way up somewhere."
-  ontop_desc="The branch is fun.  It's the most fun thing in the cell."
+  on_bump_desc="You bump into the edge of a very fun branch.  There's probably a way up somewhere."
+  on_atop_desc="The branch is fun.  It's the most fun thing in the cell."
 }
 
 tile "stairs" { //7
@@ -206,9 +207,9 @@ tile "stairs" { //7
   }
 //later, consider making stairs {} and pit {} use movement flag sets.
   stairs
-  up_desc="You ascend the stairs."
-  down_desc="You descend the stairs."
-  allow_desc="These stairs are made of painted styrofoam.  Someone thought it might be cute."
+  on_walk_up_desc="You ascend the stairs."
+  on_walk_down_desc="You descend the stairs."
+  on_enter_desc="These stairs are made of painted styrofoam.  Someone thought it might be cute."
 }
 
 tile "weakground" { //8
@@ -234,7 +235,7 @@ tile "weakground" { //8
   	fore="#336600"
   	symbol='-'
   }
-  allow_desc="This spot slumps when you stand on it."
+  on_enter_desc="This spot slumps when you stand on it."
   //need this to start as a floor-door, and open to become empty space when triggered (landed on with weight)
   //this is distinct from wall-doors, which open to become floors when triggered.
   //in general, tiles will change their properties during actions.  probably shouldn't out-and-out swap indices,

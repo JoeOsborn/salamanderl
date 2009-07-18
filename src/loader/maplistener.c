@@ -123,19 +123,23 @@ TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l) {
   TCOD_struct_add_flag(setst, "remove_all_strings");
   TCOD_struct_add_flag(setst, "set_string_list");
   
+  TCOD_parser_struct_t msgst = TCOD_parser_new_struct(p, "message");
+  TCOD_struct_add_property(msgst, "message", TCOD_TYPE_STRING, true);
+  TCOD_struct_add_property(msgst, "target", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(msgst, "sensor", TCOD_TYPE_STRING, false);
 
   TCOD_parser_struct_t actionst = TCOD_parser_new_struct(p, "action");
   TCOD_list_t triggers = flagschema_get_labels(triggerSchema);
   TS_LIST_FOREACH(triggers,
     TCOD_struct_add_flag(actionst, each);
   );
-  TCOD_list_clear_and_delete(triggers);
   //timers not supported yet
   
   TCOD_struct_add_structure(actionst, conditionst);
   TCOD_struct_add_structure(actionst, grantst);  
   TCOD_struct_add_structure(actionst, revokest);  
   TCOD_struct_add_structure(actionst, setst);
+  TCOD_struct_add_structure(actionst, msgst);
 
   TCOD_parser_struct_t movst = TCOD_parser_new_struct(p, "movement");
   TS_LIST_FOREACH(moveFlags,
@@ -160,14 +164,17 @@ TCOD_parser_t maplistener_init_parser(TCOD_parser_t p, Loader l) {
   TCOD_struct_add_property(tst, "uniform_opacity", TCOD_TYPE_CHAR, false); //defaults to 0
 
   //desc
-  TCOD_struct_add_property(tst, "allow_desc", TCOD_TYPE_STRING, false); //defaults to ""
-  TCOD_struct_add_property(tst, "deny_desc", TCOD_TYPE_STRING, false); //defaults to ""
-  TCOD_struct_add_property(tst, "ontop_desc", TCOD_TYPE_STRING, false); //defaults to ""
+  TS_LIST_FOREACH(triggers,
+    char *label=NULL;
+    asprintf(&label, "%s_desc", each);
+    TCOD_struct_add_property(tst, strdup(label), TCOD_TYPE_STRING, false);
+    free(label);
+  );
+  
+  TCOD_list_clear_and_delete(triggers);
 
   //stairs
   TCOD_struct_add_flag(tst, "stairs");
-  TCOD_struct_add_property(tst, "up_desc", TCOD_TYPE_STRING, false); //defaults to ""
-  TCOD_struct_add_property(tst, "down_desc", TCOD_TYPE_STRING, false); //defaults to ""
 
   //movement
   TCOD_struct_add_value_list(tst, "movement_default", movement_defaults, false); //defaults to "allow"

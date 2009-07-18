@@ -16,6 +16,7 @@
 #include "action/comparison.h"
 #include "action/condition.h"
 #include "action/effect_grantrevoke.h"
+#include "action/effect_message.h"
 #include "action/effect_set.h"
 
 Grant grant_init_structrecord(Grant g, StructRecord sr);

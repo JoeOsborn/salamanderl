@@ -6,6 +6,7 @@
 #include "action/condition.h"
 #include "action/bindings.h"
 #include "action/effect_grantrevoke.h"
+#include "action/effect_message.h"
 #include "action/effect_set.h"
 
 #include "status.h"
@@ -23,6 +24,8 @@ struct _action {
   TCOD_list_t revokes;
   
   TCOD_list_t varsets;
+  
+  TCOD_list_t messages;
   //may also need owner data?  or is that only on invocations?
   
   Bindings bindings;
@@ -32,7 +35,7 @@ typedef struct _action *Action;
 
 
 Action action_new();
-Action action_init(Action a, char *label, Flagset triggers, FlagSchema triggerSchema, TCOD_list_t conditions, TCOD_list_t grants, TCOD_list_t revokes, TCOD_list_t varsets);
+Action action_init(Action a, char *label, Flagset triggers, FlagSchema triggerSchema, TCOD_list_t conditions, TCOD_list_t grants, TCOD_list_t revokes, TCOD_list_t varsets, TCOD_list_t messages);
 void action_free(Action a);
 
 void action_bind(Action a, Bindings b);

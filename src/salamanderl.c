@@ -11,6 +11,7 @@
 #include "moveinfo.h"
 #include "tileinfo.h"
 #include "objectinfo.h"
+#include "action/effect_message.h"
 
 void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size, TCOD_color_t sub) {
   int index=0;
@@ -139,10 +140,11 @@ void draw_object(Sensor s, Object o, TCOD_list_t drawnOIs) {
   }
 }
 
-void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem) {
+void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem, TCOD_console_t msgConsole) {
   TCOD_list_t stims = sensor_consume_stimuli(s);
   perception *tiles;
   mapVec pos, size, oldPt, delta;
+  char *msg;
   perception visflags;
   for(int i = 0; i < TCOD_list_size(stims); i++) {
     //this is a very naive approach that completely ignores the possibility of overdraw and 'forgets' object positions
@@ -173,6 +175,11 @@ void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem) {
         draw_object_stimulus(s, st, drawnOIs);
         // TCOD_console_print_left(NULL, 0, 15, "got move");
         break;
+      case SalMessage:
+        msg = stimulus_generic_get_context(st);
+        TCOD_console_print_left(msgConsole, 0, 0, msg);
+        free(msg);
+        break;
       case StimGeneric:
       default:
         // TCOD_console_print_left(NULL, i*9, 16, "generic %d", i);
@@ -183,14 +190,14 @@ void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem) {
   TCOD_list_delete(stims);
 }
 
-void drawmap(Map m, Object o, TCOD_list_t drawnOIs, perception *mem) {
+void drawmap(Map m, Object o, TCOD_list_t drawnOIs, perception *mem, TCOD_console_t msgConsole) {
   TCOD_console_set_background_flag(NULL, TCOD_COLOROP_SET);
   Sensor s;
   //draw tiles from memory
   mem_draw(mem, m, object_sensors(o));
   for(int i = 0; i < object_sensor_count(o); i++) {
     s = object_get_sensor(o, i);
-    drawstimuli(m, s, drawnOIs, mem);
+    drawstimuli(m, s, drawnOIs, mem, msgConsole);
     TCOD_list_t visible = sensor_get_visible_objects(s);
     TS_LIST_FOREACH(visible,
       draw_object(s, each, drawnOIs);
@@ -250,6 +257,10 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
     } else {
       //z=0 -- don't even bother to do anything
       return true; //we're done, we've hit rock bottom
+    }
+    if(!tileinfo_is_pit(belowTi) && !tileinfo_moveinfo_can_enter(belowTi, mi)) {
+      //must be something we've just stepped onto
+      tileinfo_trigger(belowTi, o, "on_atop");
     }
     //if there's only one level of pit or there's a wall below, drop firstTi for the stairs check
     if(tileinfo_is_pit(firstTi) && firstPos.z > 0) {
@@ -388,20 +399,20 @@ int main( int argc, char *argv[] ) {
           finished = 1;
           break;
         //next, handle chomping - decide on toggle vs hold
-        //also, print messages and descriptions - have a procedure that handles scrolling, etc of one or more consoles
-        //explicitly for text output
+        //also, print messages and descriptions - have a procedure that handles scrolling, etc
+        //of one or more consoles explicitly for text output.
+        //start at the bottom and scroll up.
         default:
           break;
   		}
     }
     
 		//map
-    drawmap(map, player, drawnOIs, mem);
+    drawmap(map, player, drawnOIs, mem, descConsole);
 		TCOD_console_print_left(NULL,0,28,
 		  "--------------------------------------------------------------------------------"
 		);
 	  //text display
-    TCOD_console_print_left(descConsole,1,1,"we'll probably put text down here.");
     TCOD_console_blit(descConsole, 0, 0, 80, 11, NULL, 0, 29, 255);
     
     /* update the game screen */

@@ -54,6 +54,8 @@ Loader loader_init(Loader l, char *basePath) {
   flagschema_insert(l->triggerSchema, "on_exit", 1);
   flagschema_insert(l->triggerSchema, "on_bump", 1);
   flagschema_insert(l->triggerSchema, "on_atop", 1);
+  flagschema_insert(l->triggerSchema, "on_walk_up", 1);
+  flagschema_insert(l->triggerSchema, "on_walk_down", 1);
   flagschema_insert(l->triggerSchema, "on_fall_onto", 1);
   flagschema_insert(l->triggerSchema, "on_fall_through", 1);
   flagschema_insert(l->triggerSchema, "on_chomp", 1);

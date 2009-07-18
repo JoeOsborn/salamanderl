@@ -174,12 +174,29 @@ Condition condition_init_structrecord(Condition c, StructRecord sr, char *defaul
   return condition_init(c, mode, negate, checks, subconditions);
 }
 
+EffectMessage effect_message_init_structrecord(EffectMessage msg, StructRecord sr, char *defaultTarget) {
+  char *message = structrecord_get_prop_value(sr, "message").s;
+  char *target = structrecord_has_prop(sr, "target") ? structrecord_get_prop_value(sr, "target").s : defaultTarget;
+  char *sensor = structrecord_has_prop(sr, "sensor") ? structrecord_get_prop_value(sr, "sensor").s : NULL;
+  return effect_message_init(msg, message, target, sensor);
+}
+
 Action action_init_structrecord(Action a, StructRecord sr, FlagSchema trigSchema, char *defaultTarget) {
   TCOD_list_t conditions = TCOD_list_new();
   TCOD_list_t grants = TCOD_list_new();
   TCOD_list_t revokes = TCOD_list_new();
   TCOD_list_t sets = TCOD_list_new();
+  TCOD_list_t msgs = TCOD_list_new();
   Flagset triggers = flagset_init(flagset_new(trigSchema), trigSchema);
+  TCOD_list_t trigLabels = flagschema_get_labels(trigSchema);
+  TS_LIST_FOREACH(trigLabels,
+    if(structrecord_is_flag_set(sr, each)) {
+      flagset_set_index(triggers, trigSchema, __i, 1);
+    } else {
+      flagset_set_index(triggers, trigSchema, __i, 0);
+    }
+  );
+  TCOD_list_clear_and_delete(trigLabels);
   for(int i = 0; i < TCOD_list_size(structrecord_children(sr)); i++) {
     StructRecord kid = TCOD_list_get(structrecord_children(sr), i);
     char *kidType = structrecord_type(kid);
@@ -191,9 +208,11 @@ Action action_init_structrecord(Action a, StructRecord sr, FlagSchema trigSchema
       TCOD_list_push(revokes, effect_grantrevoke_init_structrecord(effect_grantrevoke_new(), kid, defaultTarget));
     } else if(strcmp(kidType, "set") == 0) {
       TCOD_list_push(sets, effect_set_init_structrecord(effect_set_new(), kid, defaultTarget));
+    } else if(STREQ(kidType, "message")) {
+      TCOD_list_push(msgs, effect_message_init_structrecord(effect_message_new(), kid, defaultTarget));
     }
   }
-  return action_init(a, structrecord_name(sr), triggers, trigSchema, conditions, grants, revokes, sets);
+  return action_init(a, structrecord_name(sr), triggers, trigSchema, conditions, grants, revokes, sets, msgs);
 }
 
 DrawInfo drawinfo_init_structrecord(DrawInfo di, StructRecord sr, int index, int *finalZ) {
@@ -280,7 +299,29 @@ Tile tile_init_structrecord(Tile t, Loader l, StructRecord sr, FlagSchema action
   if(structrecord_is_flag_set(sr, "pit")) {
     pit = true;
   }
-  #warning descs are being ignored
+  //on_enter_desc, on_bump_desc, on_walk_up_desc, etc...
+  //{trigger}_desc=X needs to get turned into action "{trigger}_desc" { trigger  messages=[X] } 
+  TCOD_list_t triggers = flagschema_get_labels(actionTriggers);
+  static TCOD_list_t onLabels = NULL;
+  if(!onLabels) { 
+    onLabels = TCOD_list_new();
+    TS_LIST_FOREACH(triggers,
+      char *label=NULL;
+      asprintf(&label, "%s_desc", each);
+      TCOD_list_push(onLabels, strdup(label));
+      free(label);
+    );
+  }
+  TS_LIST_FOREACH(onLabels,
+    if(structrecord_has_prop(sr, each)) {
+      TCOD_list_t msgs = TCOD_list_new();
+      TCOD_list_push(msgs, effect_message_init(effect_message_new(), structrecord_get_prop_value(sr, each).s, "object", NULL));
+      Flagset flags = flagset_init(flagset_new(actionTriggers), actionTriggers);
+      flagset_set_index(flags, actionTriggers, __i, 1);
+      TCOD_list_push(actions, action_init(action_new(), each, flags, actionTriggers, NULL, NULL, NULL, NULL, msgs));
+    }
+  );
+  TCOD_list_clear_and_delete(triggers);
   TileInfo ti = tileinfo_init(tileinfo_new(), l, actions, drawInfos, moveInfos, moveDefaultAllowed, stairs, pit);
   return tile_init(t, wallTransp, floorTransp, ceilTransp, ti);
 }
