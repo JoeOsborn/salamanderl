@@ -215,6 +215,17 @@ void drawmap(Map m, Object o, TCOD_list_t drawnOIs, perception *mem, ScrollConso
   TCOD_console_set_background_color(NULL, (TCOD_color_t){0, 0, 0});
 }
 
+void presence_trigger(Map map, Object o, mapVec position, char *trig) {
+  //trigger on_inside for the player's current tile
+  Tile t = map_tiledef_at_position(map, position);
+  TileInfo ti = tile_context(t);
+  tileinfo_trigger(ti, t, o, trig);
+  //and for any objects in that tile
+  TCOD_list_t objectsAtTile = map_objects_at_position(map, position);
+  if(!objectsAtTile) { return; }
+  TS_LIST_FOREACH(objectsAtTile, if(each != o) { objectinfo_trigger(object_context(each), each, o, trig); } );
+}
+
 bool smap_turn_object(Map map, char *obj, int amt) {
   map_turn_object(map, obj, amt);
   return true;
@@ -240,28 +251,29 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
   //get the object's objectinfo
   Object o = map_get_object_named(map, obj);
   mapVec newPos = mapvec_add(object_position(o), amt);
+  mapVec belowPos=(mapVec){newPos.x, newPos.y, newPos.z-1};
   mapVec firstPos=object_position(o);
-  TileInfo ti = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z));
+  TileInfo ti = tile_context(map_tiledef_at_position(map, newPos));
   TileInfo belowTi=NULL, aboveTi=NULL;
   TileInfo firstTi=NULL;
   ObjectInfo oi = object_context(o);
   //is it a pit? if so, move the player there and down a z level.
   //repeat until a tile is reached.
   MoveInfo mi = objectinfo_moveinfo(oi);
-  firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z));
+  firstTi = tile_context(map_tiledef_at_position(map, firstPos));
   if(tileinfo_is_pit(ti)) {
-    tileinfo_trigger(firstTi, o, "on_exit");
+    presence_trigger(map, o, firstPos, "on_exit");
     map_move_object(map, obj, amt);
-    tileinfo_trigger(ti, o, "on_enter");
+    presence_trigger(map, o, newPos, "on_enter");
     if(newPos.z > 0) {
-      belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
+      belowTi = tile_context(map_tiledef_at_position(map, belowPos));
     } else {
       //z=0 -- don't even bother to do anything
       return true; //we're done, we've hit rock bottom
     }
     if(!tileinfo_is_pit(belowTi) && !tileinfo_moveinfo_can_enter(belowTi, mi)) {
       //must be something we've just stepped onto
-      tileinfo_trigger(belowTi, o, "on_atop");
+      presence_trigger(map, o, belowPos, "on_atop");
     }
     //if there's only one level of pit or there's a wall below, drop firstTi for the stairs check
     if(tileinfo_is_pit(firstTi) && firstPos.z > 0) {
@@ -270,26 +282,30 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
     while(tileinfo_is_pit(belowTi) || tileinfo_moveinfo_can_enter(belowTi, mi)) { 
       //first off, bail if the below is a stairs and the player was on a stairs before (and hasn't already fallen some). no need to go down the stairs in that case.
       if(tileinfo_is_stairs(belowTi) && (firstPos.z == newPos.z) && tileinfo_is_stairs(firstTi)) {
-        tileinfo_trigger(belowTi, o, "on_atop");
+        presence_trigger(map, o, belowPos, "on_atop");
         break;
       }
-      amt = (mapVec){0, 0, -1};
-      newPos.z--;
-      if(!tileinfo_is_stairs(belowTi) && (firstPos.z == (newPos.z+1))) {
-        tileinfo_trigger(ti, o, "on_fall_through");
+
+      presence_trigger(map, o, newPos, "on_inside");
+      if(!tileinfo_is_stairs(belowTi) && (firstPos.z == newPos.z)) {
+        presence_trigger(map, o, newPos, "on_fall_through");
       }
-      tileinfo_trigger(ti, o, "on_exit");
+      presence_trigger(map, o, newPos, "on_exit");
+
+      amt = (mapVec){0, 0, -1};
+      belowPos.z--;
+      newPos.z--;
 
       map_move_object(map, obj, amt);
 
       if(tileinfo_is_stairs(belowTi) && (firstPos.z == (newPos.z+1))) {
         //we must be going down these stairs then
-        tileinfo_trigger(belowTi, o, "on_walk_down");
+        presence_trigger(map, o, newPos, "on_walk_down");
       } else {
         //otherwise we stumbled down
-        tileinfo_trigger(belowTi, o, "on_fall_into");
+        presence_trigger(map, o, newPos, "on_fall_into");
       }
-      tileinfo_trigger(belowTi, o, "on_enter");
+      presence_trigger(map, o, newPos, "on_enter");
       ti = belowTi;
       if(newPos.z > 0) {
         belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
@@ -300,41 +316,43 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
         //must be a wall we're on top of
         if(firstPos.z > (newPos.z+1)) {
           //we fell a long way
-          tileinfo_trigger(belowTi, o, "on_fall_onto");
+          presence_trigger(map, o, belowPos, "on_fall_onto");
         }
-        tileinfo_trigger(belowTi, o, "on_atop");
+        presence_trigger(map, o, belowPos, "on_atop");
       }
     }
     return true;
   } else if(tileinfo_moveinfo_can_enter(ti, mi)) {
     //is it a stairway?
-    tileinfo_trigger(firstTi, o, "on_exit");
+    presence_trigger(map, o, firstPos, "on_exit");
     map_move_object(map, obj, amt);
-    tileinfo_trigger(ti, o, "on_enter");
+    presence_trigger(map, o, newPos, "on_enter");
     //we just entered the tile
     if(tileinfo_is_stairs(ti)) {
     //if the player's z is the same as this tile's z and he's not standing on a stairs and the tile above is enterable, move player z up to z+1. 
     //[no need for the position check since the other case is caught by the pitfall.]
 //      if(objectPosition.z == newPos.z) { //stairs up
         //no need to go up if the old tile is stairs or if the new tile is non-enterable
+      mapVec abovePos = (mapVec){newPos.x, newPos.y, newPos.z+1};
       if(newPos.z < (map_size(map).z-1)) {
-        aboveTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z+1));
+        aboveTi = tile_context(map_tiledef_at_position(map, abovePos));
       } else {
         return true; //we're done, we've hit rock bottom
       }
-        if(!tileinfo_is_stairs(firstTi) && tileinfo_moveinfo_can_enter(aboveTi, mi)) {
-          tileinfo_trigger(ti, o, "on_walk_up");
-          tileinfo_trigger(ti, o, "on_exit");          
-          map_move_object(map, obj, (mapVec){0, 0, 1});
-          tileinfo_trigger(aboveTi, o, "on_enter");
-          newPos.z++;
-        }
+      if(!tileinfo_is_stairs(firstTi) && tileinfo_moveinfo_can_enter(aboveTi, mi)) {
+        presence_trigger(map, o, newPos, "on_inside");
+        presence_trigger(map, o, newPos, "on_walk_up");
+        presence_trigger(map, o, newPos, "on_exit");
+        map_move_object(map, obj, (mapVec){0, 0, 1});
+        presence_trigger(map, o, abovePos, "on_enter");
+        newPos.z++;
+      }
 //      }
     //if the player's z is higher than this tile's z and he's not standing on a stairs, move him down to this z. ((this is already handled by pit-dropping.))
     }
     return true;
   } else {
-    tileinfo_trigger(ti, o, "on_bump");
+    presence_trigger(map, o, newPos, "on_bump");
     return false;
   }
 }
@@ -399,14 +417,20 @@ int main( int argc, char *argv[] ) {
         case 'q':
           finished = 1;
           break;
-        //next, handle chomping - decide on toggle vs hold
-        //also, print messages and descriptions - have a procedure that handles scrolling, etc
-        //of one or more consoles explicitly for text output.
-        //start at the bottom and scroll up.
+        #warning chomping - toggle vs hold
+        //also, weight increase -- and stomach info - should it go in every object?
+        #warning sets and checks - bindings need a 'type' field that can be used to fill in the blanks.
+        //types can be object, tile, action, number, char*, mapVec*, list, stringList
+        //when a binding is requested, its type is also provided -- the requesters certainly know what the type should be.
+        //does an object have a Bindings itself of arbitrary additional properties? should stomach info go here?
+        //should bindings (and flagschema) be reimplemented as a uthash for speed?
+        //we also need pseudovariables like 'object.direction' and 'self.visible' for movement triggers to check
+        #warning doors - objects blocking movement
         default:
           break;
   		}
     }
+    presence_trigger(map, player, object_position(player), "on_inside");    
     
 		//map
     drawmap(map, player, drawnOIs, mem, descConsole);

@@ -5,5 +5,5 @@ object "stone" {
 	}
 	weight=50
 	chomp="carry"
-	description="A small stone lies on the ground. You could probably carry it in your mouth."
+	on_enter_desc="A small stone lies on the ground. You could probably carry it in your mouth."
 }

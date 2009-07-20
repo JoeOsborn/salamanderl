@@ -51,6 +51,8 @@ Loader loader_init(Loader l, char *basePath) {
   //first, install the basic trigger schema. this happens before any config files are loaded.
   l->triggerSchema = flagschema_init(flagschema_new());
   flagschema_insert(l->triggerSchema, "on_enter", 1);
+  //pops every frame that A is inside of B
+  flagschema_insert(l->triggerSchema, "on_inside", 1);
   flagschema_insert(l->triggerSchema, "on_exit", 1);
   flagschema_insert(l->triggerSchema, "on_bump", 1);
   flagschema_insert(l->triggerSchema, "on_atop", 1);

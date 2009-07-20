@@ -3,47 +3,10 @@
 #include <tilesense.h>
 
 #include "loader/model_init_structrecord.h"
+#include "loader/model_init_parser.h"
 
 TCOD_parser_t statuslistener_init_parser(TCOD_parser_t p, Loader l) {
-  TCOD_list_t moveFlags = loader_move_flags(l);
-
-  //factor out these first three somehow
-  
-  TCOD_parser_struct_t grantst = TCOD_parser_new_struct(p, "grant");
-  TCOD_struct_add_property(grantst, "duration", TCOD_TYPE_FLOAT, false); //defaults to infinity
-  TCOD_struct_add_property(grantst, "priority", TCOD_TYPE_INT, false); //defaults to 1
-  TCOD_struct_add_property(grantst, "reason", TCOD_TYPE_STRING, false); //defaults to NULL
-  //this is actually only valid in grants {} on actions
-  TCOD_struct_add_property(grantst, "target", TCOD_TYPE_STRING, false);
-
-  TCOD_parser_struct_t revokest = TCOD_parser_new_struct(p, "revoke");
-  TCOD_struct_add_property(revokest, "priority", TCOD_TYPE_INT, false); //defaults to 1
-  TCOD_struct_add_property(revokest, "reason", TCOD_TYPE_STRING, false); //defaults to NULL
-  //this is actually only valid in revokes {} on actions
-  TCOD_struct_add_property(revokest, "target", TCOD_TYPE_STRING, false);
-  
-  TCOD_parser_struct_t movest = TCOD_parser_new_struct(p, "movement");
-  TS_LIST_FOREACH(moveFlags,
-    TCOD_struct_add_property(movest, each, TCOD_TYPE_BOOL, false);
-  );
-  
-  TCOD_parser_struct_t onst = TCOD_parser_new_struct(p, "on");
-  TCOD_struct_add_structure(onst, grantst);
-  TCOD_struct_add_structure(onst, revokest);
-  TCOD_struct_add_structure(onst, movest);
-  TCOD_struct_add_property(onst, "description", TCOD_TYPE_STRING, false);
-  TCOD_struct_add_property(onst, "message", TCOD_TYPE_STRING, false);
-
-  TCOD_parser_struct_t offst = TCOD_parser_new_struct(p, "off");
-  TCOD_struct_add_structure(offst, grantst);
-  TCOD_struct_add_structure(offst, revokest);
-  TCOD_struct_add_property(offst, "message", TCOD_TYPE_STRING, false);
-  
-  TCOD_parser_struct_t statst = TCOD_parser_new_struct(p, "status");
-
-  TCOD_struct_add_structure(statst, onst);
-  TCOD_struct_add_structure(statst, offst);
-  
+  status_init_parser(p, l);
   return p;
 }
 

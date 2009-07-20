@@ -34,6 +34,6 @@ bool tileinfo_is_pit(TileInfo ti);
 
 bool tileinfo_moveinfo_can_enter(TileInfo ti, MoveInfo mi);
 
-void tileinfo_trigger(TileInfo ti, Object walker, char *trig);
+void tileinfo_trigger(TileInfo ti, Tile self, Object walker, char *trig);
 
 #endif

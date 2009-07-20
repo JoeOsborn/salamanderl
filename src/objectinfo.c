@@ -1,12 +1,15 @@
 #include "objectinfo.h"
 #include "stdlib.h"
+#include "action/action.h"
+#include "action/bindings.h"
 
 ObjectInfo objectinfo_new() {
   return calloc(1, sizeof(struct _object_info));
 }
-ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, ChompReaction reaction, float foodVolume, int digestionDuration, int weight, char *desc) {
+ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, TCOD_list_t actions, ChompReaction reaction, float foodVolume, int digestionDuration, int weight, char *desc) {
   oi->loader = l;
   oi->drawinfos = dis ? dis : TCOD_list_new();
+  oi->actions = actions ? actions : TCOD_list_new();
   oi->grants = TCOD_list_new();
   oi->revokes = TCOD_list_new();
   oi->statuses = TCOD_list_new();
@@ -24,6 +27,7 @@ void objectinfo_free(ObjectInfo oi) {
   if(!oi) { return; }
   TS_LIST_CLEAR_AND_DELETE(oi->statuses, status);
   TS_LIST_CLEAR_AND_DELETE(oi->drawinfos, drawinfo);
+  TS_LIST_CLEAR_AND_DELETE(oi->actions, action);
   moveinfo_free(TCOD_list_get(oi->moveinfos, 0));
   TCOD_list_delete(oi->moveinfos);
   moveinfo_free(oi->netMoveinfo);
@@ -137,5 +141,20 @@ void objectinfo_remake_net_moveinfo(ObjectInfo oi) {
 }
 
 char *objectinfo_description(ObjectInfo oi) {
-  return oi->description;
+  return oi ? oi->description : NULL;
+}
+
+void objectinfo_trigger(ObjectInfo oi, Object self, Object other, char *trig) {
+  if(!oi) { return; }
+  Flagset trigger = loader_make_trigger(oi->loader, trig);
+  Bindings defaultBindings = bindings_init(bindings_new(), NULL, "root", "root", NULL);
+  bindings_insert(defaultBindings, "self", self);
+  bindings_insert(defaultBindings, "other", other);
+  //DUNNO LOL, TRIGGER SOME ACTIONS
+  TS_LIST_FOREACH(oi->actions,
+    action_bind(each, defaultBindings);
+    action_apply(each, trigger);
+  );
+  bindings_free(defaultBindings);
+  flagset_free(trigger);
 }

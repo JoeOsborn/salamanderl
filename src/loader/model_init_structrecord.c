@@ -236,6 +236,31 @@ MoveInfo moveinfo_init_structrecord(MoveInfo mi, StructRecord sr) {
   return moveinfo_init(mi, flags);
 }
 
+TCOD_list_t descactions_init_structrecord(TCOD_list_t actions, StructRecord sr, FlagSchema actionTriggers, char *target) {
+  TCOD_list_t triggers = flagschema_get_labels(actionTriggers);
+  static TCOD_list_t onLabels = NULL;
+  if(!onLabels) { 
+    onLabels = TCOD_list_new();
+    TS_LIST_FOREACH(triggers,
+      char *label=NULL;
+      asprintf(&label, "%s_desc", each);
+      TCOD_list_push(onLabels, strdup(label));
+      free(label);
+    );
+  }
+  TS_LIST_FOREACH(onLabels,
+    if(structrecord_has_prop(sr, each)) {
+      TCOD_list_t msgs = TCOD_list_new();
+      TCOD_list_push(msgs, effect_message_init(effect_message_new(), structrecord_get_prop_value(sr, each).s, target, NULL));
+      Flagset flags = flagset_init(flagset_new(actionTriggers), actionTriggers);
+      flagset_set_index(flags, actionTriggers, __i, 1);
+      TCOD_list_push(actions, action_init(action_new(), each, flags, actionTriggers, NULL, NULL, NULL, NULL, msgs));
+    }
+  );
+  TCOD_list_clear_and_delete(triggers);
+  return actions;
+}
+
 Tile tile_init_structrecord(Tile t, Loader l, StructRecord sr, FlagSchema actionTriggers) {
   TCOD_list_t drawInfos = TCOD_list_new();
   TCOD_list_t moveInfos = TCOD_list_new();
@@ -301,27 +326,8 @@ Tile tile_init_structrecord(Tile t, Loader l, StructRecord sr, FlagSchema action
   }
   //on_enter_desc, on_bump_desc, on_walk_up_desc, etc...
   //{trigger}_desc=X needs to get turned into action "{trigger}_desc" { trigger  messages=[X] } 
-  TCOD_list_t triggers = flagschema_get_labels(actionTriggers);
-  static TCOD_list_t onLabels = NULL;
-  if(!onLabels) { 
-    onLabels = TCOD_list_new();
-    TS_LIST_FOREACH(triggers,
-      char *label=NULL;
-      asprintf(&label, "%s_desc", each);
-      TCOD_list_push(onLabels, strdup(label));
-      free(label);
-    );
-  }
-  TS_LIST_FOREACH(onLabels,
-    if(structrecord_has_prop(sr, each)) {
-      TCOD_list_t msgs = TCOD_list_new();
-      TCOD_list_push(msgs, effect_message_init(effect_message_new(), structrecord_get_prop_value(sr, each).s, "object", NULL));
-      Flagset flags = flagset_init(flagset_new(actionTriggers), actionTriggers);
-      flagset_set_index(flags, actionTriggers, __i, 1);
-      TCOD_list_push(actions, action_init(action_new(), each, flags, actionTriggers, NULL, NULL, NULL, NULL, msgs));
-    }
-  );
-  TCOD_list_clear_and_delete(triggers);
+  descactions_init_structrecord(actions, sr, actionTriggers, "object");
+
   TileInfo ti = tileinfo_init(tileinfo_new(), l, actions, drawInfos, moveInfos, moveDefaultAllowed, stairs, pit);
   return tile_init(t, wallTransp, floorTransp, ceilTransp, ti);
 }
@@ -404,9 +410,10 @@ Object object_init_structrecord_overrides(Object o, Loader l, StructRecord base,
   //and work from there. structrecord_combine shall be recursive and appropriate.
   //also change the code below to refer only to the combined, new sr
   StructRecord sr = base;
-  MoveInfo mi=NULL;
+  MoveInfo mi = NULL;
   TCOD_list_t drawInfos = TCOD_list_new();
   TCOD_list_t sensors = TCOD_list_new();
+  TCOD_list_t actions = TCOD_list_new();
   TCOD_list_t kids = structrecord_children(sr);
   int drawIndex = 0;
   TS_LIST_FOREACH(kids,
@@ -418,6 +425,8 @@ Object object_init_structrecord_overrides(Object o, Loader l, StructRecord base,
       drawIndex++;
     } else if(STREQ(t, "sensor")) {
       TCOD_list_push(sensors, sensor_init_structrecord(sensor_new(), each));
+    } else if(STREQ(t, "action")) {
+      TCOD_list_push(actions, action_init_structrecord(action_new(), each, loader_trigger_schema(l), "self"));
     }
   );
   #warning should carry strength also be a loaded variable?
@@ -448,7 +457,9 @@ Object object_init_structrecord_overrides(Object o, Loader l, StructRecord base,
   
   char *desc = structrecord_has_prop(over, "description") ? structrecord_get_prop_value(over, "description").s : NULL;
   
-  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, drawInfos, mi, ctype, foodVolume, digestionTime, weight, desc);
+  descactions_init_structrecord(actions, sr, loader_trigger_schema(l), "other");
+  
+  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, drawInfos, mi, actions, ctype, foodVolume, digestionTime, weight, desc);
   o = object_init(o, id, position, facing, map, oi);
   TS_LIST_FOREACH(sensors, object_add_sensor(o, each));
   map_add_object(map, o);

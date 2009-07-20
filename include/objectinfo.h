@@ -19,6 +19,7 @@ struct _object_info {
   //ask for statuses.
   Loader loader;
   TCOD_list_t drawinfos;
+  TCOD_list_t actions;
   TCOD_list_t moveinfos;
   MoveInfo netMoveinfo;
   //a history of all grants and revocations of statuses.
@@ -41,7 +42,7 @@ struct _object_info {
 typedef struct _object_info *ObjectInfo;
 
 ObjectInfo objectinfo_new();
-ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, ChompReaction reaction, float foodVolume, int digestionDuration, int weight, char *description);
+ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, TCOD_list_t actions, ChompReaction reaction, float foodVolume, int digestionDuration, int weight, char *description);
 void objectinfo_free(ObjectInfo oi);
 void objectinfo_add_drawinfo(ObjectInfo oi, DrawInfo di);
 TCOD_list_t objectinfo_drawinfos(ObjectInfo oi);
@@ -58,4 +59,6 @@ void objectinfo_revoke_status(ObjectInfo oi, Status s);
 void objectinfo_remake_net_moveinfo(ObjectInfo oi);
 
 char *objectinfo_description(ObjectInfo oi);
+
+void objectinfo_trigger(ObjectInfo oi, Object self, Object other, char *trig);
 #endif

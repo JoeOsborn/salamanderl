@@ -3,83 +3,11 @@
 #include <tilesense.h>
 
 #include "loader/model_init_structrecord.h"
+#include "loader/model_init_parser.h"
 
-TCOD_parser_t objectlistener_init_parser(TCOD_parser_t p, Loader l) {
-  TCOD_list_t moveFlags = loader_move_flags(l);
-
-  //factor out these first two somehow
-  
-  TCOD_parser_struct_t movest = TCOD_parser_new_struct(p, "movement");
-  TS_LIST_FOREACH(moveFlags,
-    TCOD_struct_add_property(movest, each, TCOD_TYPE_BOOL, false);
-  );
-  
-  TCOD_parser_struct_t drawst = TCOD_parser_new_struct(p, "draw");
-  TCOD_struct_add_property(drawst, "z", TCOD_TYPE_INT, false); //defaults to the index of the drawst.
-  TCOD_struct_add_property(drawst, "fore", TCOD_TYPE_COLOR, false);
-  TCOD_struct_add_property(drawst, "back", TCOD_TYPE_COLOR, false);
-  TCOD_struct_add_property(drawst, "symbol", TCOD_TYPE_CHAR, true);  
-  
-  TCOD_parser_struct_t spherest = TCOD_parser_new_struct(p, "sphere");
-  TCOD_struct_add_list_property(spherest, "position", TCOD_TYPE_INT, false); //defaults to [0,0,0]
-  TCOD_struct_add_property(spherest, "radius", TCOD_TYPE_FLOAT, false); //defaults to 5
-  
-  TCOD_parser_struct_t frustumst = TCOD_parser_new_struct(p, "frustum");
-  TCOD_struct_add_list_property(frustumst, "position", TCOD_TYPE_INT, false); //defaults to [0,0,0]
-  TCOD_struct_add_list_property(frustumst, "facing", TCOD_TYPE_FLOAT, false); //defaults to [1,0,0]
-  TCOD_struct_add_property(frustumst, "xfov", TCOD_TYPE_INT, false); //defaults to 2
-  TCOD_struct_add_property(frustumst, "zfov", TCOD_TYPE_INT, false); //defaults to 2
-  TCOD_struct_add_property(frustumst, "near", TCOD_TYPE_INT, false); //defaults to 0
-  TCOD_struct_add_property(frustumst, "far", TCOD_TYPE_INT, false); //defaults to 5
-
-  TCOD_parser_struct_t boxst = TCOD_parser_new_struct(p, "box");
-  TCOD_struct_add_list_property(boxst, "position", TCOD_TYPE_INT, false); //defaults to [0,0,0]
-  TCOD_struct_add_list_property(boxst, "facing", TCOD_TYPE_FLOAT, false); //defaults to [1,0,0]
-  TCOD_struct_add_list_property(boxst, "extent", TCOD_TYPE_FLOAT, false); //defaults to [5,5,5]
-
-  TCOD_parser_struct_t aaboxst = TCOD_parser_new_struct(p, "aabox");
-  TCOD_struct_add_list_property(aaboxst, "position", TCOD_TYPE_INT, false); //defaults to [0,0,0]
-  TCOD_struct_add_list_property(aaboxst, "extent", TCOD_TYPE_FLOAT, false); //defaults to [5,5,5]
-  
-  TCOD_parser_struct_t sensorst = TCOD_parser_new_struct(p, "sensor");
-  TCOD_struct_add_structure(sensorst, spherest);
-  TCOD_struct_add_structure(sensorst, frustumst);
-  TCOD_struct_add_structure(sensorst, boxst);
-  TCOD_struct_add_structure(sensorst, aaboxst);
-  
-  TCOD_parser_struct_t objectst = TCOD_parser_new_struct(p, "object");
-  TCOD_struct_add_structure(objectst, sensorst);
-  TCOD_struct_add_structure(objectst, movest);
-  TCOD_struct_add_structure(objectst, drawst);
-  static const char *chompTypes[] = {"no", "eat", "carry", "latch", NULL};
-  TCOD_struct_add_value_list(objectst, "chomp", chompTypes, false);
-  
-  TCOD_struct_add_property(objectst, "food_volume", TCOD_TYPE_FLOAT, false); //defaults to 0.5
-  TCOD_struct_add_property(objectst, "food_digest_time", TCOD_TYPE_INT, false); //defaults to 60 seconds
-  TCOD_struct_add_property(objectst, "weight", TCOD_TYPE_INT, false); //defaults to 125 grams, apprx the average weight of a salamander
-
-  TCOD_struct_add_property(objectst, "description", TCOD_TYPE_STRING, false); //defaults to "".
+TCOD_parser_t objectlistener_init_parser(TCOD_parser_t p, Loader l) {  
+  object_init_parser(p, l);
   //actions?
-  
-    /*
-    object
-    	movement{}
-    	draw{}
-    	sensor{}
-        ...
-    		profile {} ? //for things like infrared vision, vision through walls, etc
-    	action{} ?
-
-    	chomp="eat"/"carry"/"latch"/"no"
-    	food_volume=0.0-1.0 //fraction of full stomach - checked by check "fullness" {} clauses
-    	food_digest_time=seconds
-    	weight=grams //implies how much one eating or carrying this slows down, and net carry weight can be checked by check "weight" {} clauses.
-//used for both food and carried objects!  can be separately defined as eat_weight and carry_weight?  different buttons for carry and eat??
-
-    	//can objects block movement? if so, they need blocked moveinfos and stuff here
-    	//can objects block light? if so, they need opacity data.
-    */
-  
   return p;
 }
 

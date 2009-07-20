@@ -80,10 +80,11 @@ bool tileinfo_moveinfo_can_enter(TileInfo ti, MoveInfo mi) {
   return (!match != !(ti->moveDefaultAllowed));
 }
 
-void tileinfo_trigger(TileInfo ti, Object walker, char *trig) {
+void tileinfo_trigger(TileInfo ti, Tile self, Object walker, char *trig) {
   if(!ti) { return; }
   Flagset trigger = loader_make_trigger(ti->loader, trig);
-  Bindings defaultBindings = bindings_init(bindings_new(), NULL, "self", ti, NULL);
+  Bindings defaultBindings = bindings_init(bindings_new(), NULL, "root", "root", NULL);
+  bindings_insert(defaultBindings, "tile", self);
   bindings_insert(defaultBindings, "object", walker);
   //DUNNO LOL, TRIGGER SOME ACTIONS
   TS_LIST_FOREACH(ti->actions,

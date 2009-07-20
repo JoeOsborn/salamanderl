@@ -19,6 +19,7 @@ C_OBJS=\
 	$(TMPDIR)/loader/configlistener.o \
 	$(TMPDIR)/loader/maplistener.o \
 	$(TMPDIR)/loader/model_init_structrecord.o \
+	$(TMPDIR)/loader/model_init_parser.o \
 	$(TMPDIR)/loader/objectlistener.o \
 	$(TMPDIR)/loader/prop.o \
 	$(TMPDIR)/loader/savelistener.o \
@@ -45,6 +46,7 @@ HEADERS=\
 	$(INCDIR)/loader/configlistener.h \
 	$(INCDIR)/loader/maplistener.h \
 	$(INCDIR)/loader/model_init_structrecord.h \
+	$(INCDIR)/loader/model_init_parser.h \
 	$(INCDIR)/loader/objectlistener.h \
 	$(INCDIR)/loader/prop.h \
 	$(INCDIR)/loader/savelistener.h \
