@@ -246,7 +246,53 @@ when walking into a wall, only the wall's on_bump is triggered
 this info might be good to have in a diagram
 */
 
-bool smap_move_object(Map map, char *obj, mapVec amt) {
+void smap_fall(Map map, char *obj, bool *falling) {
+  Object o = map_get_object_named(map, obj);
+  mapVec newPos = object_position(o);
+  mapVec belowPos=(mapVec){newPos.x, newPos.y, newPos.z-1};
+  TileInfo ti = tile_context(map_tiledef_at_position(map, newPos));
+  TileInfo belowTi = tile_context(map_tiledef_at_position(map, belowPos));
+  ObjectInfo oi = object_context(o);
+  //is it a pit? if so, move the player there and down a z level.
+  //repeat until a tile is reached.
+  MoveInfo mi = objectinfo_moveinfo(oi);
+  if(tileinfo_is_pit(ti)) {
+    if(tileinfo_is_pit(belowTi) || (tileinfo_moveinfo_can_enter(belowTi, mi) && !(tileinfo_is_stairs(belowTi)))) { 
+      presence_trigger(map, o, newPos, "on_fall_through");
+      presence_trigger(map, o, newPos, "on_exit");
+
+      belowPos.z--;
+      newPos.z--;
+
+      map_move_object(map, obj, (mapVec){0, 0, -1});
+        
+      presence_trigger(map, o, newPos, "on_fall_into");
+      presence_trigger(map, o, newPos, "on_enter");
+      presence_trigger(map, o, newPos, "on_inside");
+      ti = belowTi;
+      if(newPos.z > 0) {
+        belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
+      } else {
+        *falling=false;
+        //we're done, we've hit rock bottom
+      }
+      if(tileinfo_is_pit(ti) && (!tileinfo_moveinfo_can_enter(belowTi, mi) || tileinfo_is_stairs(belowTi))) {
+        //must be a wall we're on top of
+      }
+      if(!tileinfo_is_pit(ti)) {
+        *falling=false;
+      }
+    } else {
+      *falling=false;
+      presence_trigger(map, o, belowPos, "on_fall_onto");
+      presence_trigger(map, o, belowPos, "on_atop");
+    }
+  } else {
+    *falling = false;
+  }
+}
+
+bool smap_move_object(Map map, char *obj, mapVec amt, bool *falling) {
   //get the destination tile's tileinfo
   //get the object's objectinfo
   Object o = map_get_object_named(map, obj);
@@ -261,96 +307,72 @@ bool smap_move_object(Map map, char *obj, mapVec amt) {
   //repeat until a tile is reached.
   MoveInfo mi = objectinfo_moveinfo(oi);
   firstTi = tile_context(map_tiledef_at_position(map, firstPos));
-  if(tileinfo_is_pit(ti)) {
+  if(tileinfo_moveinfo_can_enter(ti, mi)) {
     presence_trigger(map, o, firstPos, "on_exit");
     map_move_object(map, obj, amt);
     presence_trigger(map, o, newPos, "on_enter");
-    if(newPos.z > 0) {
+    if(tileinfo_is_pit(ti)) {
+      if(newPos.z <= 0) {
+        //bottom of the map, just bail out
+        *falling=false;
+        return true;
+      }
       belowTi = tile_context(map_tiledef_at_position(map, belowPos));
-    } else {
-      //z=0 -- don't even bother to do anything
-      return true; //we're done, we've hit rock bottom
-    }
-    if(!tileinfo_is_pit(belowTi) && !tileinfo_moveinfo_can_enter(belowTi, mi)) {
-      //must be something we've just stepped onto
-      presence_trigger(map, o, belowPos, "on_atop");
-    }
-    //if there's only one level of pit or there's a wall below, drop firstTi for the stairs check
-    if(tileinfo_is_pit(firstTi) && firstPos.z > 0) {
-      firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z-1));
-    }
-    while(tileinfo_is_pit(belowTi) || tileinfo_moveinfo_can_enter(belowTi, mi)) { 
-      //first off, bail if the below is a stairs and the player was on a stairs before (and hasn't already fallen some). no need to go down the stairs in that case.
-      if(tileinfo_is_stairs(belowTi) && (firstPos.z == newPos.z) && tileinfo_is_stairs(firstTi)) {
+      if(!tileinfo_is_pit(belowTi) && !tileinfo_moveinfo_can_enter(belowTi, mi)) {
+        //must be something we've just stepped onto
+        *falling=false;
         presence_trigger(map, o, belowPos, "on_atop");
-        break;
+        return true;
       }
-
-      presence_trigger(map, o, newPos, "on_inside");
-      if(!tileinfo_is_stairs(belowTi) && (firstPos.z == newPos.z)) {
-        presence_trigger(map, o, newPos, "on_fall_through");
+      //if there's only one level of pit or there's a wall below, drop firstTi for the stairs check
+      if(tileinfo_is_pit(firstTi) && firstPos.z > 0) {
+        firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z-1));
       }
-      presence_trigger(map, o, newPos, "on_exit");
-
-      amt = (mapVec){0, 0, -1};
-      belowPos.z--;
-      newPos.z--;
-
-      map_move_object(map, obj, amt);
-
-      if(tileinfo_is_stairs(belowTi) && (firstPos.z == (newPos.z+1))) {
-        //we must be going down these stairs then
-        presence_trigger(map, o, newPos, "on_walk_down");
-      } else {
-        //otherwise we stumbled down
-        presence_trigger(map, o, newPos, "on_fall_into");
-      }
-      presence_trigger(map, o, newPos, "on_enter");
-      ti = belowTi;
-      if(newPos.z > 0) {
-        belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
-      } else {
-        break; //we're done, we've hit rock bottom
-      }
-      if(tileinfo_is_pit(ti) && !tileinfo_moveinfo_can_enter(belowTi, mi)) {
-        //must be a wall we're on top of
-        if(firstPos.z > (newPos.z+1)) {
-          //we fell a long way
-          presence_trigger(map, o, belowPos, "on_fall_onto");
+      //bail if the below is a stairs and the player was on a stairs before (and hasn't already fallen some). no need to go down the stairs in that case.
+      if(tileinfo_is_stairs(belowTi) && (firstPos.z == newPos.z) && (newPos.z > 0)) {
+        if(tileinfo_is_stairs(firstTi)) {
+          *falling=false;
+          presence_trigger(map, o, belowPos, "on_atop");
+        } else {
+          //go down the stairs
+          *falling=false;
+          presence_trigger(map, o, newPos, "on_inside");
+          presence_trigger(map, o, newPos, "on_exit");
+          map_move_object(map, obj, (mapVec){0, 0, -1});
+          presence_trigger(map, o, belowPos, "on_enter");
+          presence_trigger(map, o, belowPos, "on_walk_down");
         }
-        presence_trigger(map, o, belowPos, "on_atop");
+        return true;
       }
-    }
-    return true;
-  } else if(tileinfo_moveinfo_can_enter(ti, mi)) {
-    //is it a stairway?
-    presence_trigger(map, o, firstPos, "on_exit");
-    map_move_object(map, obj, amt);
-    presence_trigger(map, o, newPos, "on_enter");
-    //we just entered the tile
-    if(tileinfo_is_stairs(ti)) {
-    //if the player's z is the same as this tile's z and he's not standing on a stairs and the tile above is enterable, move player z up to z+1. 
-    //[no need for the position check since the other case is caught by the pitfall.]
-//      if(objectPosition.z == newPos.z) { //stairs up
+      *falling=true;
+      return true;
+    } else {
+      *falling=false;
+      //we just entered the tile
+      if(tileinfo_is_stairs(ti)) {
+      //if the player's z is the same as this tile's z and he's not standing on a stairs and the tile above is enterable, move player z up to z+1. 
+      //[no need for the position check since the other case is caught by the pitfall.]
+        if(firstPos.z == newPos.z) { //stairs up
         //no need to go up if the old tile is stairs or if the new tile is non-enterable
-      mapVec abovePos = (mapVec){newPos.x, newPos.y, newPos.z+1};
-      if(newPos.z < (map_size(map).z-1)) {
-        aboveTi = tile_context(map_tiledef_at_position(map, abovePos));
-      } else {
-        return true; //we're done, we've hit rock bottom
+          mapVec abovePos = (mapVec){newPos.x, newPos.y, newPos.z+1};
+          if(newPos.z < (map_size(map).z-1)) {
+            aboveTi = tile_context(map_tiledef_at_position(map, abovePos));
+          } else {
+            return true; //we're done, we've hit rock bottom
+          }
+          if(!tileinfo_is_stairs(firstTi) && tileinfo_moveinfo_can_enter(aboveTi, mi)) {
+            presence_trigger(map, o, newPos, "on_inside");
+            presence_trigger(map, o, newPos, "on_walk_up");
+            presence_trigger(map, o, newPos, "on_exit");
+            map_move_object(map, obj, (mapVec){0, 0, 1});
+            presence_trigger(map, o, abovePos, "on_enter");
+            newPos.z++;
+          }
+        }
+      //if the player's z is higher than this tile's z and he's not standing on a stairs, move him down to this z. ((this is already handled by pit-dropping.))
       }
-      if(!tileinfo_is_stairs(firstTi) && tileinfo_moveinfo_can_enter(aboveTi, mi)) {
-        presence_trigger(map, o, newPos, "on_inside");
-        presence_trigger(map, o, newPos, "on_walk_up");
-        presence_trigger(map, o, newPos, "on_exit");
-        map_move_object(map, obj, (mapVec){0, 0, 1});
-        presence_trigger(map, o, abovePos, "on_enter");
-        newPos.z++;
-      }
-//      }
-    //if the player's z is higher than this tile's z and he's not standing on a stairs, move him down to this z. ((this is already handled by pit-dropping.))
+      return true;
     }
-    return true;
   } else {
     presence_trigger(map, o, newPos, "on_bump");
     return false;
@@ -375,8 +397,11 @@ int main( int argc, char *argv[] ) {
 
   object_sense(player);
   
-  TCOD_sys_set_fps(30);
+  TCOD_sys_set_fps(10);
   TCOD_list_t drawnOIs = TCOD_list_new();
+  
+  bool underwater = false;
+  bool falling = false;
 
   char finished = 0;
 	TCOD_key_t key = {TCODK_NONE,0};
@@ -384,41 +409,38 @@ int main( int argc, char *argv[] ) {
 	do {
 	  key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED);
 
-    if(key.vk != TCODK_NONE) {
-      TCOD_console_clear(NULL);
-    }
+    TCOD_console_clear(NULL);
 		
 		TCOD_console_print_right(NULL,79,26,"last frame : %3d ms (%3d fps)", (int)(TCOD_sys_get_last_frame_length()*1000), TCOD_sys_get_fps());
 		TCOD_console_print_right(NULL,79,27,"elapsed : %8dms %4.2fs", TCOD_sys_elapsed_milli(),TCOD_sys_elapsed_seconds());
 		TCOD_console_print_left(NULL,0,27,"other stat stuff can go here");
     
-    if(key.vk == TCODK_RIGHT) {
-      smap_turn_object(map, "player", 1);
-    } else if(key.vk == TCODK_LEFT) {
-      smap_turn_object(map, "player", -1);
-    } else if(key.vk == TCODK_UP) {
-      // smap_move_object(map, "player", (mapVec){0, 0,  1});
-    } else if(key.vk == TCODK_DOWN) {
-      // smap_move_object(map, "player", (mapVec){0, 0, -1});
-    } else if(key.vk == TCODK_CHAR) {
+    if(falling) {
+      smap_fall(map, "player", &falling);
+    }
+    if(key.vk == TCODK_CHAR) {
       switch(key.c) {
         case 'w':
-          smap_move_object(map, "player", (mapVec){0, -1, 0});
+          smap_move_object(map, "player", (mapVec){0, -1, 0}, &falling);
           break;
         case 'a':
-          smap_move_object(map, "player", (mapVec){-1, 0, 0});
+          smap_move_object(map, "player", (mapVec){-1, 0, 0}, &falling);
           break;
         case 's':
-          smap_move_object(map, "player", (mapVec){0, 1, 0});
+          smap_move_object(map, "player", (mapVec){0, 1, 0}, &falling);
           break;
         case 'd':
-          smap_move_object(map, "player", (mapVec){1, 0, 0});
+          smap_move_object(map, "player", (mapVec){1, 0, 0}, &falling);
           break;
         case 'q':
           finished = 1;
           break;
         #warning chomping - toggle vs hold
         //also, weight increase -- and stomach info - should it go in every object?
+        //carrying also needs to be implemented -- a carriedObject flag in objectinfo?  
+        //special cases to avoid sending on_inside, etc to the carried object?
+        //on_pick_up, on_carry, on_release?
+        //implementation-wise -- move them simultaneously in smap_move_object
         #warning sets and checks - bindings need a 'type' field that can be used to fill in the blanks.
         //types can be object, tile, action, number, char*, mapVec*, list, stringList
         //when a binding is requested, its type is also provided -- the requesters certainly know what the type should be.
@@ -429,6 +451,16 @@ int main( int argc, char *argv[] ) {
         default:
           break;
   		}
+    }
+    
+    if(key.vk == TCODK_RIGHT) {
+      smap_turn_object(map, "player", 1);
+    } else if(key.vk == TCODK_LEFT) {
+      smap_turn_object(map, "player", -1);
+    } else if(key.vk == TCODK_UP && underwater) {
+      smap_move_object(map, "player", (mapVec){0, 0,  1}, &falling);
+    } else if(key.vk == TCODK_DOWN && underwater) {
+      smap_move_object(map, "player", (mapVec){0, 0, -1}, &falling);
     }
     presence_trigger(map, player, object_position(player), "on_inside");    
     
