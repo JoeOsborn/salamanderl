@@ -33,12 +33,23 @@ object "stone" {
 			*/
 			
 		}
+		/*
+		release { //implicitly defined like so
+			put_down "self" { carrier="other" }
+			/*
+			action "carry_release" {
+				on_unchomp
+				put_down "self" { carrier="other" }
+			}
+			*/
+		}
+		*/
 		end {
 			message {
 				message="You pick up the stone.  It's heavier than it appears!" //could also be on_chomp_desc
 			}
 			/*
-			action "release" {
+			action "carry_finished" {
 			  on_release
 			  ...
 				message {
