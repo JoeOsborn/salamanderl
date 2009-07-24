@@ -403,6 +403,112 @@ Sensor sensor_init_structrecord(Sensor s, StructRecord sr) {
   return sensor_init(s, id, v, NULL);
 }
 
+TCOD_list_t chomp_init_structrecord(TCOD_list_t actions, StructRecord sr, Loader l) {
+  char *n = structrecord_name(sr);
+  StructRecord kid = NULL;
+  if(STREQ(n, "eat")) {
+    float foodVolume = structrecord_has_prop(sr, "volume") ? structrecord_get_prop_value(sr, "food_volume").f : 0.5;
+    int digestionTime = structrecord_has_prop(sr, "digest_time") ? structrecord_get_prop_value(sr, "food_digest_time").f : 60;
+    kid = structrecord_first_child_of_type(sr, "start");
+    Action action = NULL;
+    if(!kid) {
+      //create action on on_chomp
+      action = action_init(action_new(), "eat_start", loader_make_trigger(l, "on_chomp"), loader_trigger_schema(l), NULL, NULL, NULL, NULL, NULL);
+    } else {
+      action = sugaraction_init_structrecord(action_new(), "on_chomp", kid, loader_trigger_schema(l), "self");
+    }
+    //does kid itself have a "feed" effect?  If so, use it; otherwise, add a feed effect to the action.
+    if(action_effect_feed(action) == NULL) {
+      //add feed effect with the given foodVolume, digestionTime
+      action_set_effect_feed(action, effect_feed_init(effect_feed_new(), foodVolume, digestionTime, "other", "self"));
+    }
+    TCOD_list_push(actions, action);
+    //add step and end actions, if present
+    if(kid = structrecord_first_child_of_type(sr, "step")) {
+      //add action on_digest
+      action = action_init_structrecord(action_new(), "on_digest", kid, loader_trigger_schema(l), "self");
+    }
+    if(kid = structrecord_first_child_of_type(sr, "end")) {
+      //add action on_digested
+    }
+    
+  } else if(STREQ(n, "carry")) {
+    kid = structrecord_first_child_of_type(sr, "start");
+    if(!kid) {
+      //create a start action on_chomp
+    }
+    //does kid itself have a "pick_up" structrecord?  If so, use it; otherwise, add a pick_up structrecord before initializing the action.
+    if(structrecord_first_child_of_type(kid, "pick_up") == NULL) {
+      //add pick_up effect with any given parameters, or something
+    }
+    kid = structrecord_first_child_of_type(sr, "end")
+    if(!kid) {
+      //add action on_unchomp?
+    }
+    if(structrecord_first_child_of_type(kid, "put_down") == NULL) {
+      //add put_down effect if necessary
+    }
+    
+    
+    if(kid = structrecord_first_child_of_type(sr, "step")) {
+      //add action on_carry
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "left")) {
+      //add action on_carry_left
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "right")) {
+      //add action on_carry_right
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "forward")) {
+      //add action on_carry_forward
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "back")) {
+      //add action on_carry_back
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "up")) {
+      //add action on_carry_up
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "down")) {
+      //add action on_carry_down
+    }    
+    
+  } else if(STREQ(n, "latch")) {
+    //look for start, step, end
+    kid = structrecord_first_child_of_type(sr, "start");
+    if(!kid) {
+      //create a start action on_chomp
+    }
+    //does kid itself have a "grab" structrecord?  If so, use it; otherwise, add a pick_up structrecord before initializing the action.
+    if(structrecord_first_child_of_type(kid, "grab") == NULL) {
+      //add grab effect with any given parameters, or something
+    }
+    kid = structrecord_first_child_of_type(sr, "end")
+    if(!kid) {
+      //add action on_unchomp?
+    }
+    if(structrecord_first_child_of_type(kid, "let_go") == NULL) {
+      //add let_go effect if necessary
+    }
+    
+    if(kid = structrecord_first_child_of_type(sr, "step")) {
+      //add action on_latch
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "left")) {
+      //add action on_tug_left
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "right")) {
+      //add action on_tug_right
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "forward")) {
+      //add action on_tug_forward
+    }    
+    if(kid = structrecord_first_child_of_type(sr, "back")) {
+      //add action on_tug_back
+    }
+  }
+  return actions;
+}
+
 Object object_init_structrecord_overrides(Object o, Loader l, StructRecord base, StructRecord over) {
   #warning unsafe assumption that override will only add and not change data
   //to solve later, implement structrecord_combine() and do: 
@@ -427,24 +533,12 @@ Object object_init_structrecord_overrides(Object o, Loader l, StructRecord base,
       TCOD_list_push(sensors, sensor_init_structrecord(sensor_new(), each));
     } else if(STREQ(t, "action")) {
       TCOD_list_push(actions, action_init_structrecord(action_new(), each, loader_trigger_schema(l), "self"));
+    } else if(STREQ(t, "chomp")) {
+      chomp_init_structrecord(actions, each, l);
     }
   );
   #warning should carry strength also be a loaded variable?
-  ChompReaction ctype = ChompNone;
-  if(structrecord_has_prop(sr, "chomp")) {
-    char *type = structrecord_get_prop_value(sr, "chomp").s;
-    if(STREQ(type, "no")) {
-      ctype = ChompNone;
-    } else if(STREQ(type, "eat")) {
-      ctype = ChompEat;
-    } else if(STREQ(type, "carry")) {
-      ctype = ChompCarry;
-    } else if(STREQ(type, "latch")) {
-      ctype = ChompLatch;
-    }
-  }
-  float foodVolume = structrecord_has_prop(sr, "food_volume") ? structrecord_get_prop_value(sr, "food_volume").f : 0.5;
-  int digestionTime = structrecord_has_prop(sr, "food_digest_time") ? structrecord_get_prop_value(sr, "food_digest_time").i : 60;
+
   int weight = structrecord_has_prop(sr, "weight") ? structrecord_get_prop_value(sr, "weight").i : 125;
   
   TCOD_list_t pos = structrecord_has_prop(over, "position") ? structrecord_get_prop_value(over, "position").list : NULL;

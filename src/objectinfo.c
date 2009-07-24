@@ -120,7 +120,6 @@ void objectinfo_revoke_status(ObjectInfo oi, Status s) {
 
   TCOD_list_remove(oi->statuses, s);
   TCOD_list_remove_all(oi->moveinfos, status_onmoveinfos(s));
-#warning persistent effects
   //what about persistent effects?  Just leave them dangling?
   //or should there be a separate, objectinfo-owned area for them?
   objectinfo_remake_net_moveinfo(oi);

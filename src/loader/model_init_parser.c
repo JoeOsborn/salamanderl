@@ -219,7 +219,7 @@ TCOD_parser_struct_t effect_message_init_parser(TCOD_parser_t p, Loader l) {
   return msgst;
 }
 
-TCOD_parser_struct_t action_init_parser(TCOD_parser_t p, Loader l) {
+TCOD_parser_struct_t sugaraction_init_parser(TCOD_parser_t p, Loader l, char *label) {
   TCOD_parser_struct_t grantst = grant_init_parser(p, l);
   TCOD_parser_struct_t revokest = revoke_init_parser(p, l);
   TCOD_parser_struct_t conditionst = condition_init_parser(p, l);
@@ -228,7 +228,7 @@ TCOD_parser_struct_t action_init_parser(TCOD_parser_t p, Loader l) {
   
   FlagSchema triggerSchema = loader_trigger_schema(l);
   TCOD_list_t triggers = flagschema_get_labels(triggerSchema);
-  TCOD_parser_struct_t actionst = TCOD_parser_new_struct(p, "action");
+  TCOD_parser_struct_t actionst = TCOD_parser_new_struct(p, label);
   TS_LIST_FOREACH(triggers,
     TCOD_struct_add_flag(actionst, each);
   );
@@ -243,28 +243,110 @@ TCOD_parser_struct_t action_init_parser(TCOD_parser_t p, Loader l) {
   return actionst;
 }
 
+TCOD_parser_struct_t action_init_parser(TCOD_parser_t p, Loader l) {
+  return sugaraction_init_parser(p, l, "action");
+}
+
+TCOD_parser_struct_t chomp_init_parser(TCOD_parser_t p, Loader l) {
+  TCOD_parser_struct_t startst = sugaraction_init_parser(p, l, "start");
+  TCOD_parser_struct_t stepst = sugaraction_init_parser(p, l, "step");
+  TCOD_parser_struct_t endst = sugaraction_init_parser(p, l, "end");
+  TCOD_parser_struct_t leftst = sugaraction_init_parser(p, l, "left");
+  TCOD_parser_struct_t rightst = sugaraction_init_parser(p, l, "right");
+  TCOD_parser_struct_t backst = sugaraction_init_parser(p, l, "back");
+  TCOD_parser_struct_t forwardst = sugaraction_init_parser(p, l, "forward");
+  TCOD_parser_struct_t upst = sugaraction_init_parser(p, l, "up");
+  TCOD_parser_struct_t downst = sugaraction_init_parser(p, l, "down");
+  
+  TCOD_parser_struct_t chompst = TCOD_parser_new_struct(p, "chomp");
+  TCOD_struct_add_property(chompst, "volume", TCOD_TYPE_FLOAT, false);
+  TCOD_struct_add_property(chompst, "digest_time", TCOD_TYPE_FLOAT, false);
+
+  TCOD_struct_add_structure(chompst, startst);
+  TCOD_struct_add_structure(chompst, stepst);
+  TCOD_struct_add_structure(chompst, endst);
+  TCOD_struct_add_structure(chompst, leftst);
+  TCOD_struct_add_structure(chompst, rightst);
+  TCOD_struct_add_structure(chompst, backst);
+  TCOD_struct_add_structure(chompst, forwardst);
+  TCOD_struct_add_structure(chompst, upst);
+  TCOD_struct_add_structure(chompst, downst);
+  
+  return chompst;
+  //maybe a sugaraction_init_parser() of some sort; on sugaraction_init_structrecord, take an implicit triggerset & effect list?
+  /*
+  the necessary sugar actions are:
+  
+  start
+  step
+  end
+  
+  left
+  right
+  back
+  forward
+  up
+  down
+
+  and their interpretation will be a matter for object_init_structrecord to handle based on the name of the chomp struct.
+  
+  the chomp struct defines these sugaractions along with volume= and digest_time= for food.
+
+  chomp "eat" { 
+    //implicitly on_chomp, on_digest, on_digested
+    volume=0.5 //portion of full stomach
+    digest_time=30 //seconds
+  	start { ... } //implicit 'feed { food="self" eater="other" volume=... digest_time=..}' effect based on volume and digest_time above
+  	step { ... }
+  	end { ... }
+  }
+  chomp "carry" { 
+    //implicitly on_chomp, on_carry, on_move_*, on_release
+    start { ... } //implicit 'pick_up' effect
+    step { ... }
+  	left { ... }
+  	right { ... } 
+  	back { ... } 
+  	forward { ... }
+  	up { ... } 
+  	down { ... }
+    end { ... }
+  }
+  chomp "latch" { 
+    //implicitly on_chomp, on_latch, on_tug_*, on_release
+  	start { ... } //implicit 'latch' effect
+  	step { ... } 
+  	left { ... }
+  	right { ... } 
+  	back { ... } 
+  	forward { ... }
+  	//tugging up and tugging down are impossible
+  	end { ... }
+  }
+  */
+}
+
 TCOD_parser_struct_t object_init_parser(TCOD_parser_t p, Loader l) {
   TCOD_parser_struct_t movest = moveinfo_init_parser(p, l);
   TCOD_parser_struct_t drawst = drawinfo_init_parser(p, l);
   TCOD_parser_struct_t sensorst = sensor_init_parser(p, l);
   
   TCOD_parser_struct_t actionst = action_init_parser(p, l);
+
+  TCOD_parser_struct_t chompst = chomp_init_parser(p, l);
   
   TCOD_parser_struct_t objectst = TCOD_parser_new_struct(p, "object");
   TCOD_struct_add_structure(objectst, sensorst);
   TCOD_struct_add_structure(objectst, movest);
   TCOD_struct_add_structure(objectst, drawst);
   TCOD_struct_add_structure(objectst, actionst);
-  static const char *chompTypes[] = {"no", "eat", "carry", "latch", NULL};
-  TCOD_struct_add_value_list(objectst, "chomp", chompTypes, false);
+  TCOD_struct_add_structure(objectst, chompst);
   
+  TCOD_struct_add_property(objectst, "weight", TCOD_TYPE_INT, false); //defaults to 125 grams, apprx the average weight of a salamander
+
   //desc
   triggerdesc_init_parser(p, objectst, l);
   
-  TCOD_struct_add_property(objectst, "food_volume", TCOD_TYPE_FLOAT, false); //defaults to 0.5
-  TCOD_struct_add_property(objectst, "food_digest_time", TCOD_TYPE_INT, false); //defaults to 60 seconds
-  TCOD_struct_add_property(objectst, "weight", TCOD_TYPE_INT, false); //defaults to 125 grams, apprx the average weight of a salamander
-
   TCOD_struct_add_property(objectst, "description", TCOD_TYPE_STRING, false); //defaults to "".
   return objectst;
 }

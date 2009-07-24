@@ -379,6 +379,16 @@ bool smap_move_object(Map map, char *obj, mapVec amt, bool *falling) {
   }
 }
 
+void chomp_begin(Map m, Object p, bool *chomping) {
+  *chomping = true;
+  printf("CHOMP_START\n");
+}
+
+void chomp_end(Map m, Object p, bool *chomping) {
+  *chomping = false;
+  printf("CHOMP_END\n");
+}
+
 int main( int argc, char *argv[] ) {
   char *font="tilesense/libtcod/fonts/courier12x12_aa_tc.png";
   int nb_char_horiz=0,nb_char_vertic=0;
@@ -400,14 +410,16 @@ int main( int argc, char *argv[] ) {
   TCOD_sys_set_fps(10);
   TCOD_list_t drawnOIs = TCOD_list_new();
   
+  //these and memory should really be per-objectinfo
   bool underwater = false;
   bool falling = false;
+  bool chomping = false;
 
   char finished = 0;
 	TCOD_key_t key = {TCODK_NONE,0};
 	TCOD_console_set_foreground_color(NULL,TCOD_white);
 	do {
-	  key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED);
+	  key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED | TCOD_KEY_RELEASED);
 
     TCOD_console_clear(NULL);
 		
@@ -415,54 +427,56 @@ int main( int argc, char *argv[] ) {
 		TCOD_console_print_right(NULL,79,27,"elapsed : %8dms %4.2fs", TCOD_sys_elapsed_milli(),TCOD_sys_elapsed_seconds());
 		TCOD_console_print_left(NULL,0,27,"other stat stuff can go here");
     
+    if(key.pressed) {
+      if(key.vk == TCODK_SPACE) {
+        if(!chomping) {
+          chomp_begin(map, player, &chomping);
+        }
+      }
+      if(key.vk == TCODK_CHAR) {
+        switch(key.c) {
+          case 'w':
+            smap_move_object(map, "player", (mapVec){0, -1, 0}, &falling);
+            break;
+          case 'a':
+            smap_move_object(map, "player", (mapVec){-1, 0, 0}, &falling);
+            break;
+          case 's':
+            smap_move_object(map, "player", (mapVec){0, 1, 0}, &falling);
+            break;
+          case 'd':
+            smap_move_object(map, "player", (mapVec){1, 0, 0}, &falling);
+            break;
+          case 'q':
+            finished = 1;
+            break;
+          default:
+            break;
+    		}
+      }
+
+      if(key.vk == TCODK_RIGHT) {
+        smap_turn_object(map, "player", 1);
+      } else if(key.vk == TCODK_LEFT) {
+        smap_turn_object(map, "player", -1);
+      } else if(key.vk == TCODK_UP && underwater) {
+        smap_move_object(map, "player", (mapVec){0, 0,  1}, &falling);
+      } else if(key.vk == TCODK_DOWN && underwater) {
+        smap_move_object(map, "player", (mapVec){0, 0, -1}, &falling);
+      }
+      
+    } else {
+      if(key.vk == TCODK_SPACE) {
+        if(chomping) {
+          chomp_end(map, player, &chomping);
+        }
+      }
+    }
+    presence_trigger(map, player, object_position(player), "on_inside");    
+    
     if(falling) {
       smap_fall(map, "player", &falling);
     }
-    if(key.vk == TCODK_CHAR) {
-      switch(key.c) {
-        case 'w':
-          smap_move_object(map, "player", (mapVec){0, -1, 0}, &falling);
-          break;
-        case 'a':
-          smap_move_object(map, "player", (mapVec){-1, 0, 0}, &falling);
-          break;
-        case 's':
-          smap_move_object(map, "player", (mapVec){0, 1, 0}, &falling);
-          break;
-        case 'd':
-          smap_move_object(map, "player", (mapVec){1, 0, 0}, &falling);
-          break;
-        case 'q':
-          finished = 1;
-          break;
-        #warning chomping - toggle vs hold
-        //also, weight increase -- and stomach info - should it go in every object?
-        //carrying also needs to be implemented -- a carriedObject flag in objectinfo?  
-        //special cases to avoid sending on_inside, etc to the carried object?
-        //on_pick_up, on_carry, on_release?
-        //implementation-wise -- move them simultaneously in smap_move_object
-        #warning sets and checks - bindings need a 'type' field that can be used to fill in the blanks.
-        //types can be object, tile, action, number, char*, mapVec*, list, stringList
-        //when a binding is requested, its type is also provided -- the requesters certainly know what the type should be.
-        //does an object have a Bindings itself of arbitrary additional properties? should stomach info go here?
-        //should bindings (and flagschema) be reimplemented as a uthash for speed?
-        //we also need pseudovariables like 'object.direction' and 'self.visible' for movement triggers to check
-        #warning doors - objects blocking movement
-        default:
-          break;
-  		}
-    }
-    
-    if(key.vk == TCODK_RIGHT) {
-      smap_turn_object(map, "player", 1);
-    } else if(key.vk == TCODK_LEFT) {
-      smap_turn_object(map, "player", -1);
-    } else if(key.vk == TCODK_UP && underwater) {
-      smap_move_object(map, "player", (mapVec){0, 0,  1}, &falling);
-    } else if(key.vk == TCODK_DOWN && underwater) {
-      smap_move_object(map, "player", (mapVec){0, 0, -1}, &falling);
-    }
-    presence_trigger(map, player, object_position(player), "on_inside");    
     
 		//map
     drawmap(map, player, drawnOIs, mem, descConsole);

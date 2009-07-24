@@ -3,7 +3,89 @@ object "stone" {
   	fore="#FFFFFF"
   	symbol=','
 	}
-	weight=50
-	chomp="carry"
-	on_enter_desc="A small stone lies on the ground. You could probably carry it in your mouth."
+  weight=50
+	chomp { 
+	  start {
+			message {
+				message = "You pick up the stone.  It's heavier than it appears!" //could also be on_chomp_desc
+			}
+			//any kinds of effects can go in here, this is equivalent to:
+			/*
+			action "pick_up" {
+				on_chomp
+				...
+				message {
+					message="You pick up the stone.  It's heavier than it appears!" //could also be on_chomp_desc
+				}
+				pick_up {
+				  carrier="other"
+				  carried="self"
+				}
+			}
+			*/
+		}
+		step {
+			/*
+			action "carry_step" {
+		  	on_carry
+		  	...
+			}
+			*/
+			
+		}
+		end {
+			message {
+				message="You pick up the stone.  It's heavier than it appears!" //could also be on_chomp_desc
+			}
+			/*
+			action "release" {
+			  on_release
+			  ...
+				message {
+					message="You open your mouth, dropping the stone." //could also be on_unchomp_desc
+				}
+				//not sure if this will actually be necessary
+				put_down {
+				  carrier="other"
+				  carried="self"
+				}
+			}
+			*/
+		}
+	}
+	on_enter_desc="A small stone lies on the ground. You could probably carry it in your mouth [SPACE BAR]."
 }
+
+/*
+chomp "eat" { 
+  //implicitly on_chomp, on_digest, on_digested
+  volume=0.5 //portion of full stomach
+  digest_time=30 //seconds
+	start { ... } //implicit 'feed { food="self" eater="other" volume=... digest_time=..}' effect based on volume and digest_time above
+	step { ... }
+	end { ... }
+}
+chomp "carry" { 
+  //implicitly on_chomp, on_carry, on_move_*, on_release
+  start { ... } //implicit 'pick_up' effect (carried="self", carrier="other")
+  step { ... }
+	left { ... }
+	right { ... } 
+	back { ... } 
+	forward { ... }
+	up { ... } 
+	down { ... }
+  end { ... }
+}
+chomp "latch" { 
+  //implicitly on_chomp, on_latch, on_tug_*, on_release
+	start { ... } //implicit 'latch' effect (grabbed="self", grabber="other")
+	step { ... } 
+	left { ... }
+	right { ... } 
+	back { ... } 
+	forward { ... }
+	//tugging up and tugging down are impossible
+	end { ... }
+}
+*/

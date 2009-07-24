@@ -87,6 +87,12 @@ void structrecord_add_child(StructRecord sr, StructRecord kid) {
   TCOD_list_push(sr->children, kid);
   structrecord_set_parent(kid, sr);
 }
+StructRecord structrecord_first_child_of_type(StructRecord sr, char *type) {
+  TS_LIST_FOREACH(sr->children,
+    if(STREQ(each->type, type)) { return each; }
+  );
+  return NULL;
+}
 StructRecord structrecord_parent(StructRecord sr) {
   return sr->parent;
 }

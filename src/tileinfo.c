@@ -12,7 +12,6 @@ TileInfo tileinfo_init(TileInfo ti, Loader l, TCOD_list_t actions, TCOD_list_t d
   ti->moveDefaultAllowed=moveDefaultAllowed;
   ti->stairs = stairs;
   ti->pit = pit;
-  #warning descriptions need to go here!
   return ti;
 }
 void tileinfo_free(TileInfo ti) {

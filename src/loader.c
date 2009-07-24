@@ -50,21 +50,35 @@ Loader loader_init(Loader l, char *basePath) {
   
   //first, install the basic trigger schema. this happens before any config files are loaded.
   l->triggerSchema = flagschema_init(flagschema_new());
-  flagschema_insert(l->triggerSchema, "on_enter", 1);
-  //pops every frame that A is inside of B
-  flagschema_insert(l->triggerSchema, "on_inside", 1);
-  flagschema_insert(l->triggerSchema, "on_exit", 1);
-  flagschema_insert(l->triggerSchema, "on_bump", 1);
-  flagschema_insert(l->triggerSchema, "on_atop", 1);
-  flagschema_insert(l->triggerSchema, "on_walk_up", 1);
-  flagschema_insert(l->triggerSchema, "on_walk_down", 1);
-  flagschema_insert(l->triggerSchema, "on_fall_onto", 1);
-  flagschema_insert(l->triggerSchema, "on_fall_through", 1);
-  flagschema_insert(l->triggerSchema, "on_chomp", 1);
-  flagschema_insert(l->triggerSchema, "on_unchomp", 1);
-  flagschema_insert(l->triggerSchema, "on_tug_left", 1);
-  flagschema_insert(l->triggerSchema, "on_tug_right", 1);
-  flagschema_insert(l->triggerSchema, "on_tug_back", 1);
+  #define ADD_TRIGGER(_trigName) flagschema_insert(l->triggerSchema, "on_" #_trigName , 1)
+  ADD_TRIGGER(enter);
+  ADD_TRIGGER(exit);
+  ADD_TRIGGER(inside);
+  ADD_TRIGGER(bump);
+  ADD_TRIGGER(atop);
+  ADD_TRIGGER(walk_up);
+  ADD_TRIGGER(walk_down);
+  ADD_TRIGGER(fall_onto);
+  ADD_TRIGGER(fall_through);
+  ADD_TRIGGER(chomp);
+  ADD_TRIGGER(unchomp);
+  ADD_TRIGGER(eat);
+  ADD_TRIGGER(digesting);
+  ADD_TRIGGER(digested);
+  ADD_TRIGGER(carry);
+  ADD_TRIGGER(carry_left);
+  ADD_TRIGGER(carry_right);
+  ADD_TRIGGER(carry_back);
+  ADD_TRIGGER(carry_forward);
+  ADD_TRIGGER(carry_up);
+  ADD_TRIGGER(carry_down);
+  ADD_TRIGGER(latch);
+  ADD_TRIGGER(release);
+  ADD_TRIGGER(tug_left);
+  ADD_TRIGGER(tug_right);
+  ADD_TRIGGER(tug_back);
+  ADD_TRIGGER(tug_forward);
+  #undef ADD_TRIGGER
   
   l->configParser = configlistener_init_parser(TCOD_parser_new(), l);
   l->configListener = configlistener_init(configlistener_new(), l);

@@ -30,6 +30,7 @@ TCOD_list_t structrecord_props(StructRecord sr);
 void structrecord_add_prop(StructRecord sr, Prop p);
 TCOD_list_t structrecord_children(StructRecord sr);
 void structrecord_add_child(StructRecord sr, StructRecord kid);
+StructRecord structrecord_first_child_of_type(StructRecord sr, char *type);
 StructRecord structrecord_parent(StructRecord sr);
 void structrecord_set_parent(StructRecord sr, StructRecord parent);
 

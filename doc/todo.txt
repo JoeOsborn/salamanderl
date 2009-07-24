@@ -1,0 +1,45 @@
+1. chomping and chomp-reaction messages (on_latch, on_pick_up, on_bite, etc)
+	Solution:
+		use special substructs instead of a chomp=... valuelist.  no such action is the default.
+	  weight is still a property of all objectinfos.
+	  "eat { volume = ... digest_time = ... condition{}... effects ... digested { condition{}... effects }}" 
+	  means "action { on_chomp condition{}... eat { volume = ... digest_time = ... effects } } action { on_digested condition{} effects }"
+	  "carry { condition {...}... effects... [release { condition{}... effects... }]}" -- preventable release?
+	  means "action { on_chomp condition{}... carry { effects...} } action { on_unchomp condition{}... effects... uncarry }"
+	  "latch { condition {}... release { condition{}... effects... }}"
+	  means "action { on_chomp condition{}... latch {...}} action { on_unchomp condition{}... effects... unlatch }"
+	  not yet clear what other latch parameters there are
+	  provide a nice fn for this kind of sugar to get in the parser like an action { }.
+	  also would be good to provide ways for these pseudo-actions (and on_X_descs) to get transformed at the structrecord level.
+
+		These three are mutually exclusive, and only one of any of them should be used.
+		
+1a. is chomping toggle or hold?
+	Hold.
+1b. are chomp and eat the same button?
+	Yes.
+2. carrying and movement with a carried object (on_pick_up, on_carry, on_release)
+2a. weight increase and weight-checked triggers (check "weight" {} -- need to improve bindings for sets and checks)
+2a1. bindings need a 'type' field that can be used to fill in the blanks. e.g. object, tile, &c. this can be inferred from the comparison used. requesters must know the type of the binding they're asking for.
+2a2. pseudovariables like object.direction and self.visible for movement-related triggers?  or postpone that until later?
+3. latching and pulling/pushing by bumps (on_chomp, on_tug_left, on_tug_right, on_tug_back, on_tug_forward)
+3a. need objects that block movement and possibly even sight
+3a1. this should be easier now that objects are stored in objectmap
+3a2. this makes doors low-hanging fruit, if objects can also be consulted for sight
+3a3. got to update the parser for this, as well as Object's definition (include wall-like light blocking) and ObjectInfo's definition (include moveinfos)
+3b. move both objects in smap_move_objects (try to move the block first; if it fails, the move fails)
+3b1. what if the block falls? does that automatically release the latch?  Probably.
+4. eating and digestion
+4a. does every object get stomach info? or does it live in something like a per-object Bindings of dynamic vars?
+4b. need a stomach display
+4c. need to track the objects eaten by salamander? or can special effects be obtained by means of statuses (eat_grant, eat_revoke, etc? or an action { on_eat })? (memory management concern - removing objects from the map might cause the map to free them)
+
+Later:
+Object creation overrides need to be able to supply new data.
+	Can Bindings and StructRecord be unified?
+Carry strength might be a loaded variable.
+Falling/underwater/etc state belongs in ObjectInfo
+Statuses with persistent effects
+DrawInfo control over drawing when the owner is in a particular status or set of statuses
+Tile memory should maybe look down to find tiles to see like drawTiles() does?
+
