@@ -219,13 +219,58 @@ TCOD_parser_struct_t effect_message_init_parser(TCOD_parser_t p, Loader l) {
   return msgst;
 }
 
+TCOD_parser_struct_t effect_feed_init_parser(TCOD_parser_t p, Loader l) {
+  TCOD_parser_struct_t feedst = TCOD_parser_new_struct(p, "feed");
+  //the name is used for the eater
+  //the food defaults to "self"
+  TCOD_struct_add_property(feedst, "food", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(feedst, "volume", TCOD_TYPE_STRING, false);
+  TCOD_struct_add_property(feedst, "digest_time", TCOD_TYPE_STRING, false);
+  return feedst;
+}
+TCOD_parser_struct_t effect_pick_up_init_parser(TCOD_parser_t p, Loader l) {
+  TCOD_parser_struct_t pickst = TCOD_parser_new_struct(p, "pick_up");
+  //the name is used for the object being carried, defaults to "self"
+  //the carrier defaults to "other"
+  TCOD_struct_add_property(pickst, "carrier", TCOD_TYPE_STRING, false);
+  return pickst;
+}
+TCOD_parser_struct_t effect_put_down_init_parser(TCOD_parser_t p, Loader l) {
+  TCOD_parser_struct_t putst = TCOD_parser_new_struct(p, "put_down");
+  //the name is used for the object being carried, defaults to "self"
+  //the carrier defaults to "other"
+  TCOD_struct_add_property(putst, "carrier", TCOD_TYPE_STRING, false);
+  return putst;
+}
+TCOD_parser_struct_t effect_grab_init_parser(TCOD_parser_t p, Loader l) {
+  TCOD_parser_struct_t grabst = TCOD_parser_new_struct(p, "grab");
+  //the name is used for the object being grabbed, defaults to "self"
+  //the carrier defaults to "other"
+  TCOD_struct_add_property(grabst, "grabber", TCOD_TYPE_STRING, false);
+  return grabst;
+}
+TCOD_parser_struct_t effect_let_go_init_parser(TCOD_parser_t p, Loader l) {
+  TCOD_parser_struct_t letgost = TCOD_parser_new_struct(p, "let_go");
+  //the name is used for the object being grabbed, defaults to "self"
+  //the carrier defaults to "other"
+  TCOD_struct_add_property(letgost, "grabber", TCOD_TYPE_STRING, false);
+  return letgost;  
+}
+
+
 TCOD_parser_struct_t sugaraction_init_parser(TCOD_parser_t p, Loader l, char *label) {
   TCOD_parser_struct_t grantst = grant_init_parser(p, l);
   TCOD_parser_struct_t revokest = revoke_init_parser(p, l);
   TCOD_parser_struct_t conditionst = condition_init_parser(p, l);
   TCOD_parser_struct_t setst = effect_set_init_parser(p, l);
   TCOD_parser_struct_t msgst = effect_message_init_parser(p, l);
-  
+
+  TCOD_parser_struct_t feedst = effect_feed_init_parser(p, l);
+  TCOD_parser_struct_t pickst = effect_pick_up_init_parser(p, l);
+  TCOD_parser_struct_t putst = effect_put_down_init_parser(p, l);
+  TCOD_parser_struct_t grabst = effect_grab_init_parser(p, l);
+  TCOD_parser_struct_t letgost = effect_let_go_init_parser(p, l);
+
   FlagSchema triggerSchema = loader_trigger_schema(l);
   TCOD_list_t triggers = flagschema_get_labels(triggerSchema);
   TCOD_parser_struct_t actionst = TCOD_parser_new_struct(p, label);
@@ -240,6 +285,13 @@ TCOD_parser_struct_t sugaraction_init_parser(TCOD_parser_t p, Loader l, char *la
   TCOD_struct_add_structure(actionst, revokest);  
   TCOD_struct_add_structure(actionst, setst);
   TCOD_struct_add_structure(actionst, msgst);
+
+  TCOD_struct_add_structure(actionst, feedst);
+  TCOD_struct_add_structure(actionst, pickst);
+  TCOD_struct_add_structure(actionst, putst);
+  TCOD_struct_add_structure(actionst, grabst);
+  TCOD_struct_add_structure(actionst, letgost);
+  
   return actionst;
 }
 

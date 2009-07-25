@@ -119,26 +119,34 @@ EffectGrantRevoke effect_grantrevoke_init_structrecord(EffectGrantRevoke gr, Str
   return effect_grantrevoke_init(gr, effect, target);
 }
 
+EffectFeed effect_feed_init_structrecord(EffectFeed f, StructRecord sr, char *defaultTarget) {
+  char *eater = structrecord_name(sr) ? structrecord_name(sr) : defaultTarget;
+  char *food = structrecord_has_prop(sr, "food") ? structrecord_get_prop_value(sr, "food").s : "self";
+  float volume = structrecord_has_prop(sr, "volume") ? structrecord_get_prop_value(sr, "volume").f : 0.5;
+  float digestTime = structrecord_has_prop(sr, "digest_time") ? structrecord_get_prop_value(sr, "digest_time").f : 60;
+  return effect_feed_init(f, volume, digestTime, eater, food);
+}
+EffectPickUp effect_pick_up_init_structrecord(EffectPickUp f, StructRecord sr, char *defaultTarget) {
+  char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
+  char *carrier = structrecord_has_prop(sr, "carrier") ? structrecord_get_prop_value(sr, "carrier").s : defaultTarget;
+  return effect_pick_up_init(f, obj, carrier);
+}
+EffectPutDown effect_put_down_init_structrecord(EffectPutDown f, StructRecord sr, char *defaultTarget) {
+  char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
+  char *carrier = structrecord_has_prop(sr, "carrier") ? structrecord_get_prop_value(sr, "carrier").s : defaultTarget;
+  return effect_put_down_init(f, obj, carrier);
+}
+EffectGrab effect_grab_init_structrecord(EffectGrab f, StructRecord sr, char *defaultTarget) {
+  char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
+  char *grabber = structrecord_has_prop(sr, "grabber") ? structrecord_get_prop_value(sr, "grabber").s : defaultTarget;
+  return effect_grab_init(f, obj, grabber);
+}
+EffectLetGo effect_let_go_init_structrecord(EffectLetGo f, StructRecord sr, char *defaultTarget) {
+  char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
+  char *grabber = structrecord_has_prop(sr, "grabber") ? structrecord_get_prop_value(sr, "grabber").s : defaultTarget;
+  return effect_let_go_init(f, obj, grabber);
+}
 
-
-/*
-
- ‘effect_feed_init_structrecord’
- ‘effect_feed_new’
-
- ‘effect_pick_up_init_structrecord’
- ‘effect_pick_up_new’
-
- ‘effect_put_down_init_structrecord’
- ‘effect_put_down_new’
-
- ‘effect_grab_init_structrecord’
- ‘effect_grab_new’
-
- ‘effect_let_go_init_structrecord’
- ‘effect_let_go_new’
-
-*/
 
 Check check_init_structrecord(Check c, StructRecord sr, char *defaultTarget) {
   //srcO, srcV, targetO, targetV
@@ -290,7 +298,7 @@ TCOD_list_t descactions_init_structrecord(TCOD_list_t actions, StructRecord sr, 
       TCOD_list_push(msgs, effect_message_init(effect_message_new(), structrecord_get_prop_value(sr, each).s, target, NULL));
       Flagset flags = flagset_init(flagset_new(actionTriggers), actionTriggers);
       flagset_set_index(flags, actionTriggers, __i, 1);
-      TCOD_list_push(actions, action_init(action_new(), each, flags, actionTriggers, NULL, NULL, NULL, NULL, msgs));
+      TCOD_list_push(actions, action_init(action_new(), each, flags, actionTriggers, NULL, NULL, NULL, NULL, msgs, NULL, NULL, NULL, NULL, NULL));
     }
   );
   TCOD_list_clear_and_delete(triggers);
@@ -450,8 +458,8 @@ do {                                                                            
   Action __a;                                                                            \
   if(!__kid) {                                                                           \
     __a = action_init(action_new(), #_mode "_" #_evt,                                    \
-    loader_make_trigger(_l, "on_" #_trig), loader_trigger_schema(_l),                    \
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL                                     \
+      loader_make_trigger(_l, "on_" #_trig), loader_trigger_schema(_l),                  \
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL                         \
     );                                                                                   \
   } else {                                                                               \
     __a = sugaraction_init_structrecord(action_new(), __kid,                             \
@@ -479,8 +487,8 @@ do {                                                                            
 TCOD_list_t chomp_init_structrecord(TCOD_list_t actions, StructRecord sr, Loader l) {
   char *n = structrecord_name(sr);
   if(STREQ(n, "eat")) {
-    float foodVolume = structrecord_has_prop(sr, "volume") ? structrecord_get_prop_value(sr, "food_volume").f : 0.5;
-    int digestionTime = structrecord_has_prop(sr, "digest_time") ? structrecord_get_prop_value(sr, "food_digest_time").f : 60;
+    float foodVolume = structrecord_has_prop(sr, "volume") ? structrecord_get_prop_value(sr, "volume").f : 0.5;
+    int digestionTime = structrecord_has_prop(sr, "digest_time") ? structrecord_get_prop_value(sr, "digest_time").f : 60;
     SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, carry, start, chomp, feed, 
       foodVolume, digestionTime, "other", "self"
     );

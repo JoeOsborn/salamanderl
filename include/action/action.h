@@ -8,6 +8,11 @@
 #include "action/effect_grantrevoke.h"
 #include "action/effect_message.h"
 #include "action/effect_set.h"
+#include "action/effect_feed.h"
+#include "action/effect_pick_up.h"
+#include "action/effect_put_down.h"
+#include "action/effect_grab.h"
+#include "action/effect_let_go.h"
 
 #include "status.h"
 
@@ -26,6 +31,13 @@ struct _action {
   TCOD_list_t varsets;
   
   TCOD_list_t messages;
+
+  EffectFeed feed;
+  EffectPickUp pickup;
+  EffectPutDown putdown;
+  EffectGrab grab;
+  EffectLetGo letgo;
+
   //may also need owner data?  or is that only on invocations?
   
   Bindings bindings;
@@ -35,13 +47,28 @@ typedef struct _action *Action;
 
 
 Action action_new();
-Action action_init(Action a, char *label, Flagset triggers, FlagSchema triggerSchema, TCOD_list_t conditions, TCOD_list_t grants, TCOD_list_t revokes, TCOD_list_t varsets, TCOD_list_t messages);
+Action action_init(Action a, char *label, 
+  Flagset triggers, FlagSchema triggerSchema, 
+  TCOD_list_t conditions, 
+  TCOD_list_t grants, TCOD_list_t revokes, TCOD_list_t varsets, TCOD_list_t messages,
+  EffectFeed feed, EffectPickUp pickup, EffectPutDown putdown, EffectGrab grab, EffectLetGo letgo);
 void action_free(Action a);
 
 void action_bind(Action a, Bindings b);
 //these triggers _MUST_ be in the same schema as the action's schema for now.
 bool action_apply(Action a, Flagset triggers);
 
+
+EffectFeed action_effect_feed(Action a);
+void action_set_effect_feed(Action a, EffectFeed f);
+EffectPickUp action_effect_pick_up(Action a);
+void action_set_effect_pick_up(Action a, EffectPickUp p);
+EffectPutDown action_effect_put_down(Action a);
+void action_set_effect_put_down(Action a, EffectPutDown p);
+EffectGrab action_effect_grab(Action a);
+void action_set_effect_grab(Action a, EffectGrab g);
+EffectLetGo action_effect_let_go(Action a);
+void action_set_effect_let_go(Action a, EffectLetGo l);
 /*
 actions, conditions, and actors:
 

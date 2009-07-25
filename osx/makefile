@@ -13,7 +13,12 @@ C_OBJS=\
 	$(TMPDIR)/action/check.o \
 	$(TMPDIR)/action/comparison.o \
 	$(TMPDIR)/action/condition.o \
+	$(TMPDIR)/action/effect_feed.o \
+	$(TMPDIR)/action/effect_grab.o \
 	$(TMPDIR)/action/effect_grantrevoke.o \
+	$(TMPDIR)/action/effect_let_go.o \
+	$(TMPDIR)/action/effect_pick_up.o \
+	$(TMPDIR)/action/effect_put_down.o \
 	$(TMPDIR)/action/effect_set.o \
 	$(TMPDIR)/action/effect_message.o \
 	$(TMPDIR)/loader/configlistener.o \
@@ -40,7 +45,12 @@ HEADERS=\
 	$(INCDIR)/action/check.h \
 	$(INCDIR)/action/comparison.h \
 	$(INCDIR)/action/condition.h \
+	$(INCDIR)/action/effect_feed.h \
+	$(INCDIR)/action/effect_grab.h \
 	$(INCDIR)/action/effect_grantrevoke.h \
+	$(INCDIR)/action/effect_let_go.h \
+	$(INCDIR)/action/effect_pick_up.h \
+	$(INCDIR)/action/effect_put_down.h \
 	$(INCDIR)/action/effect_message.h \
 	$(INCDIR)/action/effect_set.h \
 	$(INCDIR)/loader/configlistener.h \
