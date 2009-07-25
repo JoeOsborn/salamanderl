@@ -8,11 +8,10 @@
 #include "loader.h"
 
 typedef enum {
-  ChompNone,
-  ChompEat,
-  ChompCarry,
-  ChompLatch
-} ChompReaction;
+  AttachNone,
+  AttachCarry,
+  AttachLatch
+} AttachMode;
 
 struct _object_info {
   //the object info needs to track the loader so it can
@@ -28,21 +27,23 @@ struct _object_info {
   TCOD_list_t revokes;
   //the currently active statuses.
   TCOD_list_t statuses;
-  
-  ChompReaction reaction;
-  
-  float foodVolume; //fraction of an average salamander's stomach capacity
-  int digestionDuration; //seconds
-  
+    
   int weight; //grams
   
+  TCOD_list_t stomach; //contains some Food, which has time eaten, digest time, volume
+  
+  Object attachedObject;
+  AttachMode attachMode;
+  
   char *description;
+  
+  bool falling, chomping, underwater;
 };
 
 typedef struct _object_info *ObjectInfo;
 
 ObjectInfo objectinfo_new();
-ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, TCOD_list_t actions, ChompReaction reaction, float foodVolume, int digestionDuration, int weight, char *description);
+ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, TCOD_list_t actions, int weight, char *description);
 void objectinfo_free(ObjectInfo oi);
 void objectinfo_add_drawinfo(ObjectInfo oi, DrawInfo di);
 TCOD_list_t objectinfo_drawinfos(ObjectInfo oi);
@@ -60,5 +61,20 @@ void objectinfo_remake_net_moveinfo(ObjectInfo oi);
 
 char *objectinfo_description(ObjectInfo oi);
 
-void objectinfo_trigger(ObjectInfo oi, Object self, Object other, char *trig);
+void objectinfo_eat(ObjectInfo oi, Object food, float volume, float digestTime);
+void objectinfo_attach(ObjectInfo oi, Object o2, AttachMode mode);
+void objectinfo_detach(ObjectInfo oi, Object o2);
+
+Object objectinfo_attached_object(ObjectInfo oi);
+AttachMode objectinfo_attach_mode(ObjectInfo oi);
+
+bool objectinfo_trigger(ObjectInfo oi, Object self, Object other, char *trig);
+
+bool objectinfo_chomping(ObjectInfo oi);
+void objectinfo_set_chomping(ObjectInfo oi, bool c);
+bool objectinfo_falling(ObjectInfo oi);
+void objectinfo_set_falling(ObjectInfo oi, bool f);
+bool objectinfo_underwater(ObjectInfo oi);
+void objectinfo_set_underwater(ObjectInfo oi, bool u);
+
 #endif

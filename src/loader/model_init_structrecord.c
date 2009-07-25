@@ -216,6 +216,11 @@ Action action_shared_init_structrecord(Action a, StructRecord sr, Flagset trigge
   TCOD_list_t revokes = TCOD_list_new();
   TCOD_list_t sets = TCOD_list_new();
   TCOD_list_t msgs = TCOD_list_new();
+  EffectFeed feed = NULL;
+  EffectGrab grab = NULL;
+  EffectLetGo letgo = NULL;
+  EffectPickUp pickup = NULL;
+  EffectPutDown putdown = NULL;
   for(int i = 0; i < TCOD_list_size(structrecord_children(sr)); i++) {
     StructRecord kid = TCOD_list_get(structrecord_children(sr), i);
     char *kidType = structrecord_type(kid);
@@ -230,18 +235,18 @@ Action action_shared_init_structrecord(Action a, StructRecord sr, Flagset trigge
     } else if(STREQ(kidType, "message")) {
       TCOD_list_push(msgs, effect_message_init_structrecord(effect_message_new(), kid, defaultTarget));
     } else if(STREQ(kidType, "feed")) {
-      TCOD_list_push(msgs, effect_feed_init_structrecord(effect_feed_new(), kid, defaultTarget));
+      feed = effect_feed_init_structrecord(effect_feed_new(), kid, defaultTarget);
     } else if(STREQ(kidType, "pick_up")) {
-      TCOD_list_push(msgs, effect_pick_up_init_structrecord(effect_pick_up_new(), kid, defaultTarget));
+      pickup = effect_pick_up_init_structrecord(effect_pick_up_new(), kid, defaultTarget);
     } else if(STREQ(kidType, "put_down")) {
-      TCOD_list_push(msgs, effect_put_down_init_structrecord(effect_put_down_new(), kid, defaultTarget));
+      putdown = effect_put_down_init_structrecord(effect_put_down_new(), kid, defaultTarget);
     } else if(STREQ(kidType, "grab")) {
-      TCOD_list_push(msgs, effect_grab_init_structrecord(effect_grab_new(), kid, defaultTarget));
+      grab = effect_grab_init_structrecord(effect_grab_new(), kid, defaultTarget);
     } else if(STREQ(kidType, "let_go")) {
-      TCOD_list_push(msgs, effect_let_go_init_structrecord(effect_let_go_new(), kid, defaultTarget));
+      letgo = effect_let_go_init_structrecord(effect_let_go_new(), kid, defaultTarget);
     }
   }
-  return action_init(a, structrecord_name(sr), triggers, trigSchema, conditions, grants, revokes, sets, msgs);
+  return action_init(a, structrecord_name(sr), triggers, trigSchema, conditions, grants, revokes, sets, msgs, feed, pickup, putdown, grab, letgo);
 }
 
 Action action_init_structrecord(Action a, StructRecord sr, FlagSchema trigSchema, char *defaultTarget) {
@@ -452,32 +457,31 @@ Action sugaraction_init_structrecord(Action a, StructRecord sr, char *trigName, 
   return action_shared_init_structrecord(a, sr, triggers, loader_trigger_schema(l), defaultTarget);
 }
 
-#define SUGAR_ADD_REQUIRED_EFFECT(_list, _l, _sr, _mode, _evt, _trig, _effect, _rest...) \
-do {                                                                                     \
-  StructRecord __kid = structrecord_first_child_of_type(_sr, #_evt);                     \
-  Action __a;                                                                            \
-  if(!__kid) {                                                                           \
-    __a = action_init(action_new(), #_mode "_" #_evt,                                    \
-      loader_make_trigger(_l, "on_" #_trig), loader_trigger_schema(_l),                  \
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL                         \
-    );                                                                                   \
-  } else {                                                                               \
-    __a = sugaraction_init_structrecord(action_new(), __kid,                             \
-      "on_" #_trig, _l, "self"                                                           \
-    );                                                                                   \
-  }                                                                                      \
-  /*does kid itself have the desired effect?  If so, use it; */                          \
-  /*otherwise, add a pick_up effect to the action.           */                          \
-  if(action_effect_##_effect(__a) == NULL) {                                             \
-    action_set_effect_##_effect(__a,                                                     \
-      effect_##_effect##_init(effect_##_effect##_new(), _rest)                           \             
-    );                                                                                   \
-  }                                                                                      \
-  TCOD_list_push(_list, __a);                                                            \
+#define SUGAR_ADD_REQUIRED_EFFECT(_list, _l, _sr, _mode, _evt, _trig, _effect, _rest...) do {  \
+  StructRecord __kid = structrecord_first_child_of_type(_sr, #_evt);                           \
+  Action __a;                                                                                  \
+  if(!__kid) {                                                                                 \
+    __a = action_init(action_new(), #_mode "_" #_evt,                                          \
+      loader_make_trigger(_l, "on_" #_trig), loader_trigger_schema(_l),                        \
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL                               \
+    );                                                                                         \
+  } else {                                                                                     \
+    __a = sugaraction_init_structrecord(action_new(), __kid,                                   \
+      "on_" #_trig, _l, "self"                                                                 \
+    );                                                                                         \
+  }                                                                                            \
+  /*does kid itself have the desired effect?  If so, use it; */                                \
+  /*otherwise, add a pick_up effect to the action.           */                                \
+  if(action_effect_##_effect(__a) == NULL) {                                                   \
+    action_set_effect_##_effect(__a,                                                           \
+      effect_##_effect##_init(effect_##_effect##_new(), _rest)                                 \
+    );                                                                                         \
+  }                                                                                            \
+  TCOD_list_push(_list, __a);                                                                  \
 } while(0)
 
 #define SUGAR_ADD(_list, _l, _sr, _label, _trig) do {                                          \
-  StructRecord __kid = structrecord_first_child_of_type(_sr, #_label)                          \
+  StructRecord __kid = structrecord_first_child_of_type(_sr, #_label);                         \
   if(__kid) {                                                                                  \
     Action __a = sugaraction_init_structrecord(action_new(), __kid, "on_" #_trig, _l, "self"); \
     TCOD_list_push(_list, __a);                                                                \
@@ -574,7 +578,7 @@ Object object_init_structrecord_overrides(Object o, Loader l, StructRecord base,
   
   descactions_init_structrecord(actions, sr, loader_trigger_schema(l), "other");
   
-  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, drawInfos, mi, actions, ctype, foodVolume, digestionTime, weight, desc);
+  ObjectInfo oi = objectinfo_init(objectinfo_new(), l, drawInfos, mi, actions, weight, desc);
   o = object_init(o, id, position, facing, map, oi);
   TS_LIST_FOREACH(sensors, object_add_sensor(o, each));
   map_add_object(map, o);

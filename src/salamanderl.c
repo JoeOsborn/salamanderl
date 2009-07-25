@@ -11,8 +11,9 @@
 #include "moveinfo.h"
 #include "tileinfo.h"
 #include "objectinfo.h"
-#include "action/effect_message.h"
 #include "scrollconsole.h"
+
+#include "sobject.h"
 
 void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size, TCOD_color_t sub) {
   int index=0;
@@ -215,180 +216,6 @@ void drawmap(Map m, Object o, TCOD_list_t drawnOIs, perception *mem, ScrollConso
   TCOD_console_set_background_color(NULL, (TCOD_color_t){0, 0, 0});
 }
 
-void presence_trigger(Map map, Object o, mapVec position, char *trig) {
-  //trigger on_inside for the player's current tile
-  Tile t = map_tiledef_at_position(map, position);
-  TileInfo ti = tile_context(t);
-  tileinfo_trigger(ti, t, o, trig);
-  //and for any objects in that tile
-  TCOD_list_t objectsAtTile = map_objects_at_position(map, position);
-  if(!objectsAtTile) { return; }
-  TS_LIST_FOREACH(objectsAtTile, if(each != o) { objectinfo_trigger(object_context(each), each, o, trig); } );
-}
-
-bool smap_turn_object(Map map, char *obj, int amt) {
-  map_turn_object(map, obj, amt);
-  return true;
-}
-
-/*
-when falling, the top pit gets on_enter, then fall_through, then on_exit.
-the pit below that gets fall_into, on_enter, fall_through, on_exit
-this repeats until:
-  floor: fall_into, on_enter
-  wall: fall_onto, atop
-  pit at z=0: fall_into, on_enter
-when walking normally, the old tile gets on_exit and the new gets on_enter
-when walking up stairs, the old tile gets on_exit, the stairs get on_enter, on_walk_up, on_exit, on_atop, the square above the stairs gets on_enter
-when walking down stairs, the old tile gets on_exit, the tile above the stairs gets on_enter, on_exit, the stairs get on_walk_down, on_enter.
-when walking into a wall, only the wall's on_bump is triggered
-
-this info might be good to have in a diagram
-*/
-
-void smap_fall(Map map, char *obj, bool *falling) {
-  Object o = map_get_object_named(map, obj);
-  mapVec newPos = object_position(o);
-  mapVec belowPos=(mapVec){newPos.x, newPos.y, newPos.z-1};
-  TileInfo ti = tile_context(map_tiledef_at_position(map, newPos));
-  TileInfo belowTi = tile_context(map_tiledef_at_position(map, belowPos));
-  ObjectInfo oi = object_context(o);
-  //is it a pit? if so, move the player there and down a z level.
-  //repeat until a tile is reached.
-  MoveInfo mi = objectinfo_moveinfo(oi);
-  if(tileinfo_is_pit(ti)) {
-    if(tileinfo_is_pit(belowTi) || (tileinfo_moveinfo_can_enter(belowTi, mi) && !(tileinfo_is_stairs(belowTi)))) { 
-      presence_trigger(map, o, newPos, "on_fall_through");
-      presence_trigger(map, o, newPos, "on_exit");
-
-      belowPos.z--;
-      newPos.z--;
-
-      map_move_object(map, obj, (mapVec){0, 0, -1});
-        
-      presence_trigger(map, o, newPos, "on_fall_into");
-      presence_trigger(map, o, newPos, "on_enter");
-      presence_trigger(map, o, newPos, "on_inside");
-      ti = belowTi;
-      if(newPos.z > 0) {
-        belowTi = tile_context(map_tiledef_at(map, newPos.x, newPos.y, newPos.z-1));
-      } else {
-        *falling=false;
-        //we're done, we've hit rock bottom
-      }
-      if(tileinfo_is_pit(ti) && (!tileinfo_moveinfo_can_enter(belowTi, mi) || tileinfo_is_stairs(belowTi))) {
-        //must be a wall we're on top of
-      }
-      if(!tileinfo_is_pit(ti)) {
-        *falling=false;
-      }
-    } else {
-      *falling=false;
-      presence_trigger(map, o, belowPos, "on_fall_onto");
-      presence_trigger(map, o, belowPos, "on_atop");
-    }
-  } else {
-    *falling = false;
-  }
-}
-
-bool smap_move_object(Map map, char *obj, mapVec amt, bool *falling) {
-  //get the destination tile's tileinfo
-  //get the object's objectinfo
-  Object o = map_get_object_named(map, obj);
-  mapVec newPos = mapvec_add(object_position(o), amt);
-  mapVec belowPos=(mapVec){newPos.x, newPos.y, newPos.z-1};
-  mapVec firstPos=object_position(o);
-  TileInfo ti = tile_context(map_tiledef_at_position(map, newPos));
-  TileInfo belowTi=NULL, aboveTi=NULL;
-  TileInfo firstTi=NULL;
-  ObjectInfo oi = object_context(o);
-  //is it a pit? if so, move the player there and down a z level.
-  //repeat until a tile is reached.
-  MoveInfo mi = objectinfo_moveinfo(oi);
-  firstTi = tile_context(map_tiledef_at_position(map, firstPos));
-  if(tileinfo_moveinfo_can_enter(ti, mi)) {
-    presence_trigger(map, o, firstPos, "on_exit");
-    map_move_object(map, obj, amt);
-    presence_trigger(map, o, newPos, "on_enter");
-    if(tileinfo_is_pit(ti)) {
-      if(newPos.z <= 0) {
-        //bottom of the map, just bail out
-        *falling=false;
-        return true;
-      }
-      belowTi = tile_context(map_tiledef_at_position(map, belowPos));
-      if(!tileinfo_is_pit(belowTi) && !tileinfo_moveinfo_can_enter(belowTi, mi)) {
-        //must be something we've just stepped onto
-        *falling=false;
-        presence_trigger(map, o, belowPos, "on_atop");
-        return true;
-      }
-      //if there's only one level of pit or there's a wall below, drop firstTi for the stairs check
-      if(tileinfo_is_pit(firstTi) && firstPos.z > 0) {
-        firstTi = tile_context(map_tiledef_at(map, firstPos.x, firstPos.y, firstPos.z-1));
-      }
-      //bail if the below is a stairs and the player was on a stairs before (and hasn't already fallen some). no need to go down the stairs in that case.
-      if(tileinfo_is_stairs(belowTi) && (firstPos.z == newPos.z) && (newPos.z > 0)) {
-        if(tileinfo_is_stairs(firstTi)) {
-          *falling=false;
-          presence_trigger(map, o, belowPos, "on_atop");
-        } else {
-          //go down the stairs
-          *falling=false;
-          presence_trigger(map, o, newPos, "on_inside");
-          presence_trigger(map, o, newPos, "on_exit");
-          map_move_object(map, obj, (mapVec){0, 0, -1});
-          presence_trigger(map, o, belowPos, "on_enter");
-          presence_trigger(map, o, belowPos, "on_walk_down");
-        }
-        return true;
-      }
-      *falling=true;
-      return true;
-    } else {
-      *falling=false;
-      //we just entered the tile
-      if(tileinfo_is_stairs(ti)) {
-      //if the player's z is the same as this tile's z and he's not standing on a stairs and the tile above is enterable, move player z up to z+1. 
-      //[no need for the position check since the other case is caught by the pitfall.]
-        if(firstPos.z == newPos.z) { //stairs up
-        //no need to go up if the old tile is stairs or if the new tile is non-enterable
-          mapVec abovePos = (mapVec){newPos.x, newPos.y, newPos.z+1};
-          if(newPos.z < (map_size(map).z-1)) {
-            aboveTi = tile_context(map_tiledef_at_position(map, abovePos));
-          } else {
-            return true; //we're done, we've hit rock bottom
-          }
-          if(!tileinfo_is_stairs(firstTi) && tileinfo_moveinfo_can_enter(aboveTi, mi)) {
-            presence_trigger(map, o, newPos, "on_inside");
-            presence_trigger(map, o, newPos, "on_walk_up");
-            presence_trigger(map, o, newPos, "on_exit");
-            map_move_object(map, obj, (mapVec){0, 0, 1});
-            presence_trigger(map, o, abovePos, "on_enter");
-            newPos.z++;
-          }
-        }
-      //if the player's z is higher than this tile's z and he's not standing on a stairs, move him down to this z. ((this is already handled by pit-dropping.))
-      }
-      return true;
-    }
-  } else {
-    presence_trigger(map, o, newPos, "on_bump");
-    return false;
-  }
-}
-
-void chomp_begin(Map m, Object p, bool *chomping) {
-  *chomping = true;
-  printf("CHOMP_START\n");
-}
-
-void chomp_end(Map m, Object p, bool *chomping) {
-  *chomping = false;
-  printf("CHOMP_END\n");
-}
-
 int main( int argc, char *argv[] ) {
   char *font="tilesense/libtcod/fonts/courier12x12_aa_tc.png";
   int nb_char_horiz=0,nb_char_vertic=0;
@@ -410,73 +237,25 @@ int main( int argc, char *argv[] ) {
   TCOD_sys_set_fps(10);
   TCOD_list_t drawnOIs = TCOD_list_new();
   
-  //these and memory should really be per-objectinfo
-  bool underwater = false;
-  bool falling = false;
-  bool chomping = false;
-
   char finished = 0;
+  float dt;
 	TCOD_key_t key = {TCODK_NONE,0};
 	TCOD_console_set_foreground_color(NULL,TCOD_white);
 	do {
 	  key = TCOD_console_check_for_keypress(TCOD_KEY_PRESSED | TCOD_KEY_RELEASED);
-
+    if(key.pressed && (key.vk == TCODK_CHAR) && (key.c == 'q')) {
+      finished = 1;
+      break;
+    }
     TCOD_console_clear(NULL);
 		
 		TCOD_console_print_right(NULL,79,26,"last frame : %3d ms (%3d fps)", (int)(TCOD_sys_get_last_frame_length()*1000), TCOD_sys_get_fps());
 		TCOD_console_print_right(NULL,79,27,"elapsed : %8dms %4.2fs", TCOD_sys_elapsed_milli(),TCOD_sys_elapsed_seconds());
 		TCOD_console_print_left(NULL,0,27,"other stat stuff can go here");
     
-    if(key.pressed) {
-      if(key.vk == TCODK_SPACE) {
-        if(!chomping) {
-          chomp_begin(map, player, &chomping);
-        }
-      }
-      if(key.vk == TCODK_CHAR) {
-        switch(key.c) {
-          case 'w':
-            smap_move_object(map, "player", (mapVec){0, -1, 0}, &falling);
-            break;
-          case 'a':
-            smap_move_object(map, "player", (mapVec){-1, 0, 0}, &falling);
-            break;
-          case 's':
-            smap_move_object(map, "player", (mapVec){0, 1, 0}, &falling);
-            break;
-          case 'd':
-            smap_move_object(map, "player", (mapVec){1, 0, 0}, &falling);
-            break;
-          case 'q':
-            finished = 1;
-            break;
-          default:
-            break;
-    		}
-      }
-
-      if(key.vk == TCODK_RIGHT) {
-        smap_turn_object(map, "player", 1);
-      } else if(key.vk == TCODK_LEFT) {
-        smap_turn_object(map, "player", -1);
-      } else if(key.vk == TCODK_UP && underwater) {
-        smap_move_object(map, "player", (mapVec){0, 0,  1}, &falling);
-      } else if(key.vk == TCODK_DOWN && underwater) {
-        smap_move_object(map, "player", (mapVec){0, 0, -1}, &falling);
-      }
-      
-    } else {
-      if(key.vk == TCODK_SPACE) {
-        if(chomping) {
-          chomp_end(map, player, &chomping);
-        }
-      }
-    }
-    presence_trigger(map, player, object_position(player), "on_inside");    
-    
-    if(falling) {
-      smap_fall(map, "player", &falling);
-    }
+    dt = TCOD_sys_get_last_frame_length();
+    sobject_input(player, key, dt);
+    sobject_update(player, dt);
     
 		//map
     drawmap(map, player, drawnOIs, mem, descConsole);

@@ -1,6 +1,7 @@
 #include "action/effect_let_go.h"
 #include <stdlib.h>
 #include <string.h>
+#include "objectinfo.h"
 
 EffectLetGo effect_let_go_new() {
   return calloc(1, sizeof(struct _effect_let_go));
@@ -20,5 +21,7 @@ void effect_let_go_request_bindings(EffectLetGo m, Bindings b) {
   bindings_insert(b, m->grabbed, NULL);
 }
 void effect_let_go_apply(EffectLetGo m, Bindings b) {
-
+  Object o = bindings_get_value_path(b, m->grabber);
+  Object o2 = bindings_get_value_path(b, m->grabbed);
+  objectinfo_detach(object_context(o), o2);
 }

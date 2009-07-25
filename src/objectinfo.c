@@ -6,7 +6,7 @@
 ObjectInfo objectinfo_new() {
   return calloc(1, sizeof(struct _object_info));
 }
-ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, TCOD_list_t actions, ChompReaction reaction, float foodVolume, int digestionDuration, int weight, char *desc) {
+ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi, TCOD_list_t actions, int weight, char *desc) {
   oi->loader = l;
   oi->drawinfos = dis ? dis : TCOD_list_new();
   oi->actions = actions ? actions : TCOD_list_new();
@@ -15,10 +15,10 @@ ObjectInfo objectinfo_init(ObjectInfo oi, Loader l, TCOD_list_t dis, MoveInfo mi
   oi->statuses = TCOD_list_new();
   oi->moveinfos = TCOD_list_new();
   TCOD_list_push(oi->moveinfos, mi);
-  oi->reaction = reaction;
-  oi->foodVolume = foodVolume;
-  oi->digestionDuration = digestionDuration;
   oi->weight = weight;
+  oi->stomach = TCOD_list_new();
+  oi->attachedObject = NULL;
+  oi->attachMode = AttachNone;
   oi->description = desc ? strdup(desc) : NULL;
   objectinfo_remake_net_moveinfo(oi);
   return oi;
@@ -28,6 +28,7 @@ void objectinfo_free(ObjectInfo oi) {
   TS_LIST_CLEAR_AND_DELETE(oi->statuses, status);
   TS_LIST_CLEAR_AND_DELETE(oi->drawinfos, drawinfo);
   TS_LIST_CLEAR_AND_DELETE(oi->actions, action);
+//  TS_LIST_CLEAR_AND_DELETE(oi->stomach, food);
   moveinfo_free(TCOD_list_get(oi->moveinfos, 0));
   TCOD_list_delete(oi->moveinfos);
   moveinfo_free(oi->netMoveinfo);
@@ -143,17 +144,62 @@ char *objectinfo_description(ObjectInfo oi) {
   return oi ? oi->description : NULL;
 }
 
-void objectinfo_trigger(ObjectInfo oi, Object self, Object other, char *trig) {
-  if(!oi) { return; }
+void objectinfo_eat(ObjectInfo oi, Object food, float volume, float digestTime) {
+  #warning stomach stuff
+}
+
+Object objectinfo_attached_object(ObjectInfo oi) {
+  return oi->attachedObject;
+}
+AttachMode objectinfo_attach_mode(ObjectInfo oi) {
+  return oi->attachMode;
+}
+//should attached objects be a list, or just a single object?
+void objectinfo_attach(ObjectInfo oi, Object o2, AttachMode mode) {
+  oi->attachedObject = o2;
+  oi->attachMode = mode;
+}
+void objectinfo_detach(ObjectInfo oi, Object o2) {
+  if(oi->attachedObject == o2) {
+    oi->attachedObject = NULL;
+    oi->attachMode = AttachNone;
+  }
+}
+
+bool objectinfo_trigger(ObjectInfo oi, Object self, Object other, char *trig) {
+  if(!oi) { return false; }
   Flagset trigger = loader_make_trigger(oi->loader, trig);
   Bindings defaultBindings = bindings_init(bindings_new(), NULL, "root", "root", NULL);
   bindings_insert(defaultBindings, "self", self);
   bindings_insert(defaultBindings, "other", other);
   //DUNNO LOL, TRIGGER SOME ACTIONS
+  bool result = false;
   TS_LIST_FOREACH(oi->actions,
     action_bind(each, defaultBindings);
-    action_apply(each, trigger);
+    if(action_apply(each, trigger)) {
+      result = true;
+    }
   );
   bindings_free(defaultBindings);
   flagset_free(trigger);
+  return result;
+}
+
+bool objectinfo_chomping(ObjectInfo oi) {
+  return oi->chomping;
+}
+void objectinfo_set_chomping(ObjectInfo oi, bool c) {
+  oi->chomping = c;
+}
+bool objectinfo_falling(ObjectInfo oi) {
+  return oi->falling;
+}
+void objectinfo_set_falling(ObjectInfo oi, bool f) {
+  oi->falling = f;
+}
+bool objectinfo_underwater(ObjectInfo oi) {
+  return oi->underwater;
+}
+void objectinfo_set_underwater(ObjectInfo oi, bool u) {
+  oi->underwater = u;
 }

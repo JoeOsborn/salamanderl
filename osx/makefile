@@ -36,6 +36,7 @@ C_OBJS=\
 	$(TMPDIR)/objectinfo.o \
 	$(TMPDIR)/salamanderl.o \
 	$(TMPDIR)/scrollconsole.o \
+	$(TMPDIR)/sobject.o \
 	$(TMPDIR)/status.o \
 	$(TMPDIR)/tileinfo.o
 
@@ -67,6 +68,7 @@ HEADERS=\
 	$(INCDIR)/moveinfo.h \
 	$(INCDIR)/objectinfo.h \
 	$(INCDIR)/scrollconsole.h \
+	$(INCDIR)/sobject.h \
 	$(INCDIR)/status.h \
 	$(INCDIR)/tileinfo.h \
 	$(INCDIR)/uthash.h \

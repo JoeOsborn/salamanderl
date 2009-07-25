@@ -20,10 +20,10 @@ Action action_init(Action a, char *label,
   a->varsets = varsets ? varsets : TCOD_list_new();
   a->messages = messages ? messages : TCOD_list_new();
   action_set_effect_feed(a, feed);
-  action_set_effect_pickup(a, pickup);
-  action_set_effect_putdown(a, putdown);
+  action_set_effect_pick_up(a, pickup);
+  action_set_effect_put_down(a, putdown);
   action_set_effect_grab(a, grab);
-  action_set_effect_letgo(a, letgo);
+  action_set_effect_let_go(a, letgo);
   TS_LIST_FOREACH(a->conditions, condition_request_bindings(each, a->bindings));
   TS_LIST_FOREACH(a->grants, effect_grantrevoke_request_bindings(each, a->bindings));
   TS_LIST_FOREACH(a->revokes, effect_grantrevoke_request_bindings(each, a->bindings));

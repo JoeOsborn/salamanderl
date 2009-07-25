@@ -4,7 +4,7 @@ object "stone" {
   	symbol=','
 	}
   weight=50
-	chomp { 
+	chomp "carry" { 
 	  start {
 			message {
 				message = "You pick up the stone.  It's heavier than it appears!" //could also be on_chomp_desc
@@ -31,7 +31,6 @@ object "stone" {
 		  	...
 			}
 			*/
-			
 		}
 		/*
 		release { //implicitly defined like so

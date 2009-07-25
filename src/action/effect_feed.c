@@ -1,6 +1,7 @@
 #include "action/effect_feed.h"
 #include <stdlib.h>
 #include <string.h>
+#include "objectinfo.h"
 
 EffectFeed effect_feed_new() {
   return calloc(1, sizeof(struct _effect_feed));
@@ -22,5 +23,7 @@ void effect_feed_request_bindings(EffectFeed m, Bindings b) {
   bindings_insert(b, m->food, NULL);
 }
 void effect_feed_apply(EffectFeed m, Bindings b) {
-
+  Object food = bindings_get_value_path(b, m->food);
+  Object eater = bindings_get_value_path(b, m->eater);
+  objectinfo_eat(object_context(eater), food, m->volume, m->digestTime);
 }
