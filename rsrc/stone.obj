@@ -17,9 +17,8 @@ object "stone" {
 				message {
 					message="You pick up the stone.  It's heavier than it appears!" //could also be on_chomp_desc
 				}
-				pick_up {
+				pick_up "self" {
 				  carrier="other"
-				  carried="self"
 				}
 			}
 			*/
@@ -35,29 +34,25 @@ object "stone" {
 		/*
 		release { //implicitly defined like so
 			put_down "self" { carrier="other" }
-			/*
-			action "carry_release" {
-				on_unchomp
-				put_down "self" { carrier="other" }
-			}
-			*/
+
+//			action "carry_release" {
+//				on_unchomp
+//				put_down "self" { 
+//					carrier="other" 
+//				}
+//			}
 		}
 		*/
 		end {
 			message {
-				message="You pick up the stone.  It's heavier than it appears!" //could also be on_chomp_desc
+				message="The stone tumbles onto the floor with a wet thud." //could also be on_release_desc
 			}
 			/*
 			action "carry_finished" {
 			  on_release
 			  ...
 				message {
-					message="You open your mouth, dropping the stone." //could also be on_unchomp_desc
-				}
-				//not sure if this will actually be necessary
-				put_down {
-				  carrier="other"
-				  carried="self"
+					message="The stone tumbles onto the floor with a wet thud." //could also be on_release_desc
 				}
 			}
 			*/

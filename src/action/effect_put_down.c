@@ -23,5 +23,5 @@ void effect_put_down_request_bindings(EffectPutDown m, Bindings b) {
 void effect_put_down_apply(EffectPutDown m, Bindings b) {
   Object o = bindings_get_value_path(b, m->carrier);
   Object o2 = bindings_get_value_path(b, m->carried);
-  objectinfo_detach(object_context(o), o2);
+  objectinfo_detach(object_context(o), o, o2);
 }

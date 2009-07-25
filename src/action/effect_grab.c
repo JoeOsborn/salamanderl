@@ -23,5 +23,5 @@ void effect_grab_request_bindings(EffectGrab m, Bindings b) {
 void effect_grab_apply(EffectGrab m, Bindings b) {
   Object o = bindings_get_value_path(b, m->grabber);
   Object o2 = bindings_get_value_path(b, m->grabbed);
-  objectinfo_attach(object_context(o), o2, AttachLatch);
+  objectinfo_attach(object_context(o), o, o2, AttachLatch);
 }

@@ -23,5 +23,5 @@ void effect_let_go_request_bindings(EffectLetGo m, Bindings b) {
 void effect_let_go_apply(EffectLetGo m, Bindings b) {
   Object o = bindings_get_value_path(b, m->grabber);
   Object o2 = bindings_get_value_path(b, m->grabbed);
-  objectinfo_detach(object_context(o), o2);
+  objectinfo_detach(object_context(o), o, o2);
 }

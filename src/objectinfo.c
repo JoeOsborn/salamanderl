@@ -146,6 +146,8 @@ char *objectinfo_description(ObjectInfo oi) {
 
 void objectinfo_eat(ObjectInfo oi, Object food, float volume, float digestTime) {
   #warning stomach stuff
+  objectinfo_set_chomping(oi, true);
+  objectinfo_set_chomping(oi, false);
 }
 
 Object objectinfo_attached_object(ObjectInfo oi) {
@@ -155,14 +157,20 @@ AttachMode objectinfo_attach_mode(ObjectInfo oi) {
   return oi->attachMode;
 }
 //should attached objects be a list, or just a single object?
-void objectinfo_attach(ObjectInfo oi, Object o2, AttachMode mode) {
-  oi->attachedObject = o2;
-  oi->attachMode = mode;
+void objectinfo_attach(ObjectInfo oi, Object o, Object o2, AttachMode mode) {
+  if(!oi->chomping) {
+    oi->chomping = true;
+    oi->attachedObject = o2;
+    oi->attachMode = mode;
+    objectinfo_trigger(object_context(o2), o2, o, "on_attach");
+  }
 }
-void objectinfo_detach(ObjectInfo oi, Object o2) {
+void objectinfo_detach(ObjectInfo oi, Object o, Object o2) {
   if(oi->attachedObject == o2) {
     oi->attachedObject = NULL;
     oi->attachMode = AttachNone;
+    oi->chomping = false;
+    objectinfo_trigger(object_context(o2), o2, o, "on_release");
   }
 }
 

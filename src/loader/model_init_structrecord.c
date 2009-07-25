@@ -127,24 +127,24 @@ EffectFeed effect_feed_init_structrecord(EffectFeed f, StructRecord sr, char *de
   return effect_feed_init(f, volume, digestTime, eater, food);
 }
 EffectPickUp effect_pick_up_init_structrecord(EffectPickUp f, StructRecord sr, char *defaultTarget) {
-  char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
   char *carrier = structrecord_has_prop(sr, "carrier") ? structrecord_get_prop_value(sr, "carrier").s : defaultTarget;
-  return effect_pick_up_init(f, obj, carrier);
+  char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
+  return effect_pick_up_init(f, carrier, obj);
 }
 EffectPutDown effect_put_down_init_structrecord(EffectPutDown f, StructRecord sr, char *defaultTarget) {
-  char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
   char *carrier = structrecord_has_prop(sr, "carrier") ? structrecord_get_prop_value(sr, "carrier").s : defaultTarget;
-  return effect_put_down_init(f, obj, carrier);
+  char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
+  return effect_put_down_init(f, carrier, obj);
 }
 EffectGrab effect_grab_init_structrecord(EffectGrab f, StructRecord sr, char *defaultTarget) {
   char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
   char *grabber = structrecord_has_prop(sr, "grabber") ? structrecord_get_prop_value(sr, "grabber").s : defaultTarget;
-  return effect_grab_init(f, obj, grabber);
+  return effect_grab_init(f, grabber, obj);
 }
 EffectLetGo effect_let_go_init_structrecord(EffectLetGo f, StructRecord sr, char *defaultTarget) {
   char *obj = structrecord_name(sr) ? structrecord_name(sr) : "self";
   char *grabber = structrecord_has_prop(sr, "grabber") ? structrecord_get_prop_value(sr, "grabber").s : defaultTarget;
-  return effect_let_go_init(f, obj, grabber);
+  return effect_let_go_init(f, grabber, obj);
 }
 
 
@@ -454,10 +454,14 @@ Sensor sensor_init_structrecord(Sensor s, StructRecord sr) {
 
 Action sugaraction_init_structrecord(Action a, StructRecord sr, char *trigName, Loader l, char *defaultTarget) {
   Flagset triggers = loader_make_trigger(l, trigName);
+  if(!structrecord_name(sr)) {
+    structrecord_set_name(sr, trigName);
+  }
   return action_shared_init_structrecord(a, sr, triggers, loader_trigger_schema(l), defaultTarget);
 }
 
-#define SUGAR_ADD_REQUIRED_EFFECT(_list, _l, _sr, _mode, _evt, _trig, _effect, _rest...) do {  \
+#define SUGAR_ADD_REQUIRED_EFFECT(_list, _l, _sr, _mode, _evt, _trig, _targ, _effect, _rest...)\
+do {                                                                                           \
   StructRecord __kid = structrecord_first_child_of_type(_sr, #_evt);                           \
   Action __a;                                                                                  \
   if(!__kid) {                                                                                 \
@@ -466,12 +470,15 @@ Action sugaraction_init_structrecord(Action a, StructRecord sr, char *trigName, 
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL                               \
     );                                                                                         \
   } else {                                                                                     \
+    if(!structrecord_name(__kid)) {                                                            \
+      structrecord_set_name(__kid, #_evt);                                                     \
+    }                                                                                          \
     __a = sugaraction_init_structrecord(action_new(), __kid,                                   \
-      "on_" #_trig, _l, "self"                                                                 \
+      "on_" #_trig, _l, _targ                                                                  \
     );                                                                                         \
   }                                                                                            \
   /*does kid itself have the desired effect?  If so, use it; */                                \
-  /*otherwise, add a pick_up effect to the action.           */                                \
+  /*otherwise, add the right effect to the action.           */                                \
   if(action_effect_##_effect(__a) == NULL) {                                                   \
     action_set_effect_##_effect(__a,                                                           \
       effect_##_effect##_init(effect_##_effect##_new(), _rest)                                 \
@@ -480,10 +487,13 @@ Action sugaraction_init_structrecord(Action a, StructRecord sr, char *trigName, 
   TCOD_list_push(_list, __a);                                                                  \
 } while(0)
 
-#define SUGAR_ADD(_list, _l, _sr, _label, _trig) do {                                          \
+#define SUGAR_ADD(_list, _l, _sr, _label, _trig, _targ) do {                                   \
   StructRecord __kid = structrecord_first_child_of_type(_sr, #_label);                         \
   if(__kid) {                                                                                  \
-    Action __a = sugaraction_init_structrecord(action_new(), __kid, "on_" #_trig, _l, "self"); \
+    if(!structrecord_name(__kid)) {                                                            \
+      structrecord_set_name(__kid, #_label);                                                   \
+    }                                                                                          \
+    Action __a = sugaraction_init_structrecord(action_new(), __kid, "on_" #_trig, _l, _targ);  \
     TCOD_list_push(_list, __a);                                                                \
   }                                                                                            \
 } while(0)
@@ -493,41 +503,41 @@ TCOD_list_t chomp_init_structrecord(TCOD_list_t actions, StructRecord sr, Loader
   if(STREQ(n, "eat")) {
     float foodVolume = structrecord_has_prop(sr, "volume") ? structrecord_get_prop_value(sr, "volume").f : 0.5;
     int digestionTime = structrecord_has_prop(sr, "digest_time") ? structrecord_get_prop_value(sr, "digest_time").f : 60;
-    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, carry, start, chomp, feed, 
+    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, carry, start, chomp, "other", feed, 
       foodVolume, digestionTime, "other", "self"
     );
-    SUGAR_ADD(actions, l, sr, step, digest);
-    SUGAR_ADD(actions, l, sr, end, digested);
+    SUGAR_ADD(actions, l, sr, step, digest, "other");
+    SUGAR_ADD(actions, l, sr, end, digested, "other");
   } else if(STREQ(n, "carry")) {
-    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, carry, start, chomp, pick_up, 
-      "self", "other"
+    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, carry, start, chomp, "other", pick_up, 
+      "other", "self"
     );
-    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, carry, release, unchomp, put_down, 
-      "self", "other"
+    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, carry, release, unchomp, "other", put_down, 
+      "other", "self"
     );
-    SUGAR_ADD(actions, l, sr, step, carry);
-    SUGAR_ADD(actions, l, sr, end, release);
-    SUGAR_ADD(actions, l, sr, left, carry_left);
-    SUGAR_ADD(actions, l, sr, right, carry_right);
-    SUGAR_ADD(actions, l, sr, forward, carry_forward);
-    SUGAR_ADD(actions, l, sr, back, carry_back);
-    SUGAR_ADD(actions, l, sr, up, carry_up);
-    SUGAR_ADD(actions, l, sr, down, carry_down);
+    SUGAR_ADD(actions, l, sr, step, carry, "other");
+    SUGAR_ADD(actions, l, sr, end, release, "other");
+    SUGAR_ADD(actions, l, sr, left, carry_left, "other");
+    SUGAR_ADD(actions, l, sr, right, carry_right, "other");
+    SUGAR_ADD(actions, l, sr, forward, carry_forward, "other");
+    SUGAR_ADD(actions, l, sr, back, carry_back, "other");
+    SUGAR_ADD(actions, l, sr, up, carry_up, "other");
+    SUGAR_ADD(actions, l, sr, down, carry_down, "other");
   } else if(STREQ(n, "latch")) {
-    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, latch, start, chomp, grab, 
-      "self", "other"
+    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, latch, start, chomp, "other", grab, 
+      "other", "self"
     );
-    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, latch, release, unchomp, let_go, 
-      "self", "other"
+    SUGAR_ADD_REQUIRED_EFFECT(actions, l, sr, latch, release, unchomp, "other", let_go, 
+      "other", "self"
     );
-    SUGAR_ADD(actions, l, sr, step, latch);
-    SUGAR_ADD(actions, l, sr, end, release);
-    SUGAR_ADD(actions, l, sr, left, tug_left);
-    SUGAR_ADD(actions, l, sr, right, tug_right);
-    SUGAR_ADD(actions, l, sr, forward, tug_forward);
-    SUGAR_ADD(actions, l, sr, back, tug_back);
-    SUGAR_ADD(actions, l, sr, up, tug_up);
-    SUGAR_ADD(actions, l, sr, down, tug_down);
+    SUGAR_ADD(actions, l, sr, step, latch, "other");
+    SUGAR_ADD(actions, l, sr, end, release, "other");
+    SUGAR_ADD(actions, l, sr, left, tug_left, "other");
+    SUGAR_ADD(actions, l, sr, right, tug_right, "other");
+    SUGAR_ADD(actions, l, sr, forward, tug_forward, "other");
+    SUGAR_ADD(actions, l, sr, back, tug_back, "other");
+    SUGAR_ADD(actions, l, sr, up, tug_up, "other");
+    SUGAR_ADD(actions, l, sr, down, tug_down, "other");
   }
   return actions;
 }

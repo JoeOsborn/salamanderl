@@ -4,25 +4,49 @@
 #include "tileinfo.h"
 #include "objectinfo.h"
 
+#define TUG(_tugger, _tugged, _part, _cmp, _dir) do {                         \
+  if(amt._part _cmp 0) {                                                      \
+    objectinfo_trigger(object_context(_tugged), _tugged, _tugger, "on_tug_" #_dir);  \
+  }                                                                           \
+} while(0)
+
+void sobject_raw_move(Object o, mapVec amt) {
+  ObjectInfo oi = object_context(o);
+  Object o2 = objectinfo_attached_object(oi);
+  AttachMode mode = objectinfo_attach_mode(oi);
+  if(o2) {
+    if(mode == AttachCarry) {
+      map_move_object(object_map(o), object_id(o), amt);
+      map_move_object(object_map(o), object_id(o2), amt);
+    } else if(mode == AttachLatch) {
+      TUG(o, o2, x, <, left);
+      TUG(o, o2, x, >, right);
+      TUG(o, o2, y, <, back);
+      TUG(o, o2, y, >, forward);
+    }
+  } else {
+    map_move_object(object_map(o), object_id(o), amt);
+  }
+}
+#undef TUG
+
 void sobject_chomp(Object o) {
   ObjectInfo oi = object_context(o);
   if(objectinfo_chomping(oi)) { return; }
-  objectinfo_set_chomping(oi, true);
   Map map = object_map(o);
   mapVec position = object_position(o);
   TCOD_list_t objectsAtTile = map_objects_at_position(map, position);
   if(!objectsAtTile) { return; }
   TS_LIST_FOREACH(objectsAtTile, if(each != o) { 
-    if(objectinfo_trigger(object_context(each), each, o, "on_chomp")) {
-      return;
-    }
+    objectinfo_trigger(object_context(each), each, o, "on_chomp");
+    if(objectinfo_chomping(oi)) { return; }
   });
+  //send "nothing to chomp"
 }
 
 void sobject_unchomp(Object o) {
   ObjectInfo oi = object_context(o);
   if(!objectinfo_chomping(oi)) { return; }
-  objectinfo_set_chomping(oi, false);
   Object other = objectinfo_attached_object(object_context(o));
   if(other) {
     objectinfo_trigger(object_context(other), other, o, "on_unchomp");
@@ -30,6 +54,12 @@ void sobject_unchomp(Object o) {
 }
 
 void sobject_presence_trigger(Object o, mapVec position, char *trig) {
+  ObjectInfo oi = object_context(o);
+  Object o2 = objectinfo_attached_object(oi);
+  if(o2 && (objectinfo_attach_mode(oi) == AttachCarry)) {
+    #warning looped attachment is deadly
+    sobject_presence_trigger(o2, position, trig);
+  }
   Map map = object_map(o);
   //trigger on_inside for the player's current tile
   Tile t = map_tiledef_at_position(map, position);
@@ -38,7 +68,11 @@ void sobject_presence_trigger(Object o, mapVec position, char *trig) {
   //and for any objects in that tile
   TCOD_list_t objectsAtTile = map_objects_at_position(map, position);
   if(!objectsAtTile) { return; }
-  TS_LIST_FOREACH(objectsAtTile, if(each != o) { objectinfo_trigger(object_context(each), each, o, trig); } );
+  TS_LIST_FOREACH(objectsAtTile, 
+    if(each != o && (each != objectinfo_attached_object(oi))) { 
+      objectinfo_trigger(object_context(each), each, o, trig); 
+    } 
+  );
 }
 
 bool sobject_turn(Object o, int amt) {
@@ -65,7 +99,6 @@ this info might be good to have in a diagram
 void sobject_fall(Object o) {
   ObjectInfo oi = object_context(o);
   if(!objectinfo_falling(oi)) { return; }
-  char *obj = object_id(o);
   Map map = object_map(o);
   mapVec newPos = object_position(o);
   mapVec belowPos=(mapVec){newPos.x, newPos.y, newPos.z-1};
@@ -82,7 +115,7 @@ void sobject_fall(Object o) {
       belowPos.z--;
       newPos.z--;
 
-      map_move_object(map, obj, (mapVec){0, 0, -1});
+      sobject_raw_move(o, (mapVec){0, 0, -1});
         
       sobject_presence_trigger(o, newPos, "on_fall_into");
       sobject_presence_trigger(o, newPos, "on_enter");
@@ -110,14 +143,11 @@ void sobject_fall(Object o) {
   }
 }
 
-#warning modify sobject_move to move the attached object in carry mode -- or in latch mode, just tug, don't move
-
 bool sobject_move(Object o, mapVec amt) {
   //get the destination tile's tileinfo
   //get the object's objectinfo
   ObjectInfo oi = object_context(o);
   if((amt.z != 0) && !objectinfo_underwater(oi)) { return false; } 
-  char *obj = object_id(o);
   Map map = object_map(o);
   mapVec newPos = mapvec_add(object_position(o), amt);
   mapVec belowPos=(mapVec){newPos.x, newPos.y, newPos.z-1};
@@ -131,7 +161,7 @@ bool sobject_move(Object o, mapVec amt) {
   firstTi = tile_context(map_tiledef_at_position(map, firstPos));
   if(tileinfo_moveinfo_can_enter(ti, mi)) {
     sobject_presence_trigger(o, firstPos, "on_exit");
-    map_move_object(map, obj, amt);
+    sobject_raw_move(o, amt);
     sobject_presence_trigger(o, newPos, "on_enter");
     if(tileinfo_is_pit(ti)) {
       if(newPos.z <= 0) {
@@ -160,7 +190,7 @@ bool sobject_move(Object o, mapVec amt) {
           objectinfo_set_falling(oi, false);
           sobject_presence_trigger(o, newPos, "on_inside");
           sobject_presence_trigger(o, newPos, "on_exit");
-          map_move_object(map, obj, (mapVec){0, 0, -1});
+          sobject_raw_move(o, (mapVec){0, 0, -1});
           sobject_presence_trigger(o, belowPos, "on_enter");
           sobject_presence_trigger(o, belowPos, "on_walk_down");
         }
@@ -186,7 +216,8 @@ bool sobject_move(Object o, mapVec amt) {
             sobject_presence_trigger(o, newPos, "on_inside");
             sobject_presence_trigger(o, newPos, "on_walk_up");
             sobject_presence_trigger(o, newPos, "on_exit");
-            map_move_object(map, obj, (mapVec){0, 0, 1});
+            #warning broken now, viewport not moving
+            sobject_move(o, (mapVec){0, 0, 1});
             sobject_presence_trigger(o, abovePos, "on_enter");
             newPos.z++;
           }
@@ -241,5 +272,19 @@ void sobject_input(Object player, TCOD_key_t key, float dt) {
 }
 void sobject_update(Object player, float dt) {
   sobject_presence_trigger(player, object_position(player), "on_inside");
+  ObjectInfo oi = object_context(player);
+  Object o2 = objectinfo_attached_object(oi);
+  AttachMode mode = objectinfo_attach_mode(oi);
+  if(o2) {
+    if(mode == AttachCarry) {
+      objectinfo_trigger(object_context(player), player, o2, "on_carry");
+      objectinfo_trigger(object_context(o2), o2, player, "on_carry");
+    } else if(mode == AttachLatch) {
+      objectinfo_trigger(object_context(player), player, o2, "on_latch");
+      objectinfo_trigger(object_context(o2), o2, player, "on_latch");
+    }
+  } else {
+    objectinfo_set_chomping(oi, false);
+  }
   sobject_fall(player);
 }

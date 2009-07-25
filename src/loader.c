@@ -62,6 +62,8 @@ Loader loader_init(Loader l, char *basePath) {
   ADD_TRIGGER(fall_through);
   ADD_TRIGGER(chomp);
   ADD_TRIGGER(unchomp);
+  ADD_TRIGGER(attach);
+  ADD_TRIGGER(release);
   ADD_TRIGGER(eat);
   ADD_TRIGGER(digesting);
   ADD_TRIGGER(digested);
@@ -73,7 +75,6 @@ Loader loader_init(Loader l, char *basePath) {
   ADD_TRIGGER(carry_up);
   ADD_TRIGGER(carry_down);
   ADD_TRIGGER(latch);
-  ADD_TRIGGER(release);
   ADD_TRIGGER(tug_left);
   ADD_TRIGGER(tug_right);
   ADD_TRIGGER(tug_back);

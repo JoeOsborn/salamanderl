@@ -33,6 +33,10 @@ char *structrecord_type(StructRecord sr) {
 char *structrecord_name(StructRecord sr) {
   return sr->name;
 }
+void structrecord_set_name(StructRecord sr, char *n) {
+  if(sr->name) { free(sr->name); }
+  sr->name = n ? strdup(n) : NULL;
+}
 TCOD_list_t structrecord_flags(StructRecord sr) {
   return sr->flags;
 }

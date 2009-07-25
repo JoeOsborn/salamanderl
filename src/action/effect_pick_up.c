@@ -23,5 +23,5 @@ void effect_pick_up_request_bindings(EffectPickUp m, Bindings b) {
 void effect_pick_up_apply(EffectPickUp m, Bindings b) {
   Object o = bindings_get_value_path(b, m->carrier);
   Object o2 = bindings_get_value_path(b, m->carried);
-  objectinfo_attach(object_context(o), o2, AttachCarry);
+  objectinfo_attach(object_context(o), o, o2, AttachCarry);
 }

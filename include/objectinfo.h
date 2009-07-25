@@ -62,8 +62,8 @@ void objectinfo_remake_net_moveinfo(ObjectInfo oi);
 char *objectinfo_description(ObjectInfo oi);
 
 void objectinfo_eat(ObjectInfo oi, Object food, float volume, float digestTime);
-void objectinfo_attach(ObjectInfo oi, Object o2, AttachMode mode);
-void objectinfo_detach(ObjectInfo oi, Object o2);
+void objectinfo_attach(ObjectInfo oi, Object o, Object o2, AttachMode mode);
+void objectinfo_detach(ObjectInfo oi, Object o, Object o2);
 
 Object objectinfo_attached_object(ObjectInfo oi);
 AttachMode objectinfo_attach_mode(ObjectInfo oi);

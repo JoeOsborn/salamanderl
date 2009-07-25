@@ -23,6 +23,7 @@ StructRecord structrecord_init(StructRecord sr, char *typeName, char *name, Stru
 void structrecord_free(StructRecord sr);
 char *structrecord_type(StructRecord sr);
 char *structrecord_name(StructRecord sr);
+void structrecord_set_name(StructRecord sr, char *n);
 TCOD_list_t structrecord_flags(StructRecord sr);
 void structrecord_add_flag(StructRecord sr, char *flag);
 bool structrecord_has_prop(StructRecord sr, char *propName);
