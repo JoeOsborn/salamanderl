@@ -147,12 +147,12 @@ bool sobject_move(Object o, mapVec amt) {
   //get the destination tile's tileinfo
   //get the object's objectinfo
   ObjectInfo oi = object_context(o);
-  if((amt.z != 0) && !objectinfo_underwater(oi)) { return false; } 
   Map map = object_map(o);
   mapVec newPos = mapvec_add(object_position(o), amt);
   mapVec belowPos=(mapVec){newPos.x, newPos.y, newPos.z-1};
   mapVec firstPos=object_position(o);
   TileInfo ti = tile_context(map_tiledef_at_position(map, newPos));
+  if((amt.z != 0) && !objectinfo_underwater(oi)) { return false; } 
   TileInfo belowTi=NULL, aboveTi=NULL;
   TileInfo firstTi=NULL;
   //is it a pit? if so, move the player there and down a z level.
@@ -210,14 +210,14 @@ bool sobject_move(Object o, mapVec amt) {
           if(newPos.z < (map_size(map).z-1)) {
             aboveTi = tile_context(map_tiledef_at_position(map, abovePos));
           } else {
-            return true; //we're done, we've hit rock bottom
+            return true; //we're done, we've hit the top
           }
           if(!tileinfo_is_stairs(firstTi) && tileinfo_moveinfo_can_enter(aboveTi, mi)) {
             sobject_presence_trigger(o, newPos, "on_inside");
             sobject_presence_trigger(o, newPos, "on_walk_up");
             sobject_presence_trigger(o, newPos, "on_exit");
-            #warning broken now, viewport not moving
-            sobject_move(o, (mapVec){0, 0, 1});
+            #warning broken now, viewport not moving -- are we falling immediately?
+            sobject_raw_move(o, (mapVec){0, 0, 1});
             sobject_presence_trigger(o, abovePos, "on_enter");
             newPos.z++;
           }

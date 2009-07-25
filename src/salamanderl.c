@@ -30,7 +30,7 @@ void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size, TCOD_c
   float xend = CLIP(pos.x+size.x, 0, msz.x);
 //  float zstart = CLIP(pos.z, 0, msz.z);
 //  float zend = CLIP(pos.z+size.z, 0, msz.z);
-  float zstart = CLIP(volume_position(vol).z, 0, msz.z);
+  float zstart = CLIP(sensor_position(s).z, 0, msz.z);
   float zend = zstart+1;
   Tile t;
   int x, y, z;
