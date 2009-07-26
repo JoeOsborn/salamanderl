@@ -28,7 +28,7 @@ void effect_place_object_apply(EffectPlaceObject m, Bindings b) {
 
 char *effect_place_object_id(EffectPlaceObject m, Bindings b) {
   //is this an object in the bindings?  if so, use that object's id; otherwise, use this as-is
-  Object *boundObj = bindings_get_value_path(b, m->object);
+  Object boundObj = bindings_get_value_path(b, m->object);
   if(boundObj) {
     return object_id(boundObj);
   }
