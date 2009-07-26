@@ -121,40 +121,40 @@ TCOD_parser_struct_t check_init_parser(TCOD_parser_t p, Loader l) {
   TCOD_struct_add_property(checkst, "less_than", TCOD_TYPE_FLOAT, false);
   TCOD_struct_add_property(checkst, "less_than_or_equal_to", TCOD_TYPE_FLOAT, false);
   TCOD_struct_add_property(checkst, "equal_to", TCOD_TYPE_FLOAT, false);
-  TCOD_struct_add_flag(checkst, "greater_than");
-  TCOD_struct_add_flag(checkst, "greater_than_or_equal_to");
-  TCOD_struct_add_flag(checkst, "less_than");
-  TCOD_struct_add_flag(checkst, "less_than_or_equal_to");
-  TCOD_struct_add_flag(checkst, "equal_to");
+  TCOD_struct_add_flag(checkst, "greater_than_src");
+  TCOD_struct_add_flag(checkst, "greater_than_or_equal_to_src");
+  TCOD_struct_add_flag(checkst, "less_than_src");
+  TCOD_struct_add_flag(checkst, "less_than_or_equal_to_src");
+  TCOD_struct_add_flag(checkst, "equal_to_src");
 
   TCOD_struct_add_property(checkst, "starts_with", TCOD_TYPE_STRING, false);
   TCOD_struct_add_property(checkst, "ends_with", TCOD_TYPE_STRING, false);
   TCOD_struct_add_property(checkst, "find_string", TCOD_TYPE_STRING, false);
   TCOD_struct_add_property(checkst, "is_string", TCOD_TYPE_STRING, false);
-  TCOD_struct_add_flag(checkst, "starts_with");
-  TCOD_struct_add_flag(checkst, "ends_with");
-  TCOD_struct_add_flag(checkst, "find_string");
-  TCOD_struct_add_flag(checkst, "is_string");
+  TCOD_struct_add_flag(checkst, "starts_with_src");
+  TCOD_struct_add_flag(checkst, "ends_with_src");
+  TCOD_struct_add_flag(checkst, "find_string_src");
+  TCOD_struct_add_flag(checkst, "is_string_src");
 
   TCOD_struct_add_property(checkst, "count_greater_than", TCOD_TYPE_FLOAT, false);
   TCOD_struct_add_property(checkst, "count_greater_than_or_equal_to", TCOD_TYPE_FLOAT, false);
   TCOD_struct_add_property(checkst, "count_less_than", TCOD_TYPE_FLOAT, false);
   TCOD_struct_add_property(checkst, "count_less_than_or_equal_to", TCOD_TYPE_FLOAT, false);
   TCOD_struct_add_property(checkst, "count_equal_to", TCOD_TYPE_FLOAT, false);
-  TCOD_struct_add_flag(checkst, "count_greater_than");
-  TCOD_struct_add_flag(checkst, "count_greater_than_or_equal_to");
-  TCOD_struct_add_flag(checkst, "count_less_than");
-  TCOD_struct_add_flag(checkst, "count_less_than_or_equal_to");
-  TCOD_struct_add_flag(checkst, "count_equal_to");
+  TCOD_struct_add_flag(checkst, "count_greater_than_src");
+  TCOD_struct_add_flag(checkst, "count_greater_than_or_equal_to_src");
+  TCOD_struct_add_flag(checkst, "count_less_than_src");
+  TCOD_struct_add_flag(checkst, "count_less_than_or_equal_to_src");
+  TCOD_struct_add_flag(checkst, "count_equal_to_src");
   
   TCOD_struct_add_property(checkst, "contains", TCOD_TYPE_INT, false);
   TCOD_struct_add_property(checkst, "contains_string", TCOD_TYPE_STRING, false);
   TCOD_struct_add_list_property(checkst, "contains_all", TCOD_TYPE_INT, false);
   TCOD_struct_add_list_property(checkst, "contains_all_strings", TCOD_TYPE_STRING, false);
-  TCOD_struct_add_flag(checkst, "contains");
-  TCOD_struct_add_flag(checkst, "contains_string");
-  TCOD_struct_add_flag(checkst, "contains_all");
-  TCOD_struct_add_flag(checkst, "contains_all_strings");
+  TCOD_struct_add_flag(checkst, "contains_src");
+  TCOD_struct_add_flag(checkst, "contains_string_src");
+  TCOD_struct_add_flag(checkst, "contains_all_src");
+  TCOD_struct_add_flag(checkst, "contains_all_strings_src");
   return checkst;
 }
 
@@ -176,38 +176,38 @@ TCOD_parser_struct_t effect_set_init_parser(TCOD_parser_t p, Loader l) {
   TCOD_struct_add_property(setst, "decrease", TCOD_TYPE_FLOAT, false);
   TCOD_struct_add_property(setst, "set_number", TCOD_TYPE_FLOAT, false);
   //srcvar-using variants
-  TCOD_struct_add_flag(setst, "increase");
-  TCOD_struct_add_flag(setst, "decrease");
-  TCOD_struct_add_flag(setst, "set_number");
+  TCOD_struct_add_flag(setst, "increase_src");
+  TCOD_struct_add_flag(setst, "decrease_src");
+  TCOD_struct_add_flag(setst, "set_number_src");
   
   TCOD_struct_add_property(setst, "concat", TCOD_TYPE_STRING, false);
   TCOD_struct_add_property(setst, "excise", TCOD_TYPE_STRING, false);
   TCOD_struct_add_property(setst, "set_string", TCOD_TYPE_STRING, false);
-  TCOD_struct_add_flag(setst, "concat");
-  TCOD_struct_add_flag(setst, "excise");
-  TCOD_struct_add_flag(setst, "set_string");
+  TCOD_struct_add_flag(setst, "concat_src");
+  TCOD_struct_add_flag(setst, "excise_src");
+  TCOD_struct_add_flag(setst, "set_string_src");
 
   TCOD_struct_add_property(setst, "push", TCOD_TYPE_INT, false);
   TCOD_struct_add_list_property(setst, "append_all", TCOD_TYPE_INT, false);
   TCOD_struct_add_property(setst, "remove", TCOD_TYPE_INT, false);
   TCOD_struct_add_list_property(setst, "remove_all", TCOD_TYPE_INT, false);
   TCOD_struct_add_list_property(setst, "set_list", TCOD_TYPE_INT, false);  
-  TCOD_struct_add_flag(setst, "push");
-  TCOD_struct_add_flag(setst, "append_all");
-  TCOD_struct_add_flag(setst, "remove");
-  TCOD_struct_add_flag(setst, "remove_all");
-  TCOD_struct_add_flag(setst, "set_list");
+  TCOD_struct_add_flag(setst, "push_src");
+  TCOD_struct_add_flag(setst, "append_all_src");
+  TCOD_struct_add_flag(setst, "remove_src");
+  TCOD_struct_add_flag(setst, "remove_all_src");
+  TCOD_struct_add_flag(setst, "set_list_src");
 
   TCOD_struct_add_property(setst, "push_string", TCOD_TYPE_STRING, false);
   TCOD_struct_add_list_property(setst, "append_all_strings", TCOD_TYPE_STRING, false);
   TCOD_struct_add_property(setst, "remove_string", TCOD_TYPE_STRING, false);
   TCOD_struct_add_list_property(setst, "remove_all_strings", TCOD_TYPE_STRING, false);
   TCOD_struct_add_list_property(setst, "set_string_list", TCOD_TYPE_STRING, false);  
-  TCOD_struct_add_flag(setst, "push_string");
-  TCOD_struct_add_flag(setst, "append_all_strings");
-  TCOD_struct_add_flag(setst, "remove_string");
-  TCOD_struct_add_flag(setst, "remove_all_strings");
-  TCOD_struct_add_flag(setst, "set_string_list");
+  TCOD_struct_add_flag(setst, "push_string_src");
+  TCOD_struct_add_flag(setst, "append_all_strings_src");
+  TCOD_struct_add_flag(setst, "remove_string_src");
+  TCOD_struct_add_flag(setst, "remove_all_strings_src");
+  TCOD_struct_add_flag(setst, "set_string_list_src");
   return setst;
 }
 
@@ -257,6 +257,19 @@ TCOD_parser_struct_t effect_let_go_init_parser(TCOD_parser_t p, Loader l) {
   return letgost;  
 }
 
+TCOD_parser_struct_t effect_place_object_init_parser(TCOD_parser_t p, Loader l) {
+  TCOD_parser_struct_t placest = TCOD_parser_new_struct(p, "place_object");
+  //the name is used for the object being moved, defaults to "self" or "walker"
+  TCOD_struct_add_list_property(placest, "position", TCOD_TYPE_INT, false);
+  return placest;
+}
+TCOD_parser_struct_t effect_change_map_init_parser(TCOD_parser_t p, Loader l, TCOD_parser_struct_t placest) {
+  TCOD_parser_struct_t changest = TCOD_parser_new_struct(p, "change_map");
+  //the name is used for the new map.
+  TCOD_struct_add_structure(changest, placest);
+  return changest;
+}
+
 
 TCOD_parser_struct_t sugaraction_init_parser(TCOD_parser_t p, Loader l, char *label) {
   TCOD_parser_struct_t grantst = grant_init_parser(p, l);
@@ -270,6 +283,9 @@ TCOD_parser_struct_t sugaraction_init_parser(TCOD_parser_t p, Loader l, char *la
   TCOD_parser_struct_t putst = effect_put_down_init_parser(p, l);
   TCOD_parser_struct_t grabst = effect_grab_init_parser(p, l);
   TCOD_parser_struct_t letgost = effect_let_go_init_parser(p, l);
+
+  TCOD_parser_struct_t placest = effect_place_object_init_parser(p, l);
+  TCOD_parser_struct_t changest = effect_change_map_init_parser(p, l, placest);
 
   FlagSchema triggerSchema = loader_trigger_schema(l);
   TCOD_list_t triggers = flagschema_get_labels(triggerSchema);
@@ -291,6 +307,9 @@ TCOD_parser_struct_t sugaraction_init_parser(TCOD_parser_t p, Loader l, char *la
   TCOD_struct_add_structure(actionst, putst);
   TCOD_struct_add_structure(actionst, grabst);
   TCOD_struct_add_structure(actionst, letgost);
+
+  TCOD_struct_add_structure(actionst, placest);
+  TCOD_struct_add_structure(actionst, changest);
   
   return actionst;
 }

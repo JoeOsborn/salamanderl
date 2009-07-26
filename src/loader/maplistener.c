@@ -49,6 +49,7 @@ void maplistener_free(MapListener l) {
 }
 
 void maplistener_handle_events(MapListener listener, TCOD_list_t evts) {
+  listener->map = NULL;
   for(int i = 0; i < TCOD_list_size(evts); i++) {
     TCOD_parser_event_t *evt = TCOD_list_get(evts, i);
     switch(evt->type) {

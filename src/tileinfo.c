@@ -83,10 +83,14 @@ void tileinfo_trigger(TileInfo ti, Tile self, Object walker, char *trig) {
   if(!ti) { return; }
   Flagset trigger = loader_make_trigger(ti->loader, trig);
   Bindings defaultBindings = bindings_init(bindings_new(), NULL, "root", "root", NULL);
+  bindings_insert(defaultBindings, "loader", ti->loader);
   bindings_insert(defaultBindings, "tile", self);
   bindings_insert(defaultBindings, "object", walker);
+  bindings_insert(defaultBindings, "map", object_map(walker));
   //DUNNO LOL, TRIGGER SOME ACTIONS
   TS_LIST_FOREACH(ti->actions,
+    //got to reset the map property in case the object gets moved between maps
+    bindings_set_value_path(defaultBindings, "map", object_map(walker));
     action_bind(each, defaultBindings);
     action_apply(each, trigger);
   );

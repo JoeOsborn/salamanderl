@@ -214,28 +214,50 @@ tile "stairs" { //7
 
 tile "weakground" { //8
   floor_opacity=15
-  movement_default="allow"
+  movement_default="deny"
   draw {
     z=0
+  	fore="#CCFF66"
+  	symbol='#'
+  }
+  draw {
+    z=1
   	fore="#CCFF66"
   	symbol='x'
   }
   draw {
-    z=1
+    z=2
   	fore="#99CC33"
   	symbol='*'
   }
   draw {
-    z=2
+    z=3
   	fore="#669900"
   	symbol='+'
   }
   draw {
-    z=3
+    z=4
   	fore="#336600"
   	symbol='-'
   }
-  on_enter_desc="This spot slumps when you stand on it."
+  on_atop_desc="This spot slumps when you stand on it."
+	action {
+		on_fall_onto
+		condition {
+			check "weight" {
+				target="object"
+				greater_than_or_equal_to=150
+			}
+		}
+		change_map "pipes" {
+			place_object { //"walker" is the default, so go ahead
+				position=[1, 1, 0]
+			}
+			place_object "cage_stone" {
+				position=[1, 1, 0]
+			}
+		}
+	}
   //need this to start as a floor-door, and open to become empty space when triggered (landed on with weight)
   //this is distinct from wall-doors, which open to become floors when triggered.
   //in general, tiles will change their properties during actions.  probably shouldn't out-and-out swap indices,
@@ -244,7 +266,7 @@ tile "weakground" { //8
 }
 map "cage" {
   ambient_light=8 //out of 15
-  dimensions=[12, 12, 3]
+  dimensions=[12, 12, 4]
 	tilemap=[ //tank level, two floors and an inaccessible roof
 	  2,2,2,2,2,2,2,2,2,2,2,2,
 	  2,0,0,0,0,0,0,0,0,0,0,2,
@@ -273,7 +295,7 @@ map "cage" {
 	  2,2,2,2,2,2,2,2,2,2,2,2,
 	  
 	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,3,3,3,3,1,1,1,1,8,8,2,
+	  2,3,3,3,3,1,1,1,1,0,0,2,
 	  2,3,3,3,3,1,1,1,1,6,6,2,
 	  2,3,3,3,1,1,1,1,1,6,6,2,
 	  2,3,3,1,1,1,1,1,1,6,6,2,
@@ -283,6 +305,19 @@ map "cage" {
 	  2,1,1,1,1,1,1,5,5,5,1,2,
 	  2,1,1,1,1,1,5,5,5,5,1,2,
 	  2,1,1,1,1,1,1,4,1,1,1,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,3,3,3,3,2,2,2,2,8,8,2,
+	  2,3,3,3,3,2,2,2,2,2,2,2,
+	  2,3,3,3,2,2,2,2,2,2,2,2,
+	  2,3,3,2,2,2,2,2,2,2,2,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2,
 	  2,2,2,2,2,2,2,2,2,2,2,2
 	]
 }

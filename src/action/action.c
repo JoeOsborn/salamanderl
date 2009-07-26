@@ -1,6 +1,7 @@
 #include "action/action.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
+#include "objectinfo.h"
 
 Action action_new() {
   return calloc(1, sizeof(struct _action));
@@ -9,6 +10,7 @@ Action action_init(Action a, char *label,
   Flagset triggers, FlagSchema triggerSchema, 
   TCOD_list_t conditions, 
   TCOD_list_t grants, TCOD_list_t revokes, TCOD_list_t varsets, TCOD_list_t messages,
+  TCOD_list_t changeMaps, TCOD_list_t placeObjects,
   EffectFeed feed, EffectPickUp pickup, EffectPutDown putdown, EffectGrab grab, EffectLetGo letgo) {
   a->bindings = bindings_init(bindings_new(), NULL, a->label ? a->label : "root", a, NULL);
   a->label = label ? strdup(label) : NULL;
@@ -19,6 +21,8 @@ Action action_init(Action a, char *label,
   a->revokes = revokes ? revokes : TCOD_list_new();
   a->varsets = varsets ? varsets : TCOD_list_new();
   a->messages = messages ? messages : TCOD_list_new();
+  a->changeMaps = changeMaps ? changeMaps : TCOD_list_new();
+  a->placeObjects = placeObjects ? placeObjects : TCOD_list_new();
   action_set_effect_feed(a, feed);
   action_set_effect_pick_up(a, pickup);
   action_set_effect_put_down(a, putdown);
@@ -28,7 +32,9 @@ Action action_init(Action a, char *label,
   TS_LIST_FOREACH(a->grants, effect_grantrevoke_request_bindings(each, a->bindings));
   TS_LIST_FOREACH(a->revokes, effect_grantrevoke_request_bindings(each, a->bindings));
   TS_LIST_FOREACH(a->varsets, effect_set_request_bindings(each, a->bindings));
-  TS_LIST_FOREACH(a->messages, effect_message_request_bindings(each, a->bindings));  
+  TS_LIST_FOREACH(a->messages, effect_message_request_bindings(each, a->bindings));
+  TS_LIST_FOREACH(a->changeMaps, effect_change_map_request_bindings(each, a->bindings));
+  TS_LIST_FOREACH(a->placeObjects, effect_place_object_request_bindings(each, a->bindings));
   return a;
 }
 void action_free(Action a) {
@@ -39,6 +45,8 @@ void action_free(Action a) {
   TS_LIST_CLEAR_AND_DELETE(a->revokes, effect_grantrevoke);
   TS_LIST_CLEAR_AND_DELETE(a->varsets, effect_set);
   TS_LIST_CLEAR_AND_DELETE(a->messages, effect_message);
+  TS_LIST_CLEAR_AND_DELETE(a->changeMaps, effect_change_map);
+  TS_LIST_CLEAR_AND_DELETE(a->placeObjects, effect_place_object);
   if(a->feed) {
     effect_feed_free(a->feed);
   }
@@ -114,9 +122,15 @@ void action_bind(Action a, Bindings b) {
   bindings_fill_from(a->bindings, b);
   Bindings unbound=b;
   while((unbound = bindings_next_unbound(a->bindings))) {
-    //no way to fill bindings yet!
-    abort();
-    //fill bindings from... where, exactly? should this get shuffled up a level?
+    if(STREQ(bindings_label(unbound), "weight")) {
+      Object owner = bindings_value(bindings_parent(unbound));
+      TCOD_value_t *val = calloc(1, sizeof(TCOD_value_t));
+      val->f = objectinfo_net_weight(object_context(owner));
+      #warning argh, memory leak, got to educate Bindings on how to handle these properly
+      bindings_set_value(unbound, val);
+    } else {
+      abort();
+    }
   }
 }
 //these triggers _MUST_ be in the same schema as the action's schema for now.
@@ -138,6 +152,9 @@ bool action_apply(Action a, Flagset triggers) {
   TS_LIST_FOREACH(a->grants, effect_grantrevoke_grant(each, a->bindings));
 
   TS_LIST_FOREACH(a->messages, effect_message_send(each, a->bindings));
+
+  TS_LIST_FOREACH(a->changeMaps, effect_change_map_apply(each, a->bindings));
+  TS_LIST_FOREACH(a->placeObjects, effect_place_object_apply(each, a->bindings));
 
   if(a->feed) {
     effect_feed_apply(a->feed, a->bindings);

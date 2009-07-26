@@ -258,7 +258,8 @@ int main( int argc, char *argv[] ) {
     sobject_update(player, dt);
     
 		//map
-    drawmap(map, player, drawnOIs, mem, descConsole);
+		#warning mem
+    drawmap(object_map(player), player, drawnOIs, mem, descConsole);
 		TCOD_console_print_left(NULL,0,28,
 		  "--------------------------------------------------------------------------------"
 		);

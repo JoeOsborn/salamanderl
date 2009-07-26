@@ -5,41 +5,41 @@
 
 ComparisonMode comparison_mode_from_name(char *n) {
   ComparisonMode comparisonMode = ComparisonNone;
-  if(STREQ(n, "greater_than")) {
+  if(STREQ(n, "greater_than") || STREQ(n, "greater_than_src")) {
     comparisonMode = GreaterThan;
-  } else if(STREQ(n, "greater_than_or_equal_to")) {
+  } else if(STREQ(n, "greater_than_or_equal_to") || STREQ(n, "greater_than_or_equal_to_src")) {
     comparisonMode = GreaterThanOrEqualTo;
-  } else if(STREQ(n, "less_than")) {
+  } else if(STREQ(n, "less_than") || STREQ(n, "less_than_src")) {
     comparisonMode = LessThan;
-  } else if(STREQ(n, "less_than_or_equal_to")) {
+  } else if(STREQ(n, "less_than_or_equal_to") || STREQ(n, "less_than_or_equal_to_src")) {
     comparisonMode = LessThanOrEqualTo;
-  } else if(STREQ(n, "equal_to")) {
+  } else if(STREQ(n, "equal_to") || STREQ(n, "equal_to_src")) {
     comparisonMode = EqualTo;
-  } else if(STREQ(n, "count_greater_than")) {
+  } else if(STREQ(n, "count_greater_than") || STREQ(n, "count_greater_than_src")) {
     comparisonMode = CountGreaterThan;
-  } else if(STREQ(n, "count_greater_than_or_equal_to")) {
+  } else if(STREQ(n, "count_greater_than_or_equal_to") || STREQ(n, "count_greater_than_or_equal_to_src")) {
     comparisonMode = CountGreaterThanOrEqualTo;
-  } else if(STREQ(n, "count_less_than")) {
+  } else if(STREQ(n, "count_less_than") || STREQ(n, "count_less_than_src")) {
     comparisonMode = CountLessThan;
-  } else if(STREQ(n, "count_less_than_or_equal_to")) {
+  } else if(STREQ(n, "count_less_than_or_equal_to") || STREQ(n, "count_less_than_or_equal_to_src")) {
     comparisonMode = CountLessThanOrEqualTo;
-  } else if(STREQ(n, "count_equal_to")) {
+  } else if(STREQ(n, "count_equal_to") || STREQ(n, "count_equal_to_src")) {
     comparisonMode = CountEqualTo;
-  } else if(STREQ(n, "starts_with")) {
+  } else if(STREQ(n, "starts_with") || STREQ(n, "starts_with_src")) {
     comparisonMode = StartsWith;
-  } else if(STREQ(n, "ends_with")) {
+  } else if(STREQ(n, "ends_with") || STREQ(n, "ends_with_src")) {
     comparisonMode = EndsWith;
-  } else if(STREQ(n, "find_string")) {
+  } else if(STREQ(n, "find_string") || STREQ(n, "find_string_src")) {
     comparisonMode = FindString;
-  } else if(STREQ(n, "is_string")) {
+  } else if(STREQ(n, "is_string") || STREQ(n, "is_string_src")) {
     comparisonMode = IsString;
-  } else if(STREQ(n, "contains_number")) {
+  } else if(STREQ(n, "contains_number") || STREQ(n, "contains_number_src")) {
     comparisonMode = ContainsNumber;
-  } else if(STREQ(n, "contains_string")) {
+  } else if(STREQ(n, "contains_string") || STREQ(n, "contains_string_src")) {
     comparisonMode = ContainsString;
-  } else if(STREQ(n, "contains_all")) {
+  } else if(STREQ(n, "contains_all") || STREQ(n, "contains_all_src")) {
     comparisonMode = ContainsAll;
-  } else if(STREQ(n, "contains_all_strings")) {
+  } else if(STREQ(n, "contains_all_strings") || STREQ(n, "contains_all_strings_src")) {
     comparisonMode = ContainsAllString;
   }
   return comparisonMode;

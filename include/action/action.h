@@ -13,6 +13,8 @@
 #include "action/effect_put_down.h"
 #include "action/effect_grab.h"
 #include "action/effect_let_go.h"
+#include "action/effect_change_map.h"
+#include "action/effect_place_object.h"
 
 #include "status.h"
 
@@ -31,6 +33,10 @@ struct _action {
   TCOD_list_t varsets;
   
   TCOD_list_t messages;
+  
+  TCOD_list_t changeMaps;
+  TCOD_list_t placeObjects;
+  
 
   EffectFeed feed;
   EffectPickUp pickup;
@@ -51,6 +57,7 @@ Action action_init(Action a, char *label,
   Flagset triggers, FlagSchema triggerSchema, 
   TCOD_list_t conditions, 
   TCOD_list_t grants, TCOD_list_t revokes, TCOD_list_t varsets, TCOD_list_t messages,
+  TCOD_list_t changeMaps, TCOD_list_t placeObjects,
   EffectFeed feed, EffectPickUp pickup, EffectPutDown putdown, EffectGrab grab, EffectLetGo letgo);
 void action_free(Action a);
 

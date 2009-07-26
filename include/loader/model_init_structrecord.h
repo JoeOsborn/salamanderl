@@ -18,6 +18,8 @@
 #include "action/effect_grantrevoke.h"
 #include "action/effect_message.h"
 #include "action/effect_set.h"
+#include "action/effect_change_map.h"
+#include "action/effect_place_object.h"
 
 Grant grant_init_structrecord(Grant g, StructRecord sr);
 Revoke revoke_init_structrecord(Revoke r, StructRecord sr);
@@ -41,5 +43,8 @@ Tile tile_init_structrecord(Tile t, Loader l, StructRecord sr, FlagSchema action
 Map map_init_structrecord(Map m, StructRecord sr);
 
 Object object_init_structrecord_overrides(Object o, Loader l, StructRecord sr, StructRecord over);
+
+mapVec mapvec_make_int_list(TCOD_list_t l);
+mapVec mapvec_make_float_list(TCOD_list_t l);
 
 #endif

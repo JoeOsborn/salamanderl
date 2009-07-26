@@ -147,6 +147,25 @@ EffectLetGo effect_let_go_init_structrecord(EffectLetGo f, StructRecord sr, char
   return effect_let_go_init(f, grabber, obj);
 }
 
+EffectPlaceObject effect_place_object_init_structrecord(EffectPlaceObject p, StructRecord sr, char *defaultTarget) {
+  char *obj = structrecord_name(sr) ? structrecord_name(sr) : defaultTarget;
+  TCOD_list_t pos = structrecord_has_prop(sr, "position") ? structrecord_get_prop_value(sr, "position").list : NULL;
+  mapVec position = pos ? mapvec_make_int_list(pos) : mapvec_zero;
+  return effect_place_object_init(p, obj, pos != NULL, position);
+}
+EffectChangeMap effect_change_map_init_structrecord(EffectChangeMap c, StructRecord sr, char *defaultTarget) {
+  char *map = structrecord_name(sr); //not optional, crashing is okay
+  TCOD_list_t places = TCOD_list_new();
+  TCOD_list_t kids = structrecord_children(sr);
+  TS_LIST_FOREACH(kids,
+    char *t = structrecord_type(each);
+    if(STREQ(t, "place_object")) {
+      TCOD_list_push(places, effect_place_object_init_structrecord(effect_place_object_new(), each, defaultTarget));
+    }
+  );
+  return effect_change_map_init(c, map, places);
+}
+
 
 Check check_init_structrecord(Check c, StructRecord sr, char *defaultTarget) {
   //srcO, srcV, targetO, targetV
@@ -216,6 +235,8 @@ Action action_shared_init_structrecord(Action a, StructRecord sr, Flagset trigge
   TCOD_list_t revokes = TCOD_list_new();
   TCOD_list_t sets = TCOD_list_new();
   TCOD_list_t msgs = TCOD_list_new();
+  TCOD_list_t mapChanges = TCOD_list_new();
+  TCOD_list_t placeObjects = TCOD_list_new();
   EffectFeed feed = NULL;
   EffectGrab grab = NULL;
   EffectLetGo letgo = NULL;
@@ -244,9 +265,13 @@ Action action_shared_init_structrecord(Action a, StructRecord sr, Flagset trigge
       grab = effect_grab_init_structrecord(effect_grab_new(), kid, defaultTarget);
     } else if(STREQ(kidType, "let_go")) {
       letgo = effect_let_go_init_structrecord(effect_let_go_new(), kid, defaultTarget);
+    } else if(STREQ(kidType, "change_map")) {
+      TCOD_list_push(mapChanges, effect_change_map_init_structrecord(effect_change_map_new(), kid, defaultTarget));
+    } else if(STREQ(kidType, "place_object")) {
+      TCOD_list_push(placeObjects, effect_place_object_init_structrecord(effect_place_object_new(), kid, defaultTarget));
     }
   }
-  return action_init(a, structrecord_name(sr), triggers, trigSchema, conditions, grants, revokes, sets, msgs, feed, pickup, putdown, grab, letgo);
+  return action_init(a, structrecord_name(sr), triggers, trigSchema, conditions, grants, revokes, sets, msgs, mapChanges, placeObjects, feed, pickup, putdown, grab, letgo);
 }
 
 Action action_init_structrecord(Action a, StructRecord sr, FlagSchema trigSchema, char *defaultTarget) {
@@ -303,7 +328,7 @@ TCOD_list_t descactions_init_structrecord(TCOD_list_t actions, StructRecord sr, 
       TCOD_list_push(msgs, effect_message_init(effect_message_new(), structrecord_get_prop_value(sr, each).s, target, NULL));
       Flagset flags = flagset_init(flagset_new(actionTriggers), actionTriggers);
       flagset_set_index(flags, actionTriggers, __i, 1);
-      TCOD_list_push(actions, action_init(action_new(), each, flags, actionTriggers, NULL, NULL, NULL, NULL, msgs, NULL, NULL, NULL, NULL, NULL));
+      TCOD_list_push(actions, action_init(action_new(), each, flags, actionTriggers, NULL, NULL, NULL, NULL, msgs, NULL, NULL, NULL, NULL, NULL, NULL, NULL));
     }
   );
   TCOD_list_clear_and_delete(triggers);
@@ -467,7 +492,7 @@ do {                                                                            
   if(!__kid) {                                                                                 \
     __a = action_init(action_new(), #_mode "_" #_evt,                                          \
       loader_make_trigger(_l, "on_" #_trig), loader_trigger_schema(_l),                        \
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL                               \
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL                   \
     );                                                                                         \
   } else {                                                                                     \
     if(!structrecord_name(__kid)) {                                                            \

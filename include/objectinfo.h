@@ -77,4 +77,6 @@ void objectinfo_set_falling(ObjectInfo oi, bool f);
 bool objectinfo_underwater(ObjectInfo oi);
 void objectinfo_set_underwater(ObjectInfo oi, bool u);
 
+int objectinfo_net_weight(ObjectInfo oi);
+
 #endif

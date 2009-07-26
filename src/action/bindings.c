@@ -72,10 +72,12 @@ Bindings bindings_insert(Bindings b, char *path, void *value) {
 
 void *bindings_get_value_path(Bindings b, char *path) {
   Bindings entry = bindings_find_path(b, path);
+  if(!entry) { return; }
   return entry->value;
 }
 void bindings_set_value_path(Bindings b, char *path, void *value) {
   Bindings entry = bindings_insert(b, path, value);
+  if(!entry) { return; }
   entry->value = value;
 }
 

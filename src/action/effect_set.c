@@ -5,37 +5,37 @@
 
 SetMode effect_set_mode_from_name(char *n) {
   SetMode mode = SetNone;
-  if(STREQ(n, "increase")) {
+  if(STREQ(n, "increase") || STREQ(n, "increase_src")) {
     mode = Increase;
-  } else if(STREQ(n, "decrease")) {
+  } else if(STREQ(n, "decrease") || STREQ(n, "decrease_src")) {
     mode = Decrease;
-  } else if(STREQ(n, "set_number")) {
+  } else if(STREQ(n, "set_number") || STREQ(n, "set_number_src")) {
     mode = NumberSet;
-  } else if(STREQ(n, "concat")) {
+  } else if(STREQ(n, "concat") || STREQ(n, "concat_src")) {
     mode = Concat;
-  } else if(STREQ(n, "excise")) {
+  } else if(STREQ(n, "excise") || STREQ(n, "excise_src")) {
     mode = Excise;
-  } else if(STREQ(n, "set_string")) {
+  } else if(STREQ(n, "set_string") || STREQ(n, "set_string_src")) {
     mode = StringSet;
-  } else if(STREQ(n, "push")) {
+  } else if(STREQ(n, "push") || STREQ(n, "push_src")) {
     mode = Push;
-  } else if(STREQ(n, "append_all")) {
+  } else if(STREQ(n, "append_all") || STREQ(n, "append_all_src")) {
     mode = AppendAll;
-  } else if(STREQ(n, "remove")) {
+  } else if(STREQ(n, "remove") || STREQ(n, "remove_src")) {
     mode = Remove;
-  } else if(STREQ(n, "remove_all")) {
+  } else if(STREQ(n, "remove_all") || STREQ(n, "remove_all_src")) {
     mode = RemoveAll;
-  } else if(STREQ(n, "set_list")) {
+  } else if(STREQ(n, "set_list") || STREQ(n, "set_list_src")) {
     mode = ListSet;
-  } else if(STREQ(n, "push_string")) {
+  } else if(STREQ(n, "push_string") || STREQ(n, "push_string_src")) {
     mode = SPush;
-  } else if(STREQ(n, "append_all_strings")) {
+  } else if(STREQ(n, "append_all_strings") || STREQ(n, "append_all_strings_src")) {
     mode = SAppendAll;
-  } else if(STREQ(n, "remove_string")) {
+  } else if(STREQ(n, "remove_string") || STREQ(n, "remove_string_src")) {
     mode = SRemove;
-  } else if(STREQ(n, "remove_all_strings")) {
+  } else if(STREQ(n, "remove_all_strings") || STREQ(n, "remove_all_strings_src")) {
     mode = SRemoveAll;
-  } else if(STREQ(n, "set_string_list")) {
+  } else if(STREQ(n, "set_string_list") || STREQ(n, "set_string_list_src")) {
     mode = SListSet;
   }
   return mode;

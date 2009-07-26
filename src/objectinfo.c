@@ -178,11 +178,14 @@ bool objectinfo_trigger(ObjectInfo oi, Object self, Object other, char *trig) {
   if(!oi) { return false; }
   Flagset trigger = loader_make_trigger(oi->loader, trig);
   Bindings defaultBindings = bindings_init(bindings_new(), NULL, "root", "root", NULL);
+  bindings_insert(defaultBindings, "loader", oi->loader);
   bindings_insert(defaultBindings, "self", self);
+  bindings_insert(defaultBindings, "map", object_map(self));
   bindings_insert(defaultBindings, "other", other);
-  //DUNNO LOL, TRIGGER SOME ACTIONS
   bool result = false;
   TS_LIST_FOREACH(oi->actions,
+    //in case the map gets changed on us
+    bindings_set_value_path(defaultBindings, "map", object_map(self));
     action_bind(each, defaultBindings);
     if(action_apply(each, trigger)) {
       result = true;
@@ -210,4 +213,14 @@ bool objectinfo_underwater(ObjectInfo oi) {
 }
 void objectinfo_set_underwater(ObjectInfo oi, bool u) {
   oi->underwater = u;
+}
+
+int objectinfo_net_weight(ObjectInfo oi) {
+  int w = oi->weight;
+  if(oi->attachedObject && oi->attachMode == AttachCarry) {
+    ObjectInfo attachedOi = object_context(oi->attachedObject);
+    w += attachedOi->weight;
+  }
+  //add stomach weight
+  return w;
 }

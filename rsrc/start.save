@@ -4,15 +4,19 @@ save {
   	make_object "player" { //forces a load of player.obj
     	id="player"
     	//the position vector
-    	position=[5,5,0]
+    	position=[5,5,1]
     	//the facing vector. this means "down"
     	facing=[0,1,0]
   	}
   	make_object "stone" { //forces a load of stone.obj
     	id="cage_stone"
-    	position=[3,6,0]
+    	position=[3,6,1]
     	facing=[1,0,0]
   	}
 	}
+	map "pipes" {
+		//make_object "..." { ... }
+	}
+	
   //other "start of game" overrides
 }

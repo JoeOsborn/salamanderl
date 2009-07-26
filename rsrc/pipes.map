@@ -1,0 +1,170 @@
+tile "floor" { //1
+	wall_opacity=0 //transparent from sides
+	floor_opacity=15 //opaque from below
+	ceiling_opacity=0 //transparent from above
+  movement_default="allow"
+  draw {
+    z=0
+  	fore="#AACC55"
+  	symbol='.'
+  }
+  draw {
+    z=1
+  	fore="#669900"
+  	symbol=','
+  }
+  draw {
+    z=2
+  	fore="#336600"
+  	symbol='_'
+  }
+	on_enter_desc="The moss and soil squish beneath your feet."
+}
+
+tile "wall" { //2
+	uniform_opacity=0 //glass wall
+  movement_default="deny"
+  draw {
+    z=0
+  	fore="#FFFFFF"
+  	symbol='#'
+  }
+  draw {
+    z=1
+  	fore="#BBBBBB"
+  	symbol='='
+  }
+  draw {
+    z=2
+  	fore="#BBBBBB"
+  	symbol='+'
+  }
+	on_bump_desc="The material is clear, but hard.  It stops you."
+}
+
+tile "shallow pool" { //3
+//  floor_opacity=8  //could do this if there were stuff below for a watery effect?
+//  ceiling_opacity=8 //see above
+  action "splash" {
+		on_enter
+    grant "wet" {
+      duration=60
+			reason="splashed in shallow pool"
+    }
+  }
+  movement_default="allow"
+  draw {
+    z=0
+  	fore="#AAAAFF"
+  	symbol='~'
+  }
+  draw {
+    z=1
+  	fore="#333366"
+  	symbol='-'
+  }
+  draw {
+    z=2
+  	fore="#000033"
+  	symbol='.'
+  }
+  on_enter_desc="The water feels pleasant and cool."
+}
+tile "rock" { //4
+  uniform_opacity=15
+  movement_default="deny"
+  draw {
+    z=0
+  	fore="#F0F0F0"
+  	symbol='+'
+  }
+  draw {
+    z=1
+  	fore="#C0C0C0"
+  	symbol='='
+  }
+  draw {
+    z=2
+  	fore="#909090"
+  	symbol='-'
+  }
+  on_bump_desc="This rock takes up much of your cell.  The space behind it is invitingly dark.  This description is much longer than one might expect it to be in practice.  Blah blah blah blah blah."
+  //atop_desc is used if the player is standing on an empty tile above this tile.
+  //it really only makes sense for things that can block movement.
+  on_atop_desc="The view of the cage from the top of your rock is inspiring."
+}
+tile "stairs" { //5
+  floor_opacity=8
+  ceiling_opacity=8
+	wall_opacity=0
+  movement_default="allow"
+  draw {
+    z=-1
+  	fore="#666666"
+  	symbol='+'
+  }
+  draw {
+    z=0
+  	fore="#FFFFFF"
+  	symbol='<'
+  }
+  draw {
+    z=1
+  	fore="#AAAAAA"
+  	symbol='>'
+  }
+  draw {
+    z=2
+  	fore="#666666"
+  	symbol='-'
+  }
+//later, consider making stairs {} and pit {} use movement flag sets.
+  stairs
+  on_walk_up_desc="You ascend the stairs."
+  on_walk_down_desc="You descend the stairs."
+  on_enter_desc="These stairs are made of painted styrofoam.  Someone thought it might be cute."
+}
+map "pipes" {
+  ambient_light=8 //out of 15
+  dimensions=[12, 12, 3]
+	tilemap=[
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2, //probably will put the small rock up here? four from the right?
+	  2,0,0,0,0,0,0,0,0,0,0,2, 
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2, //branch passes thru on the right
+	  2,0,0,0,0,0,0,0,0,0,0,2, //branch branch branch
+	  2,0,0,0,0,0,0,0,0,0,0,2,
+	  2,0,0,0,0,0,0,0,0,0,0,2, //stairs pass through here
+	  2,0,0,0,0,0,0,0,0,0,5,2,
+	  2,0,0,0,0,0,0,0,0,4,5,2,
+	  2,0,0,0,0,0,0,0,4,4,4,2,
+	  2,0,0,0,0,0,0,4,4,4,4,2,
+	  2,0,0,0,0,0,0,0,4,0,0,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  
+	  2,2,2,2,2,2,2,2,2,2,2,2,
+	  2,1,1,1,1,1,1,3,3,3,3,2,
+	  2,1,1,1,1,1,1,3,3,4,4,2,
+	  2,1,1,1,1,1,1,3,3,4,4,2,
+	  2,1,1,1,1,1,1,3,3,4,4,2,
+	  2,1,1,1,1,1,1,3,3,5,5,2,
+	  2,1,1,1,1,1,1,3,3,4,4,2,
+	  2,1,1,1,1,1,1,3,4,4,4,2,
+	  2,1,1,1,1,1,1,4,4,4,1,2,
+	  2,1,1,1,1,1,4,4,4,4,1,2,
+	  2,1,1,1,1,1,1,1,1,1,1,2,
+	  2,2,2,2,2,2,2,2,2,2,2,2
+	]
+}
