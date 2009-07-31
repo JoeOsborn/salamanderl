@@ -118,7 +118,7 @@ TS_FLAGS=-I $(TS_DIR)/include
 TS_LIBS=$(TS_DIR)/libtilesense.a
 
 salamanderl : $(TMPDIR)/action $(TMPDIR)/loader $(C_OBJS) 
-	$(CC) $(C_OBJS) $(CFLAGS) -o $@ -L./tilesense/libtcod/lib -ltcod-mingw-debug -L./tilesense -ltilesense $(ZLIB_LIBS) $(PNG_LIBS) $(SDL_LIBS)  $(OPENGL_LIB)
+	$(CPP) $(C_OBJS) $(CFLAGS) -o $@ -L./tilesense/libtcod/lib -ltcod-mingw-debug -L./tilesense -ltilesense $(ZLIB_LIBS) $(PNG_LIBS) $(SDL_LIBS)  $(OPENGL_LIB)
 
 clean :
 	rm -rf $(TMPDIR) salamanderl
