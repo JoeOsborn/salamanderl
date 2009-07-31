@@ -129,14 +129,16 @@ void sobject_fall(Object o) {
       }
       if(tileinfo_is_pit(ti) && (!tileinfo_moveinfo_can_enter(belowTi, mi) || tileinfo_is_stairs(belowTi))) {
         //must be a wall we're on top of
+        objectinfo_set_falling(oi, false);
+        sobject_presence_trigger(o, belowPos, "on_atop");
       }
       if(!tileinfo_is_pit(ti)) {
         objectinfo_set_falling(oi, false);
+        sobject_presence_trigger(o, belowPos, "on_atop");
       }
     } else {
       objectinfo_set_falling(oi, false);
       sobject_presence_trigger(o, belowPos, "on_fall_onto");
-      sobject_presence_trigger(o, belowPos, "on_atop");
     }
   } else {
     objectinfo_set_falling(oi, false);

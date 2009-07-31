@@ -48,8 +48,8 @@ void drawtiles(Map m, perception *buf, Sensor s, mapVec pos, mapVec size, TCOD_c
           skip = (tileIndex == 0); //later, skip if drawinfo's symbol is ' '?
           if(skip && (belowZ > 0) && (belowZ > pos.z)) { belowZ--; }
         } while(skip && (belowZ >= 0) && (belowZ >= pos.z));
-        // drawX = x*2+z*((msz.x*2)+1);
-        drawX = x*2;
+        // drawX = x+z*((msz.x)+1);
+        drawX = x;
         drawY = y;
         t = map_get_tile(m, tileIndex);
         ti = tile_context(t);
@@ -94,7 +94,7 @@ void mem_remember(perception *mem, Map m, perception *tiles, mapVec pos, mapVec 
 }
 
 void mem_draw(perception *mem, Map m, TCOD_list_t sensors) {
-  drawtiles(m, mem, TCOD_list_get(sensors, 0), mapvec_zero, map_size(m), (TCOD_color_t){90, 90, 90});
+  drawtiles(m, mem, TCOD_list_get(sensors, 0), mapvec_zero, map_size(m), (TCOD_color_t){30, 30, 30});
   TS_LIST_FOREACH(sensors, 
     mapVec borig;
     mapVec bsz;
@@ -110,9 +110,9 @@ void draw_objectinfo(ObjectInfo context, perception flags, int senseZ, mapVec po
 //if there are multiple objects at this pos this frame (figured through drawnOIs?), choose which one to draw based on the frame count or something
 
   if(!map_item_visible(flags)) {
-//    TCOD_console_print_left(NULL, pos.x*2, pos.y, "X");
+//    TCOD_console_print_left(NULL, pos.x, pos.y, "X");
   } else if(!TCOD_list_contains(drawnOIs, context)) {
-    int drawX = pos.x*2, drawY = pos.y;
+    int drawX = pos.x, drawY = pos.y;
     TCOD_console_set_back(NULL, drawX, drawY, TCOD_color_add(drawinfo_back_color(di), backAugment));
     TCOD_console_set_fore(NULL, drawX, drawY, drawinfo_fore_color(di));
     TCOD_console_set_char(NULL, drawX, drawY, drawinfo_symbol(di));
@@ -152,7 +152,7 @@ void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem, ScrollC
     //this is a very naive approach that completely ignores the possibility of overdraw and 'forgets' object positions
     Stimulus st = TCOD_list_get(stims, i);
     stimtype type = stimulus_type(st);
-    // TCOD_console_print_left(NULL, i*2, 10, "s%i", type);
+    // TCOD_console_print_left(NULL, i, 10, "s%i", type);
     switch(type) {
       case StimTileLitChange:
       case StimTileVisChange:
@@ -173,7 +173,7 @@ void drawstimuli(Map m, Sensor s, TCOD_list_t drawnOIs, perception *mem, ScrollC
         pos = stimulus_obj_sight_change_get_position(st);
         delta = stimulus_obj_moved_get_dir(st);
         oldPt = mapvec_subtract(pos, delta);
-        // TCOD_console_print_left(NULL, oldPt.x*2, oldPt.y, "x");
+        // TCOD_console_print_left(NULL, oldPt.x, oldPt.y, "x");
         draw_object_stimulus(s, st, drawnOIs);
         // TCOD_console_print_left(NULL, 0, 15, "got move");
         break;
@@ -234,7 +234,7 @@ int main( int argc, char *argv[] ) {
 
   object_sense(player);
   
-  TCOD_sys_set_fps(10);
+  TCOD_sys_set_fps(30);
   TCOD_list_t drawnOIs = TCOD_list_new();
   
   char finished = 0;

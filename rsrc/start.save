@@ -4,13 +4,13 @@ save {
   	make_object "player" { //forces a load of player.obj
     	id="player"
     	//the position vector
-    	position=[5,5,1]
+    	position=[10,10,0]
     	//the facing vector. this means "down"
     	facing=[0,1,0]
   	}
   	make_object "stone" { //forces a load of stone.obj
     	id="cage_stone"
-    	position=[3,6,1]
+    	position=[39,16,0]
     	facing=[1,0,0]
   	}
 	}

@@ -1,248 +1,460 @@
-tile "floor" { //1
-	wall_opacity=0 //transparent from sides
-	floor_opacity=15 //opaque from below
-	ceiling_opacity=0 //transparent from above
-	//this is actually the default, but it's here to show how the shorthand works.
-	//it's equivalent to opacity=[0,15,0]
-	//note that tilesense does not yet technically support any opacity levels besides
-	//on and off, and will treat any non-zero value as 'opaque'.
-	//this may change in the future, and tilesense will also be able to differentiate
-	//between 'moving left opacity' and 'moving right opacity', for instance.
-  movement_default="allow"
-  draw {
-    z=0
-  	fore="#AACC55"
-  	symbol='.'
-  }
-  draw {
-    z=1
-  	fore="#669900"
-  	symbol=','
-  }
-  draw {
-    z=2
-  	fore="#336600"
-  	symbol='_'
-  }
-//this is a shorthand for action { on_enter message { message="..." }}
-	on_enter_desc="The moss and soil squish beneath your feet."
-}
-
-tile "wall" { //2
-	uniform_opacity=0 //glass wall
+tile "wall" { //1
+  uniform_opacity=0 //glass wall
   movement_default="deny"
   draw {
     z=0
-  	fore="#FFFFFF"
-  	symbol='#'
+  	back="#000000"
+  	symbol=' '
   }
   draw {
     z=1
-  	fore="#BBBBBB"
-  	symbol='='
+  	back="#000000"
+  	symbol=' '
   }
   draw {
     z=2
-  	fore="#BBBBBB"
-  	symbol='+'
+  	back="#000000"
+  	symbol=' '
   }
 	on_bump_desc="The material is clear, but hard.  It stops you."
 }
 
-tile "shallow pool" { //3
-//  floor_opacity=8  //could do this if there were stuff below for a watery effect?
-//  ceiling_opacity=8 //see above
-  action "splash" {
-		on_enter
-    grant "wet" {
-      duration=60
-			reason="splashed in shallow pool"
-    }
-/*
-		condition { //if this is true
-			any //if any of these are true
-			//blah blah blah
-		}
-		condition { //or this is true
-			all //all of these are true
-			condition { //conditions can be nested
-				any
-				//blah blah blah
-			}
-			condition {
-				//blah blah
-			}
-		}
-*/
-  }
+tile "darkmoss" { //2
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
   movement_default="allow"
   draw {
     z=0
-  	fore="#AAAAFF"
-  	symbol='~'
+  	back="#355E00"
+  	symbol=' '
   }
   draw {
     z=1
-  	fore="#333366"
-  	symbol='-'
+  	back="#557700"
+  	symbol=' '
   }
   draw {
     z=2
-  	fore="#000033"
+  	back="#355E00"
+  	symbol=' '
+  }
+  on_enter_desc="Moss and soil squish beneath your feet."
+}
+
+
+tile "darkmossbud" { //3
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  draw {
+    z=0
+  	back="#355E00"
+  	fore="#82AB4C"
   	symbol='.'
+  }
+  draw {
+    z=1
+  	back="#557700"
+  	fore="#A2CB6C"
+  	symbol='.'
+  }
+  draw {
+    z=2
+  	back="#355E00"
+  	fore="#82AB4C"
+  	symbol='.'
+  }
+  on_enter_desc="There are some small flowers mixed in with the moss."
+}
+
+tile "darkmossflower" { //4
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  draw {
+    z=0
+  	back="#355E00"
+  	fore="#B84747"
+  	symbol='*'
+  }
+  draw {
+    z=1
+  	back="#557700"
+  	fore="#D86767"
+  	symbol='*'
+  }
+  draw {
+    z=2
+  	back="#355E00"
+  	fore="#B84747"
+  	symbol='*'
+  }
+  on_enter_desc="There are some small flowers mixed in with the moss."
+}
+
+tile "lightmoss" { //5
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  draw {
+    z=0
+  	back="#5C8526"
+  	symbol=' '
+  }
+  draw {
+    z=1
+  	back="#77AA33"
+  	symbol=' '
+  }
+  draw {
+    z=2
+  	back="#5C8526"
+  	symbol=' '
+  }
+  on_enter_desc="Moss and soil squish beneath your feet."
+}
+
+tile "lightmossbud" { //6
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  draw {
+    z=0
+  	back="#5C8526"
+  	fore="#A2CB6C"
+  	symbol='.'
+  }
+  draw {
+    z=1
+  	back="#77AA33"
+  	fore="#82AB4C"
+  	symbol='.'
+  }
+  draw {
+    z=2
+  	back="#5C8526"
+  	fore="#82AB4C"
+  	symbol='.'
+  }
+  on_enter_desc="Moss and soil squish beneath your feet."
+}
+
+tile "mud" { //7
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  draw {
+    z=0
+  	back="#804C19"
+  	symbol=' '
+  }
+  draw {
+    z=1
+  	back="#A06C33"
+  	symbol=' '
+  }
+  draw {
+    z=2
+  	back="#804C19"
+  	symbol=' '
+  }
+  on_enter_desc="Your feet sink into the mud."
+}
+
+tile "mudbud" { //8
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  draw {
+    z=0
+  	back="#804C19"
+  	fore="#5C8526"
+  	symbol='.'
+  }
+  draw {
+    z=1
+  	back="#A06C33"
+  	fore="#8CA546"
+  	symbol='.'
+  }
+  draw {
+    z=2
+  	back="#804C19"
+  	fore="#5C8526"
+  	symbol='.'
+  }
+  on_enter_desc="You feet sink into the mud."
+}
+
+tile "water" { //9
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  action "splash" {
+    on_enter
+    grant "wet" {
+      duration=60
+      reason="splashed in shallow pool"
+    }
+  }
+  draw {
+    z=0
+  	back="#00B8FF"
+  	symbol=' '
+  }
+  draw {
+    z=1
+  	back="#00D8FF"
+  	symbol=' '
+  }
+  draw {
+    z=2
+  	back="#00B8FF"
+  	symbol=' '
   }
   on_enter_desc="The water feels pleasant and cool."
 }
 
-tile "dry passage" { //4
-  wall_opacity=6
-  floor_opacity=15
-  ceiling_opacity=15
-  //the combination of those three results in opacity=[6,15,15]
+tile "waterwave" { //10
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  action "splash" {
+    on_enter
+    grant "wet" {
+      duration=60
+	  reason="splashed in shallow pool"
+    }
+  }
+  draw {
+    z=0
+  	back="#00B8FF"
+  	fore="#FFFFFF"
+  	symbol='~'
+  }
+  draw {
+    z=1
+  	back="#00D8FF"
+  	fore="#FFFFFF"
+  	symbol='~'
+  }
+  draw {
+    z=2
+  	back="#00B8FF"
+  	fore="#FFFFFF"
+  	symbol='~'
+  }
+  on_enter_desc="The water feels pleasant and cool."
+}
+
+tile "lightstone" { //11
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=0
   movement_default="deny"
-	movement {
+  draw {
+    z=0
+  	back="#E6E6E6"
+  	symbol=' '
+  }
+  draw {
+    z=1
+  	back="#E6E6E6"
+  	symbol=' '
+  }
+  draw {
+    z=2
+  	back="#E6E6E6"
+  	symbol=' '
+  }
+  on_bump_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
+}
+
+tile "lightstonejag" { //12
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=8
+  movement_default="deny"
+  draw {
+    z=0
+  	back="#E6E6E6"
+  	fore="#000000"
+  	symbol='^'
+  }
+  draw {
+    z=1
+  	back="#E6E6E6"
+  	fore="#000000"
+    symbol='^'
+  }
+  draw {
+    z=2
+  	back="#E6E6E6"
+  	fore="#000000"
+  }
+  on_bump_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
+}
+
+tile "darkstone" { //13
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=8
+  movement_default="deny"
+  draw {
+    z=0
+  	back="#B3B3B3"
+  	symbol=' '
+  }
+  draw {
+    z=1
+  	back="#B3B3B3"
+  	symbol=' '
+  }
+  draw {
+    z=2
+  	back="#B3B3B3"
+  	symbol=' '
+  }
+  on_bump_desc="This rock takes up much of your cell.  The space behind it is invitingly dark."
+}
+
+tile "lightstone_passage" { //14
+	wall_opacity=8
+	floor_opacity=15
+	ceiling_opacity=8
+  movement_default="deny"
+  movement {
 		wet=true
 	}
-	/* could allow if both type a and type b are set:
-	movement {
-	  type_a=true
-	  type_b=true
-	}
-	could allow if type a is set, but not type b:
-	movement {
-	  type_a=true
-	  type_b=false
-	}
-	*/
   draw {
     z=0
-  	fore="#F0F0F0"
-  	symbol=';'
+  	back="#E6E6E6"
+  	symbol=' '
   }
   draw {
     z=1
-  	fore="#C0C0C0"
-  	symbol=':'
+  	back="#E6E6E6"
+  	symbol=' '
   }
   draw {
     z=2
-  	fore="#909090"
-  	symbol='|'
+  	back="#E6E6E6"
+  	symbol=' '
   }
-  on_bump_desc="There is a hole here.  It's almost big enough to fit through."
-  on_enter_desc="Lubricated, you slide through unhindered."
-  on_atop_desc="You stand across a narrow passageway."
+  on_atop_desc="Lubricated, you slide through the narrow passage."
 }
 
-tile "rock" { //5
-  uniform_opacity=15
+tile "lightstonejag_passage" { //15
+	wall_opacity=8
+	floor_opacity=15
+	ceiling_opacity=8
+  movement_default="deny"
+  movement {
+		wet=true
+	}
+  draw {
+    z=0
+  	back="#E6E6E6"
+  	fore="#000000"
+  	symbol='^'
+  }
+  draw {
+    z=1
+  	back="#E6E6E6"
+  	fore="#000000"
+  }
+  draw {
+    z=2
+  	back="#E6E6E6"
+  	fore="#000000"
+  }
+  on_atop_desc="Lubricated, you slide through the narrow passage."
+}
+
+tile "darkstone_passage" { //16
+	wall_opacity=8
+	floor_opacity=15
+	ceiling_opacity=8
+  movement_default="deny"
+  movement {
+		wet=true
+	}
+  draw {
+    z=0
+  	fore="#B3B3B3"
+  	symbol=' '
+  }
+  draw {
+    z=1
+  	fore="#B3B3B3"
+  	symbol=' '
+  }
+  draw {
+    z=2
+  	fore="#B3B3B3"
+  	symbol=' '
+  }
+  on_bump_desc="There's a hole here.  Dry, jagged mud prevents you from entering."
+  on_enter_desc="Lubricated, you slide through the narrow passage."
+  on_atop_desc="Lubricated, you slide through the narrow passage."
+}
+
+tile "log" { //17
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=0
   movement_default="deny"
   draw {
     z=0
-  	fore="#F0F0F0"
-  	symbol='+'
+  	back="#4C1900"
+  	symbol=' '
   }
   draw {
     z=1
-  	fore="#C0C0C0"
-  	symbol='='
+  	back="#4C1900"
+  	symbol=' '
   }
   draw {
     z=2
-  	fore="#909090"
-  	symbol='-'
-  }
-  on_bump_desc="This rock takes up much of your cell.  The space behind it is invitingly dark.  This description is much longer than one might expect it to be in practice.  Blah blah blah blah blah."
-  //atop_desc is used if the player is standing on an empty tile above this tile.
-  //it really only makes sense for things that can block movement.
-  on_atop_desc="The view of the cage from the top of your rock is inspiring."
-}
-
-tile "branch" { //6
-  uniform_opacity=15
-  movement_default="deny"
-  draw {
-    z=0
-  	fore="#8A360F"
-  	symbol='/'
-  }
-  draw {
-    z=1
-  	fore="#8A360F"
-  	symbol='.'
-  }
-  draw {
-    z=2
-  	fore="#471305"
-  	symbol='\''
+  	back="#4C1900"
+  	symbol=' '
   }
   on_bump_desc="You bump into the edge of a very fun branch.  There's probably a way up somewhere."
   on_atop_desc="The branch is fun.  It's the most fun thing in the cell."
 }
 
-tile "stairs" { //7
-  floor_opacity=8
-  ceiling_opacity=8
-	wall_opacity=0
-  movement_default="allow"
-  draw {
-    z=-1
-  	fore="#666666"
-  	symbol='+'
-  }
-  draw {
-    z=0
-  	fore="#FFFFFF"
-  	symbol='<'
-  }
-  draw {
-    z=1
-  	fore="#AAAAAA"
-  	symbol='>'
-  }
-  draw {
-    z=2
-  	fore="#666666"
-  	symbol='-'
-  }
-//later, consider making stairs {} and pit {} use movement flag sets.
-  stairs
-  on_walk_up_desc="You ascend the stairs."
-  on_walk_down_desc="You descend the stairs."
-  on_enter_desc="These stairs are made of painted styrofoam.  Someone thought it might be cute."
-}
-
-tile "weakground" { //8
-  floor_opacity=15
+tile "log_weakspot" { //18
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=0
   movement_default="deny"
   draw {
     z=0
-  	fore="#CCFF66"
-  	symbol='#'
+  	back="#4C1900"
+  	symbol=' '
   }
   draw {
     z=1
-  	fore="#CCFF66"
-  	symbol='x'
+  	back="#4C1900"
+  	symbol=' '
   }
   draw {
     z=2
-  	fore="#99CC33"
-  	symbol='*'
-  }
-  draw {
-    z=3
-  	fore="#669900"
-  	symbol='+'
-  }
-  draw {
-    z=4
-  	fore="#336600"
-  	symbol='-'
+  	back="#4C1900"
+  	symbol=' '
   }
   on_atop_desc="This spot slumps when you stand on it."
 	action {
-		on_fall_onto
+		on_atop
 		condition {
 			check "weight" {
 				target="object"
@@ -258,66 +470,188 @@ tile "weakground" { //8
 			}
 		}
 	}
-  //need this to start as a floor-door, and open to become empty space when triggered (landed on with weight)
-  //this is distinct from wall-doors, which open to become floors when triggered.
-  //in general, tiles will change their properties during actions.  probably shouldn't out-and-out swap indices,
-  //but that would be easiest... if not, we potentially need to give context to every tile index.
-  //another approach is to have doors as objects.  this gets the per-door context that will be needed.
 }
+
+
+tile "logridge_vertical" { //19
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="deny"
+  draw {
+    z=0
+  	back="#4C1900"
+  	fore="#663300"
+  	symbol='|'
+  }
+  draw {
+    z=1
+  	back="#4C1900"
+  	fore="#663300"
+  	symbol='|'
+  }
+  draw {
+    z=2
+  	back="#4C1900"
+  	fore="#663300"
+  	symbol='|'
+  }
+  on_bump_desc="You bump into the edge of a very fun branch.  There's probably a way up somewhere."
+  on_atop_desc="The branch is fun.  It's the most fun thing in the cell."
+}
+
+tile "logridge_horizontal" { //20
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="deny"
+  draw {
+    z=0
+  	back="#4C1900"
+  	fore="#663300"
+  	symbol='-'
+  }
+  draw {
+    z=1
+  	back="#4C1900"
+  	fore="#663300"
+  	symbol='-'
+  }
+  draw {
+    z=2
+  	back="#4C1900"
+  	fore="#663300"
+  	symbol='-'
+  }
+  on_bump_desc="You bump into the edge of a very fun branch.  There's probably a way up somewhere."
+  on_atop_desc="The branch is fun.  It's the most fun thing in the cell."
+}
+
+tile "log_bottom" { //21
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="deny"
+  draw {
+    z=0
+  	back="#4C1900"
+  	fore="#000000"
+  	symbol='_'
+  }
+  draw {
+    z=1
+  	back="#4C1900"
+  	fore="#000000"
+  	symbol='_'
+  }
+  draw {
+    z=2
+  	back="#4C1900"
+  	fore="#000000"
+  	symbol='_'
+  }
+  on_bump_desc="You bump into the edge of a very fun branch.  There's probably a way up somewhere."
+  on_atop_desc="The branch is fun.  It's the most fun thing in the cell."
+}
+
+tile "lightlog" { //22
+	wall_opacity=15
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  draw {
+    z=0
+  	back="#663300"
+  	symbol=' '
+  }
+  draw {
+    z=1
+  	back="#663300"
+  	symbol=' '
+  }
+  draw {
+    z=2
+  	back="#663300"
+  	symbol=' '
+  }
+  on_enter_desc="The log tapers off here.  You can go up."
+}
+
+tile "log_stairs" { //23
+	wall_opacity=0
+	floor_opacity=15
+	ceiling_opacity=0
+  movement_default="allow"
+  draw {
+    z=0
+  	back="#4C1900"
+  	fore="#000000"
+  	symbol='>'
+  }
+  draw {
+    z=1
+  	back="#4C1900"
+  	fore="#000000"
+  	symbol='>'
+  }
+  draw {
+    z=2
+  	back="#4C1900"
+  	fore="#000000"
+  	symbol='>'
+  }
+	stairs
+  on_walk_up_desc="You climb onto the log."
+  on_walk_down_desc="You climb off of the log."
+  on_enter_desc="The log tapers off here.  You can go up."
+}
+
 map "cage" {
   ambient_light=8 //out of 15
-  dimensions=[12, 12, 4]
+  dimensions=[42, 20, 2]
 	tilemap=[ //tank level, two floors and an inaccessible roof
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2, //probably will put the small rock up here? four from the right?
-	  2,0,0,0,0,0,0,0,0,0,0,2, 
-	  2,2,2,2,2,2,2,2,2,2,2,2,
+ 
+ 
+	  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,22, 0, 1, 1, 1, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	  
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2, //weakground passes through here
-	  2,0,0,0,0,0,0,0,0,0,0,2, //branch passes thru on the right
-	  2,0,0,0,0,0,0,0,0,0,0,2, //branch branch branch
-	  2,0,0,0,0,0,0,0,0,0,0,2,
-	  2,0,0,0,0,0,0,0,0,0,0,2, //stairs pass through here
-	  2,0,0,0,0,0,0,0,0,0,7,2,
-	  2,0,0,0,0,0,0,0,0,5,7,2,
-	  2,0,0,0,0,0,0,0,5,5,5,2,
-	  2,0,0,0,0,0,0,5,5,5,5,2,
-	  2,0,0,0,0,0,0,0,5,0,0,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,3,3,3,3,1,1,1,1,0,0,2,
-	  2,3,3,3,3,1,1,1,1,6,6,2,
-	  2,3,3,3,1,1,1,1,1,6,6,2,
-	  2,3,3,1,1,1,1,1,1,6,6,2,
-	  2,1,1,1,1,1,1,1,1,7,7,2,
-	  2,1,1,1,1,1,1,1,1,5,5,2,
-	  2,1,1,1,1,1,1,1,5,5,5,2,
-	  2,1,1,1,1,1,1,5,5,5,1,2,
-	  2,1,1,1,1,1,5,5,5,5,1,2,
-	  2,1,1,1,1,1,1,4,1,1,1,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,3,3,3,3,2,2,2,2,8,8,2,
-	  2,3,3,3,3,2,2,2,2,2,2,2,
-	  2,3,3,3,2,2,2,2,2,2,2,2,
-	  2,3,3,2,2,2,2,2,2,2,2,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2,
-	  2,2,2,2,2,2,2,2,2,2,2,2
+	  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	  1, 9,10, 9, 9, 9,10, 9, 9, 9, 9, 9, 7, 7, 2, 3, 2, 2, 1,21,21,21,21,20,21,21,20,21,21,21,21,20, 1, 7, 8, 9, 1,17,17,19,18, 1,
+	  1, 9, 9, 9,10, 9, 9, 9, 9, 9, 9, 9, 9, 7, 7, 2, 2, 4, 2, 2, 3, 4, 2, 5, 5, 5, 8, 8, 8, 8, 5, 2, 7, 8, 9, 9, 1,19,17,17,19, 1, 
+	  1, 9, 9, 9, 9, 9, 9, 9, 7, 7, 7, 7, 7, 8, 2, 2, 3, 2, 2, 4, 2, 2, 3, 2, 4, 5, 5, 5, 5, 5, 5, 2, 5, 7, 7, 7, 1,17,17,17,17, 1,
+	  1, 9, 9,10, 9, 9, 9, 9, 9, 9, 7, 7, 7, 2, 2, 2, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 3, 2, 2, 2, 2, 5, 5, 5, 6, 7, 1,19,17,19,17, 1,
+	  1, 9,10, 9, 9, 9, 9, 9, 8, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5, 5, 5, 1,17,19,17,19, 1,
+	  1, 9, 9, 9, 9, 9, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5, 7, 1,17,19,17,17, 1,
+	  1, 7, 7, 7, 7, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 7, 7, 7, 1,19,17,17,19, 1,
+	  1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 5, 5, 5, 7,22,23, 1, 1, 1, 1,
+	  1, 2, 2, 7, 7, 8, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2,13,13,13,13,13,13, 2, 1,
+	  1, 7, 8, 7, 7, 2, 2, 2, 2, 2, 2, 7, 7, 8, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 3, 2, 5,13,13,13,13,11,11,11,12,13, 2, 1,
+	  1, 9, 9, 7, 2, 2, 2, 2, 7, 7, 7, 8, 7, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 3, 2, 2, 5,13,13,11,11,12,11,11,11,11,11,13, 1,
+	  1, 9, 7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 3, 4, 5,13,11,11,11,11,11,11,11,11,12,13, 1,
+	  1, 7, 7, 8, 7, 2, 2, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 5, 2, 5,13,13,11,12,11,11,11,13,13,11,11,13, 1,
+	  1, 7, 7, 2, 2, 2, 2, 2, 7, 7, 7, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2,13,13,11,11,13,13,13,13,12,11,13,13,13, 1,
+	  1, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,13,13,13,13,11,13,13,13,11,11,11,11,11,11,11,12, 1,
+	  1, 2, 2, 7, 8, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7,13,13,11,11,12,11,11,12,11,13,11,12,11,11,11, 2,11, 1,
+	  1, 2, 7, 7, 7, 7, 8, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7, 7, 7,13,11,11,11,11,11,11,11,13,11,11,11,11,12,14,11, 1,
+	  1, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7, 7, 7, 7, 7, 7, 7,16,14,14,14,14,15,14,16,14,14,14,14,16,13, 1,
+	  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 	]
 }
