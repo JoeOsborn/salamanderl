@@ -133,10 +133,10 @@ void savelistener_load_map(SaveListener l, StructRecord sr) {
 
 void savelistener_load_save(SaveListener l, StructRecord sr) {
   TCOD_list_t kids = structrecord_children(sr);
+  #warning weird to put the map-force-load here. somewhere else maybe?
   TS_LIST_FOREACH(kids,
     char *t = structrecord_type(each);
     if(STREQ(t, "map")) {
-      #warning weird to put the map-force-load here. somewhere else maybe?
       loader_load_map(l->loader, structrecord_name(each));
       savelistener_load_map(l, each);
     } else if(STREQ(t, "make_object")) {

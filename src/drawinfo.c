@@ -1,4 +1,5 @@
 #include "drawinfo.h"
+#include <stdlib.h>
 
 DrawInfo drawinfo_new() {
   return calloc(1, sizeof(struct _drawinfo));

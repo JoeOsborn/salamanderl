@@ -73,5 +73,5 @@ void scrollconsole_push(ScrollConsole sc, char *msg) {
   }
 }
 void scrollconsole_blit(ScrollConsole sc, TCOD_console_t dest, int destX, int destY, char destOpacity) {
-  TCOD_console_blit(sc->cons, 0, 0, sc->w, sc->h, dest, destX, destY, destOpacity);
+  TCOD_console_blit(sc->cons, 0, 0, sc->w, sc->h, dest, destX, destY, destOpacity, destOpacity);
 }

@@ -4,7 +4,7 @@ TCINCDIR=tilesense/libtcod/include
 CC=mingw32-gcc
 CPP=mingw32-g++
 FLAGS=-g
-CFLAGS=$(FLAGS) -std=gnu9x -I$(INCDIR) -I$(TCINCDIR) -I$(TCINCDIR)/gui -Wall $(TS_FLAGS) $(SDL_FLAGS) $(ZLIB_FLAGS) $(PNG_FLAGS) $(TCOD_FLAGS) -fno-strict-aliasing
+CFLAGS=$(FLAGS) -DMINGW -std=gnu9x -I$(INCDIR) -Itilesense/include -I$(TCINCDIR) -I$(TCINCDIR)/gui -Wall $(TS_FLAGS) $(SDL_FLAGS) $(ZLIB_FLAGS) $(PNG_FLAGS) $(TCOD_FLAGS) -fno-strict-aliasing
 .SUFFIXES: .dll .a .o .h .c .hpp .cpp
 TMPDIR=/tmp/salamanderl
 
@@ -110,15 +110,15 @@ PNG_FLAGS=-I $(PNG_DIR)/include
 PNG_LIBS=$(PNG_DIR)/lib/mingw/libpng.a
 
 # OPENGL
-OPENGL_LIB=-L./tilesense/libtcod -lopengl32
+OPENGL_LIB=-lopengl32
 
 # tilesense
 TS_DIR=tilesense
 TS_FLAGS=-I $(TS_DIR)/include
-TS_LIBS=$(TS_DIR)/libtilesense.a
+TS_LIBS=$(TS_DIR)/libtilesense.a $(TS_DIR)/libtcod/lib/libtcod-mingw-debug.a
 
 salamanderl : $(TMPDIR)/action $(TMPDIR)/loader $(C_OBJS) 
-	$(CPP) $(C_OBJS) $(CFLAGS) -o $@ -L./tilesense/libtcod/lib -ltcod-mingw-debug -L./tilesense -ltilesense $(ZLIB_LIBS) $(PNG_LIBS) $(SDL_LIBS)  $(OPENGL_LIB)
+	$(CPP) $(C_OBJS) $(CFLAGS) -o $@ $(TS_LIBS)
 
 clean :
 	rm -rf $(TMPDIR) salamanderl
